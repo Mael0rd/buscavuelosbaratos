@@ -1,7 +1,10 @@
 # buscavuelosbaratos.com
 
-Busca vuelos baratos desde Costa Rica, detecta ofertas reales contra el historial de precios,
-genera la web estática y publica en Telegram. Corre solo cada 6 horas en GitHub Actions (gratis).
+Busca vuelos baratos saliendo desde 19 países de Hispanoamérica (33 ciudades) hacia cualquier destino,
+detecta ofertas reales contra el historial de precios de cada ruta, genera la web por país y publica
+en Telegram. Corre solo cada 6 horas en GitHub Actions (gratis).
+
+El historial de precios se guarda en la rama `data` (un único commit que se reemplaza en cada corrida).
 
 ```
 Travelpayouts API → SQLite (historial) → detector de ofertas → textos (Claude o plantilla)
@@ -30,14 +33,16 @@ python -m pytest -q
 6. Ve a *Actions → Buscar ofertas y publicar → Run workflow* para la primera corrida.
 
 ## Ajustes (config.yaml)
-- `origins` / `destinations`: rutas a vigilar y precio tope de oferta mientras se acumula historial.
-- `deals.drop_pct`: qué tan por debajo de la mediana debe estar (0.25 = 25%).
-- Los primeros días se usa `max_price`; con ~8 observaciones por ruta pasa a usar la mediana real.
+- `countries`: países (secciones de la web) y sus ciudades de salida.
+- `deals.drop_pct`: qué tan por debajo de la mediana de la ruta debe estar (0.30 = 30%).
+- `deals.cold_start`: tope por distancia mientras una ruta tiene menos de `min_days` días de historial.
+- `social.max_per_run`: máximo de posts en Telegram por corrida (el resto queda solo en la web).
 
 ## Estructura
 | Archivo | Qué hace |
 |---|---|
-| `bvb/fetch.py` | Consulta `aviasales/v3/prices_for_dates` y arma el enlace de afiliado |
+| `bvb/fetch.py` | Consulta `aviasales/v3/prices_for_dates` por origen (todos los destinos) |
+| `bvb/refdata.py` | Nombres de ciudades, países, aerolíneas y coordenadas (Travelpayouts Data Files) |
 | `bvb/deals.py` | Historial, mediana, reglas de oferta y anti-repetición |
 | `bvb/copywriter.py` | Textos con Claude (Haiku) o plantilla |
 | `bvb/site.py` + `templates/` | Web estática, sitemap, robots, CNAME |

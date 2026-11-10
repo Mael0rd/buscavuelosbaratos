@@ -1,50 +1,76 @@
-"""Genera la web estática en ./site (lista para GitHub Pages / Cloudflare Pages)."""
+"""Genera la web estática en ./site: portada con secciones por país,
+una página por país y una por oferta."""
 import shutil
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
-from .copywriter import fmt_date, savings_pct
+from .copywriter import fmt_date, fmt_stops, savings_pct
+
+PER_COUNTRY_HOME = 6
+
+
+def active_deals(conn, cfg: dict) -> list[dict]:
+    today = date.today().isoformat()
+    rows = conn.execute(
+        """SELECT * FROM deals
+           WHERE published_at >= datetime('now', ?) AND substr(departure_at, 1, 10) >= ?
+           ORDER BY score ASC""",
+        (f"-{cfg['deals']['show_days']} days", today),
+    ).fetchall()
+    seen, out = set(), []
+    for r in rows:  # una oferta por ruta: la mejor
+        key = (r["origin"], r["destination"])
+        if key in seen:
+            continue
+        seen.add(key)
+        d = dict(r)
+        d["ahorro"] = savings_pct(d)
+        out.append(d)
+    return out
 
 
 def build(conn, cfg: dict) -> int:
     env = Environment(loader=FileSystemLoader(TEMPLATES_DIR),
                       autoescape=select_autoescape(["html"]))
     env.filters["fecha"] = fmt_date
+    env.filters["escalas"] = fmt_stops
 
-    rows = conn.execute(
-        """SELECT * FROM deals WHERE published_at >= datetime('now', ?)
-           ORDER BY published_at DESC""",
-        (f"-{cfg['deals']['show_days']} days",),
-    ).fetchall()
-    deals = []
-    for r in rows:
-        d = dict(r)
-        d["dest_name"] = cfg["destinations"].get(d["destination"], {}).get("name", d["destination"])
-        d["ahorro"] = savings_pct(d)
-        deals.append(d)
+    deals = active_deals(conn, cfg)
+    countries = []
+    for cid, c in cfg["countries"].items():
+        countries.append({"id": cid, "name": c["name"], "flag": c["flag"],
+                          "deals": [d for d in deals if d["country"] == cid]})
 
     if SITE_DIR.exists():
         shutil.rmtree(SITE_DIR)
     (SITE_DIR / "oferta").mkdir(parents=True)
+    (SITE_DIR / "pais").mkdir()
     if STATIC_DIR.exists():
         shutil.copytree(STATIC_DIR, SITE_DIR / "static")
 
-    ctx = {"site": cfg["site"], "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}
-    (SITE_DIR / "index.html").write_text(
-        env.get_template("index.html").render(deals=deals, **ctx), encoding="utf-8")
-    for d in deals:
-        (SITE_DIR / "oferta" / f"{d['slug']}.html").write_text(
-            env.get_template("deal.html").render(d=d, **ctx), encoding="utf-8")
+    ctx = {"site": cfg["site"], "countries": countries, "total": len(deals),
+           "per_home": PER_COUNTRY_HOME,
+           "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}
+    by_id = {c["id"]: c for c in countries}
 
-    (SITE_DIR / "CNAME").write_text(cfg["site"]["domain"] + "\n")
-    urls = [f"https://{cfg['site']['domain']}/"] + [
-        f"https://{cfg['site']['domain']}/oferta/{d['slug']}.html" for d in deals]
+    def write(path, template, **kw):
+        (SITE_DIR / path).write_text(env.get_template(template).render(**ctx, **kw), encoding="utf-8")
+
+    write("index.html", "index.html")
+    for c in countries:
+        write(f"pais/{c['id']}.html", "country.html", c=c)
+    for d in deals:
+        write(f"oferta/{d['slug']}.html", "deal.html", d=d, c=by_id.get(d["country"]))
+
+    base = f"https://{cfg['site']['domain']}"
+    urls = ([f"{base}/"] + [f"{base}/pais/{c['id']}.html" for c in countries]
+            + [f"{base}/oferta/{d['slug']}.html" for d in deals])
     (SITE_DIR / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         + "".join(f"  <url><loc>{u}</loc></url>\n" for u in urls) + "</urlset>\n")
-    (SITE_DIR / "robots.txt").write_text(
-        f"User-agent: *\nAllow: /\nSitemap: https://{cfg['site']['domain']}/sitemap.xml\n")
+    (SITE_DIR / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n")
+    (SITE_DIR / "CNAME").write_text(cfg["site"]["domain"] + "\n")
     return len(deals)

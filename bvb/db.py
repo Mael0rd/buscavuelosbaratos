@@ -3,25 +3,26 @@ import sqlite3
 from .config import DATA_DIR, DB_PATH
 
 SCHEMA = """
-CREATE TABLE IF NOT EXISTS observations (
-    id INTEGER PRIMARY KEY,
-    origin TEXT, destination TEXT, depart_month TEXT,
-    price REAL, airline TEXT, departure_at TEXT, return_at TEXT,
-    transfers INTEGER, link TEXT,
-    found_at TEXT DEFAULT (datetime('now'))
+-- Precio mínimo visto cada día por ruta (origen-destino): base para la mediana
+CREATE TABLE IF NOT EXISTS prices_daily (
+    origin TEXT, destination TEXT, day TEXT, min_price REAL,
+    PRIMARY KEY (origin, destination, day)
 );
-CREATE INDEX IF NOT EXISTS idx_obs_route ON observations(origin, destination, found_at);
 
 CREATE TABLE IF NOT EXISTS deals (
     id INTEGER PRIMARY KEY,
     slug TEXT UNIQUE,
-    origin TEXT, destination TEXT, depart_month TEXT,
-    price REAL, baseline REAL, airline TEXT,
+    country TEXT, flag TEXT,
+    origin TEXT, origin_name TEXT, origin_airport TEXT,
+    destination TEXT, dest_name TEXT, dest_country TEXT, destination_airport TEXT,
+    price REAL, baseline REAL, threshold REAL, score REAL,
+    airline TEXT, airline_name TEXT,
     departure_at TEXT, return_at TEXT, transfers INTEGER, link TEXT,
     copy_web TEXT, copy_social TEXT,
     published_at TEXT DEFAULT (datetime('now')),
-    telegram_sent INTEGER DEFAULT 0
+    telegram_sent INTEGER DEFAULT 0   -- 0 pendiente, 1 enviado, 2 omitido
 );
+CREATE INDEX IF NOT EXISTS idx_deals_route ON deals(origin, destination, published_at);
 """
 
 

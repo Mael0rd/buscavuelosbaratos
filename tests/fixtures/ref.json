@@ -1,0 +1,352 @@
+{
+ "cities": [
+  {
+   "code": "SJO",
+   "name": "San José",
+   "country_code": "CR",
+   "coordinates": {
+    "lat": 9.99,
+    "lon": -84.2
+   },
+   "name_translations": {
+    "en": "San José"
+   }
+  },
+  {
+   "code": "LIR",
+   "name": "Liberia",
+   "country_code": "CR",
+   "coordinates": {
+    "lat": 10.59,
+    "lon": -85.54
+   },
+   "name_translations": {
+    "en": "Liberia"
+   }
+  },
+  {
+   "code": "MEX",
+   "name": "Ciudad de México",
+   "country_code": "MX",
+   "coordinates": {
+    "lat": 19.43,
+    "lon": -99.07
+   },
+   "name_translations": {
+    "en": "Ciudad de México"
+   }
+  },
+  {
+   "code": "CUN",
+   "name": "Cancún",
+   "country_code": "MX",
+   "coordinates": {
+    "lat": 21.04,
+    "lon": -86.87
+   },
+   "name_translations": {
+    "en": "Cancún"
+   }
+  },
+  {
+   "code": "BOG",
+   "name": "Bogotá",
+   "country_code": "CO",
+   "coordinates": {
+    "lat": 4.7,
+    "lon": -74.14
+   },
+   "name_translations": {
+    "en": "Bogotá"
+   }
+  },
+  {
+   "code": "MDE",
+   "name": "Medellín",
+   "country_code": "CO",
+   "coordinates": {
+    "lat": 6.16,
+    "lon": -75.42
+   },
+   "name_translations": {
+    "en": "Medellín"
+   }
+  },
+  {
+   "code": "BUE",
+   "name": "Buenos Aires",
+   "country_code": "AR",
+   "coordinates": {
+    "lat": -34.82,
+    "lon": -58.53
+   },
+   "name_translations": {
+    "en": "Buenos Aires"
+   }
+  },
+  {
+   "code": "SCL",
+   "name": "Santiago",
+   "country_code": "CL",
+   "coordinates": {
+    "lat": -33.39,
+    "lon": -70.79
+   },
+   "name_translations": {
+    "en": "Santiago"
+   }
+  },
+  {
+   "code": "SDQ",
+   "name": "Santo Domingo",
+   "country_code": "DO",
+   "coordinates": {
+    "lat": 18.43,
+    "lon": -69.67
+   },
+   "name_translations": {
+    "en": "Santo Domingo"
+   }
+  },
+  {
+   "code": "LIM",
+   "name": "Lima",
+   "country_code": "PE",
+   "coordinates": {
+    "lat": -12.02,
+    "lon": -77.11
+   },
+   "name_translations": {
+    "en": "Lima"
+   }
+  },
+  {
+   "code": "MIA",
+   "name": "Miami",
+   "country_code": "US",
+   "coordinates": {
+    "lat": 25.79,
+    "lon": -80.29
+   },
+   "name_translations": {
+    "en": "Miami"
+   }
+  },
+  {
+   "code": "NYC",
+   "name": "Nueva York",
+   "country_code": "US",
+   "coordinates": {
+    "lat": 40.64,
+    "lon": -73.78
+   },
+   "name_translations": {
+    "en": "Nueva York"
+   }
+  },
+  {
+   "code": "MAD",
+   "name": "Madrid",
+   "country_code": "ES",
+   "coordinates": {
+    "lat": 40.47,
+    "lon": -3.56
+   },
+   "name_translations": {
+    "en": "Madrid"
+   }
+  },
+  {
+   "code": "BCN",
+   "name": "Barcelona",
+   "country_code": "ES",
+   "coordinates": {
+    "lat": 41.3,
+    "lon": 2.08
+   },
+   "name_translations": {
+    "en": "Barcelona"
+   }
+  },
+  {
+   "code": "PTY",
+   "name": "Ciudad de Panamá",
+   "country_code": "PA",
+   "coordinates": {
+    "lat": 9.07,
+    "lon": -79.38
+   },
+   "name_translations": {
+    "en": "Ciudad de Panamá"
+   }
+  },
+  {
+   "code": "ORL",
+   "name": "Orlando",
+   "country_code": "US",
+   "coordinates": {
+    "lat": 28.43,
+    "lon": -81.31
+   },
+   "name_translations": {
+    "en": "Orlando"
+   }
+  },
+  {
+   "code": "LAX",
+   "name": "Los Ángeles",
+   "country_code": "US",
+   "coordinates": {
+    "lat": 33.94,
+    "lon": -118.41
+   },
+   "name_translations": {
+    "en": "Los Ángeles"
+   }
+  },
+  {
+   "code": "RIO",
+   "name": "Río de Janeiro",
+   "country_code": "BR",
+   "coordinates": {
+    "lat": -22.81,
+    "lon": -43.25
+   },
+   "name_translations": {
+    "en": "Río de Janeiro"
+   }
+  },
+  {
+   "code": "MVD",
+   "name": "Montevideo",
+   "country_code": "UY",
+   "coordinates": {
+    "lat": -34.84,
+    "lon": -56.03
+   },
+   "name_translations": {
+    "en": "Montevideo"
+   }
+  },
+  {
+   "code": "GUA",
+   "name": "Ciudad de Guatemala",
+   "country_code": "GT",
+   "coordinates": {
+    "lat": 14.58,
+    "lon": -90.53
+   },
+   "name_translations": {
+    "en": "Ciudad de Guatemala"
+   }
+  },
+  {
+   "code": "HAV",
+   "name": "La Habana",
+   "country_code": "CU",
+   "coordinates": {
+    "lat": 22.99,
+    "lon": -82.41
+   },
+   "name_translations": {
+    "en": "La Habana"
+   }
+  }
+ ],
+ "countries": [
+  {
+   "code": "CR",
+   "name": "Costa Rica"
+  },
+  {
+   "code": "MX",
+   "name": "México"
+  },
+  {
+   "code": "CO",
+   "name": "Colombia"
+  },
+  {
+   "code": "AR",
+   "name": "Argentina"
+  },
+  {
+   "code": "CL",
+   "name": "Chile"
+  },
+  {
+   "code": "DO",
+   "name": "República Dominicana"
+  },
+  {
+   "code": "PE",
+   "name": "Perú"
+  },
+  {
+   "code": "US",
+   "name": "Estados Unidos"
+  },
+  {
+   "code": "ES",
+   "name": "España"
+  },
+  {
+   "code": "PA",
+   "name": "Panamá"
+  },
+  {
+   "code": "BR",
+   "name": "Brasil"
+  },
+  {
+   "code": "UY",
+   "name": "Uruguay"
+  },
+  {
+   "code": "GT",
+   "name": "Guatemala"
+  },
+  {
+   "code": "CU",
+   "name": "Cuba"
+  }
+ ],
+ "airlines": [
+  {
+   "code": "AV",
+   "name": "Avianca"
+  },
+  {
+   "code": "CM",
+   "name": "Copa Airlines"
+  },
+  {
+   "code": "UA",
+   "name": "United"
+  },
+  {
+   "code": "AA",
+   "name": "American Airlines"
+  },
+  {
+   "code": "IB",
+   "name": "Iberia"
+  },
+  {
+   "code": "LA",
+   "name": "LATAM"
+  },
+  {
+   "code": "AR",
+   "name": "Aerolíneas Argentinas"
+  },
+  {
+   "code": "Y4",
+   "name": "Volaris"
+  },
+  {
+   "code": "NK",
+   "name": "Spirit"
+  }
+ ]
+}

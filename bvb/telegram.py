@@ -4,13 +4,9 @@ from .config import env
 
 
 def send(text: str) -> bool:
-    token, channel = env("TELEGRAM_BOT_TOKEN"), env("TELEGRAM_CHANNEL")
-    if not token or not channel:
-        print("[telegram] sin credenciales, se omite")
-        return False
     r = requests.post(
-        f"https://api.telegram.org/bot{token}/sendMessage",
-        json={"chat_id": channel, "text": text, "disable_web_page_preview": False},
+        f"https://api.telegram.org/bot{env('TELEGRAM_BOT_TOKEN')}/sendMessage",
+        json={"chat_id": env("TELEGRAM_CHANNEL"), "text": text},
         timeout=20,
     )
     if not r.ok:
@@ -18,16 +14,23 @@ def send(text: str) -> bool:
     return r.ok
 
 
-def publish_pending(conn, site_url: str) -> int:
+def publish_pending(conn, site_url: str, max_per_run: int) -> int:
+    """Publica las mejores ofertas nuevas (hasta max_per_run). El resto queda
+    solo en la web, para no saturar el canal."""
     if not env("TELEGRAM_BOT_TOKEN") or not env("TELEGRAM_CHANNEL"):
         print("[telegram] sin credenciales, se omite")
         return 0
+    # Pendientes viejas (p. ej. de antes de conectar Telegram) no se envían
+    conn.execute("""UPDATE deals SET telegram_sent=2
+                    WHERE telegram_sent=0 AND published_at < datetime('now', '-1 day')""")
     rows = conn.execute(
-        "SELECT * FROM deals WHERE telegram_sent=0 ORDER BY published_at"
-    ).fetchall()
+        "SELECT * FROM deals WHERE telegram_sent=0 ORDER BY score ASC").fetchall()
     sent = 0
-    for row in rows:
-        text = row["copy_social"] + f"\n🔎 Más ofertas: {site_url}"
+    for i, row in enumerate(rows):
+        if i >= max_per_run:
+            conn.execute("UPDATE deals SET telegram_sent=2 WHERE id=?", (row["id"],))
+            continue
+        text = row["copy_social"] + f"\n🔎 Más ofertas desde tu país: {site_url}/pais/{row['country']}.html"
         if send(text):
             conn.execute("UPDATE deals SET telegram_sent=1 WHERE id=?", (row["id"],))
             sent += 1

@@ -1,0 +1,5 @@
+<nav class="chips" aria-label="Países de salida">
+  {% for x in countries if x.deals %}
+  <a href="/pais/{{ x.id }}.html"{% if c is defined and c and c.id == x.id %} class="on"{% endif %}>{{ x.flag }} {{ x.name }} <b>{{ x.deals|length }}</b></a>
+  {% endfor %}
+</nav>

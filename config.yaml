@@ -2,36 +2,50 @@
 site:
   domain: buscavuelosbaratos.com
   title: "Busca Vuelos Baratos"
-  tagline: "Ofertas de vuelos desde Costa Rica, detectadas automáticamente"
+  tagline: "Ofertas de vuelos desde Hispanoamérica, detectadas automáticamente"
   currency: usd
 
-# Aeropuertos de salida (IATA)
-origins: [SJO, LIR]
-
-# Destinos a vigilar. max_price = precio "de oferta" mientras no hay historial suficiente.
-destinations:
-  MIA: { name: "Miami", max_price: 250 }
-  NYC: { name: "Nueva York", max_price: 350 }
-  MCO: { name: "Orlando", max_price: 280 }
-  LAX: { name: "Los Ángeles", max_price: 400 }
-  MEX: { name: "Ciudad de México", max_price: 300 }
-  CUN: { name: "Cancún", max_price: 300 }
-  BOG: { name: "Bogotá", max_price: 280 }
-  MDE: { name: "Medellín", max_price: 280 }
-  LIM: { name: "Lima", max_price: 400 }
-  PTY: { name: "Panamá", max_price: 200 }
-  MAD: { name: "Madrid", max_price: 650 }
-  BCN: { name: "Barcelona", max_price: 700 }
+# Países de salida (sección de la web) y sus ciudades de salida (códigos IATA de ciudad).
+# El orden aquí es el orden en que aparecen en la web.
+countries:
+  mexico:          { name: "México",               flag: "🇲🇽", origins: [MEX, CUN, GDL, MTY, TIJ] }
+  guatemala:       { name: "Guatemala",            flag: "🇬🇹", origins: [GUA] }
+  el-salvador:     { name: "El Salvador",          flag: "🇸🇻", origins: [SAL] }
+  honduras:        { name: "Honduras",             flag: "🇭🇳", origins: [SAP, TGU] }
+  nicaragua:       { name: "Nicaragua",            flag: "🇳🇮", origins: [MGA] }
+  costa-rica:      { name: "Costa Rica",           flag: "🇨🇷", origins: [SJO, LIR] }
+  panama:          { name: "Panamá",               flag: "🇵🇦", origins: [PTY] }
+  cuba:            { name: "Cuba",                 flag: "🇨🇺", origins: [HAV] }
+  dominicana:      { name: "República Dominicana", flag: "🇩🇴", origins: [SDQ, PUJ, STI] }
+  puerto-rico:     { name: "Puerto Rico",          flag: "🇵🇷", origins: [SJU] }
+  colombia:        { name: "Colombia",             flag: "🇨🇴", origins: [BOG, MDE, CLO, CTG] }
+  venezuela:       { name: "Venezuela",            flag: "🇻🇪", origins: [CCS] }
+  ecuador:         { name: "Ecuador",              flag: "🇪🇨", origins: [UIO, GYE] }
+  peru:            { name: "Perú",                 flag: "🇵🇪", origins: [LIM] }
+  bolivia:         { name: "Bolivia",              flag: "🇧🇴", origins: [VVI, LPB] }
+  chile:           { name: "Chile",                flag: "🇨🇱", origins: [SCL] }
+  argentina:       { name: "Argentina",            flag: "🇦🇷", origins: [BUE, COR] }
+  uruguay:         { name: "Uruguay",              flag: "🇺🇾", origins: [MVD] }
+  paraguay:        { name: "Paraguay",             flag: "🇵🇾", origins: [ASU] }
 
 search:
-  months_ahead: 6        # cuántos meses hacia adelante consultar
+  months_ahead: 9        # meses hacia adelante a revisar
   round_trip: true
-  limit_per_query: 10
+  limit_per_query: 1000  # destinos por consulta (un boleto, el más barato, por destino)
+  max_transfers: 2       # descartar boletos con más escalas
+  pause_seconds: 0.5     # pausa entre consultas para respetar límites de la API
 
 deals:
-  drop_pct: 0.25         # oferta = 25% o más bajo que la mediana histórica
-  min_samples: 8         # observaciones mínimas para confiar en la mediana
-  history_days: 45
-  repost_days: 7         # no repetir la misma ruta/mes antes de esto...
+  # Con historial: oferta = al menos drop_pct por debajo de la mediana de la ruta
+  drop_pct: 0.30
+  min_days: 7            # días de historial necesarios para usar la mediana
+  history_days: 60
+  # Sin historial (primeros días): tope según distancia.
+  # tope_usd = k * (km ida y vuelta) ^ exp   → p. ej. SJO-MIA ≈ $205, SJO-MAD ≈ $560
+  cold_start: { k: 1.0, exp: 0.65 }
+  repost_days: 7         # no repetir una ruta antes de esto...
   repost_extra_drop: 0.10  # ...salvo que baje otro 10%
-  show_days: 14          # cuánto tiempo sigue visible una oferta en la web
+  show_days: 14          # días que una oferta sigue visible en la web
+
+social:
+  max_per_run: 5         # máximo de posts en Telegram por corrida (las mejores)

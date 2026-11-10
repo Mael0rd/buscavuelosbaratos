@@ -1,7 +1,8 @@
 """Obtiene precios desde la Aviasales Data API (Travelpayouts).
 
-Usa /aviasales/v3/prices_for_dates: devuelve los boletos más baratos
-encontrados por usuarios de Aviasales en las últimas ~48 h (precios en caché).
+Usa /aviasales/v3/prices_for_dates indicando SOLO el origen y unique=true:
+devuelve el boleto más barato hacia cada destino (precios encontrados por
+usuarios de Aviasales en las últimas ~48 h). Una consulta por origen y mes.
 """
 import json
 import time
@@ -9,16 +10,15 @@ from datetime import date
 
 import requests
 
-from .config import ROOT, env
+from .config import ROOT, env, origin_country_map
 
 API_URL = "https://api.travelpayouts.com/aviasales/v3/prices_for_dates"
 AVIASALES_BASE = "https://www.aviasales.com"
 
 
-def _months_ahead(n: int) -> list[str]:
-    today = date.today()
-    out = []
-    y, m = today.year, today.month
+def months_ahead(n: int, today: date | None = None) -> list[str]:
+    today = today or date.today()
+    y, m, out = today.year, today.month, []
     for _ in range(n):
         out.append(f"{y:04d}-{m:02d}")
         m += 1
@@ -28,8 +28,7 @@ def _months_ahead(n: int) -> list[str]:
 
 
 def affiliate_link(relative_link: str, marker: str) -> str:
-    """Convierte el 'link' relativo de la API en un enlace de afiliado.
-    Verifica el formato en tu panel de Travelpayouts (generador de enlaces)."""
+    """Convierte el 'link' relativo de la API en un enlace de afiliado."""
     if not relative_link:
         return ""
     url = AVIASALES_BASE + relative_link
@@ -38,37 +37,40 @@ def affiliate_link(relative_link: str, marker: str) -> str:
     return url
 
 
-def fetch_route(origin: str, destination: str, month: str, cfg: dict) -> list[dict]:
+def fetch_origin_month(origin: str, month: str, cfg: dict) -> list[dict]:
     params = {
         "origin": origin,
-        "destination": destination,
         "departure_at": month,
         "one_way": "false" if cfg["search"]["round_trip"] else "true",
         "sorting": "price",
         "direct": "false",
-        "unique": "false",
+        "unique": "true",
         "currency": cfg["site"]["currency"],
         "limit": cfg["search"]["limit_per_query"],
         "page": 1,
         "token": env("TRAVELPAYOUTS_TOKEN"),
     }
-    r = requests.get(API_URL, params=params, timeout=30)
+    r = requests.get(API_URL, params=params, timeout=45)
     r.raise_for_status()
     payload = r.json()
     if not payload.get("success", True):
-        raise RuntimeError(f"API error {origin}-{destination} {month}: {payload}")
+        raise RuntimeError(f"API: {payload}")
     return payload.get("data", [])
 
 
-def normalize(raw: dict, marker: str) -> dict:
+def normalize(raw: dict, origin: str, marker: str) -> dict:
+    dest = raw.get("destination", "")
     return {
-        "origin": raw.get("origin"),
-        "destination": raw.get("destination"),
+        "origin": origin,
+        "origin_airport": raw.get("origin_airport") or origin,
+        "destination": dest,
+        "destination_airport": raw.get("destination_airport") or dest,
         "price": float(raw.get("price")),
         "airline": raw.get("airline", ""),
         "departure_at": raw.get("departure_at", ""),
         "return_at": raw.get("return_at", ""),
         "transfers": int(raw.get("transfers", 0) or 0),
+        "return_transfers": int(raw.get("return_transfers", 0) or 0),
         "link": affiliate_link(raw.get("link", ""), marker),
     }
 
@@ -78,21 +80,26 @@ def fetch_all(cfg: dict) -> list[dict]:
 
     if env("BVB_MOCK") == "1":
         with open(ROOT / "tests/fixtures/sample_prices.json", encoding="utf-8") as f:
-            return [normalize(x, marker) for x in json.load(f)]
+            return [normalize(x, x["origin"], marker) for x in json.load(f)]
 
     if not env("TRAVELPAYOUTS_TOKEN"):
-        # Sin token todavía: se publica la web vacía en vez de fallar
         print("[aviso] Falta TRAVELPAYOUTS_TOKEN: no se buscan precios en esta corrida")
         return []
 
-    tickets = []
-    for origin in cfg["origins"]:
-        for dest in cfg["destinations"]:
-            for month in _months_ahead(cfg["search"]["months_ahead"]):
-                try:
-                    rows = fetch_route(origin, dest, month, cfg)
-                    tickets += [normalize(x, marker) for x in rows]
-                except Exception as e:  # una ruta fallida no detiene el resto
-                    print(f"[aviso] {origin}-{dest} {month}: {e}")
-                time.sleep(0.4)  # respetar límites de la API
+    tickets, errors = [], 0
+    months = months_ahead(cfg["search"]["months_ahead"])
+    for origin in origin_country_map(cfg):
+        n = 0
+        for month in months:
+            try:
+                rows = fetch_origin_month(origin, month, cfg)
+                tickets += [normalize(x, origin, marker) for x in rows if x.get("price")]
+                n += len(rows)
+            except Exception as e:  # un fallo no detiene el resto
+                errors += 1
+                print(f"[aviso] {origin} {month}: {e}")
+            time.sleep(cfg["search"]["pause_seconds"])
+        print(f"  {origin}: {n} tarifas")
+    if errors:
+        print(f"[aviso] consultas con error: {errors}")
     return tickets

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Vuelos baratos desde {{ c.name }} | {{ site.title }}{% endblock %}
+{% block description %}Ofertas de vuelos baratos saliendo desde {{ c.name }}, actualizadas varias veces al día.{% endblock %}
+{% block content %}
+<a class="back" href="/">← Todos los países</a>
+<section class="hero">
+  <h1>{{ c.flag }} Vuelos baratos desde {{ c.name }}</h1>
+  <p>Ofertas de ida y vuelta saliendo desde {{ c.name }} que están muy por debajo de su precio habitual.</p>
+</section>
+
+{% include "_chips.html" %}
+
+{% if c.deals %}
+<ul class="grid">
+  {% for d in c.deals %}{% include "_card.html" %}{% endfor %}
+</ul>
+{% else %}
+<p class="empty">Ahora mismo no hay ofertas destacadas desde {{ c.name }}. Volvemos a revisar en unas horas.</p>
+{% endif %}
+{% endblock %}

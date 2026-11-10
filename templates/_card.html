@@ -1,0 +1,9 @@
+<li class="card">
+  <a href="/oferta/{{ d.slug }}.html">
+    <div class="from">{{ d.origin_name }} ({{ d.origin }})</div>
+    <div class="route"><span>→</span> {{ d.dest_name }}{% if d.dest_country %}<span class="ctry">, {{ d.dest_country }}</span>{% endif %}</div>
+    <div class="price">${{ "%.0f"|format(d.price) }} <small>ida y vuelta</small></div>
+    {% if d.ahorro >= 10 %}<div class="badge">−{{ d.ahorro }}% vs. lo normal</div>{% endif %}
+    <div class="meta">{{ d.departure_at|fecha }}{% if d.return_at %} – {{ d.return_at|fecha }}{% endif %} · {{ d.transfers|escalas }}</div>
+  </a>
+</li>

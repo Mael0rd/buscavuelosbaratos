@@ -1,17 +1,20 @@
 {% extends "base.html" %}
-{% block title %}{{ d.origin }} → {{ d.dest_name }} por ${{ "%.0f"|format(d.price) }} | {{ site.title }}{% endblock %}
+{% block title %}{{ d.origin_name }} → {{ d.dest_name }} por ${{ "%.0f"|format(d.price) }} | {{ site.title }}{% endblock %}
 {% block description %}{{ d.copy_web[:155] }}{% endblock %}
 {% block content %}
 <article class="deal">
-  <a class="back" href="/">← Todas las ofertas</a>
-  <h1>{{ d.origin }} → {{ d.dest_name }}</h1>
+  <a class="back" href="/pais/{{ d.country }}.html">← Ofertas desde {% if c %}{{ c.flag }} {{ c.name }}{% else %}tu país{% endif %}</a>
+  <h1>{{ d.origin_name }} → {{ d.dest_name }}</h1>
+  {% if d.dest_country %}<p class="sub">{{ d.dest_country }}</p>{% endif %}
   <div class="price big">${{ "%.0f"|format(d.price) }} <small>ida y vuelta</small></div>
   {% if d.ahorro >= 10 %}<div class="badge">−{{ d.ahorro }}% vs. lo normal (~${{ "%.0f"|format(d.baseline) }})</div>{% endif %}
   <dl>
+    <dt>Sale de</dt><dd>{{ d.origin_name }} ({{ d.origin_airport }})</dd>
+    <dt>Llega a</dt><dd>{{ d.dest_name }} ({{ d.destination_airport }})</dd>
     <dt>Salida</dt><dd>{{ d.departure_at|fecha }}</dd>
     {% if d.return_at %}<dt>Regreso</dt><dd>{{ d.return_at|fecha }}</dd>{% endif %}
-    <dt>Escalas</dt><dd>{% if d.transfers == 0 %}Directo{% else %}{{ d.transfers }}{% endif %}</dd>
-    {% if d.airline %}<dt>Aerolínea</dt><dd>{{ d.airline }}</dd>{% endif %}
+    <dt>Escalas (ida)</dt><dd>{{ d.transfers|escalas|capitalize }}</dd>
+    {% if d.airline_name %}<dt>Aerolínea</dt><dd>{{ d.airline_name }}</dd>{% endif %}
   </dl>
   <p>{{ d.copy_web }}</p>
   <a class="cta" href="{{ d.link }}" rel="sponsored nofollow noopener" target="_blank">Ver vuelo y precio actual</a>

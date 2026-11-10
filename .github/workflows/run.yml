@@ -6,7 +6,7 @@ on:
   workflow_dispatch: {}       # botón "Run workflow" manual
   push:
     branches: [main]          # publicar al subir cambios de código
-    paths-ignore: ["data/**"]
+    paths-ignore: ["**.md"]
 
 permissions:
   contents: write
@@ -20,16 +20,29 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     environment:
       name: github-pages
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main            # siempre la versión más reciente, también en re-runs
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
       - run: pip install -r requirements.txt
+
+      # El historial de precios vive en la rama "data" (un solo commit que se
+      # reemplaza cada vez), para que el repositorio no crezca sin control.
+      - name: Recuperar historial
+        run: |
+          mkdir -p data
+          if git fetch --depth=1 origin data 2>/dev/null; then
+            git show FETCH_HEAD:historial.sqlite > data/historial.sqlite && echo "Historial recuperado"
+          else
+            echo "Sin historial previo (primera corrida)"
+          fi
 
       - name: Pipeline
         env:
@@ -40,15 +53,18 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python -m bvb.main
 
-      - name: Guardar historial de precios
+      - name: Guardar historial
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git config user.name "bvb-bot"
-          git config user.email "bvb-bot@users.noreply.github.com"
-          git add data/bvb.sqlite
-          git commit -m "Actualizar precios $(date -u +'%Y-%m-%d %H:%M')" || echo "sin cambios"
-          # Por si main avanzó durante la corrida (otro commit), ponerse al día antes de subir
-          git pull --rebase origin main
-          git push origin HEAD:main
+          rm -rf /tmp/hist && mkdir /tmp/hist
+          cp data/historial.sqlite /tmp/hist/
+          cd /tmp/hist
+          git init -q -b data
+          git add historial.sqlite
+          git -c user.name="bvb-bot" -c user.email="bvb-bot@users.noreply.github.com" \
+              commit -qm "Historial $(date -u +'%Y-%m-%d %H:%M')"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data
 
       - uses: actions/upload-pages-artifact@v3
         with:

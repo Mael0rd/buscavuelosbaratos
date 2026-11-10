@@ -2,12 +2,23 @@ import sqlite3
 
 from bvb import deals as dl
 from bvb.db import SCHEMA
+from bvb.refdata import Ref
 
 CFG = {
-    "destinations": {"MIA": {"name": "Miami", "max_price": 250}},
-    "deals": {"drop_pct": 0.25, "min_samples": 8, "history_days": 45,
+    "countries": {"costa-rica": {"name": "Costa Rica", "flag": "🇨🇷", "origins": ["SJO"]}},
+    "deals": {"drop_pct": 0.30, "min_days": 7, "history_days": 60,
+              "cold_start": {"k": 1.0, "exp": 0.65},
               "repost_days": 7, "repost_extra_drop": 0.10},
 }
+REF = Ref(
+    cities=[{"code": "SJO", "name": "San José", "country_code": "CR",
+             "coordinates": {"lat": 9.99, "lon": -84.20}},
+            {"code": "MIA", "name": "Miami", "country_code": "US",
+             "coordinates": {"lat": 25.79, "lon": -80.29}}],
+    countries=[{"code": "US", "name": "Estados Unidos"}],
+    airlines=[{"code": "AA", "name": "American Airlines"}],
+)
+TODAY = "2026-11-20"
 
 
 def conn():
@@ -17,30 +28,58 @@ def conn():
     return c
 
 
-def t(price, month="2027-01"):
-    return {"origin": "SJO", "destination": "MIA", "price": price, "airline": "AA",
+def t(price, month="2027-01", transfers=0):
+    return {"origin": "SJO", "origin_airport": "SJO", "destination": "MIA",
+            "destination_airport": "MIA", "price": price, "airline": "AA",
             "departure_at": f"{month}-10", "return_at": f"{month}-17",
-            "transfers": 0, "link": "x"}
+            "transfers": transfers, "return_transfers": 0, "link": "x"}
 
 
-def test_cold_start_uses_max_price():
+def best(*tickets):
+    return dl.route_best(list(tickets), max_transfers=2)
+
+
+def seed_history(c, price, days=10):
+    for i in range(1, days + 1):
+        c.execute("INSERT INTO prices_daily VALUES ('SJO','MIA',?,?)", (f"2026-11-{20 - i:02d}", price))
+
+
+def test_haversine_sjo_mia():
+    km = dl.haversine_km((9.99, -84.20), (25.79, -80.29))
+    assert 1700 < km < 1900
+
+
+def test_route_best_picks_cheapest_month_and_drops_many_stops():
+    b = best(t(300, "2027-01"), t(250, "2027-03"), t(100, transfers=3))
+    assert b[("SJO", "MIA")]["price"] == 250
+
+
+def test_cold_start_uses_distance_cap():
+    c = conn()  # tope SJO-MIA ≈ $205
+    assert len(dl.find_deals(c, best(t(190)), CFG, REF, TODAY)) == 1
+    assert dl.find_deals(c, best(t(230)), CFG, REF, TODAY) == []
+
+
+def test_history_requires_30pct_drop():
     c = conn()
-    assert len(dl.find_deals(c, [t(240)], CFG, "2999-01-01")) == 1
-    assert len(dl.find_deals(c, [t(260)], CFG, "2999-01-01")) == 0
-
-
-def test_history_median_rule():
-    c = conn()
-    dl.save_observations(c, [t(400)] * 10)          # mediana 400
-    assert dl.find_deals(c, [t(310)], CFG, "2999-01-01") == []   # solo -22%
-    found = dl.find_deals(c, [t(290)], CFG, "2999-01-01")        # -27%
+    seed_history(c, 400)                                         # mediana 400
+    assert dl.find_deals(c, best(t(300)), CFG, REF, TODAY) == []  # solo -25%
+    found = dl.find_deals(c, best(t(270)), CFG, REF, TODAY)       # -32%
     assert found and found[0]["baseline"] == 400
+    assert found[0]["dest_name"] == "Miami" and found[0]["country"] == "costa-rica"
+
+
+def test_today_not_in_baseline():
+    c = conn()
+    seed_history(c, 400)
+    dl.update_daily(c, best(t(100)), TODAY)  # el mínimo de hoy no cuenta en la mediana
+    assert dl.baseline(c, "SJO", "MIA", TODAY, 60) == (400, 10)
 
 
 def test_no_repost_unless_cheaper():
     c = conn()
-    d = dl.find_deals(c, [t(240)], CFG, "2999-01-01")[0]
+    d = dl.find_deals(c, best(t(190)), CFG, REF, TODAY)[0]
     d.update(slug="a", copy_web="", copy_social="")
     dl.save_deal(c, d)
-    assert dl.find_deals(c, [t(235)], CFG, "2999-01-01") == []   # casi igual
-    assert len(dl.find_deals(c, [t(210)], CFG, "2999-01-01")) == 1  # bajó >10%
+    assert dl.find_deals(c, best(t(185)), CFG, REF, TODAY) == []     # casi igual
+    assert len(dl.find_deals(c, best(t(160)), CFG, REF, TODAY)) == 1  # bajó >10%

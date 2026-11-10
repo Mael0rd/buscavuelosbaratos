@@ -5,15 +5,21 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
+REF_DIR = DATA_DIR / "ref"
 SITE_DIR = ROOT / "site"
 TEMPLATES_DIR = ROOT / "templates"
 STATIC_DIR = ROOT / "static"
-DB_PATH = DATA_DIR / "bvb.sqlite"
+DB_PATH = DATA_DIR / "historial.sqlite"
 
 
 def load_config() -> dict:
     with open(ROOT / "config.yaml", encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+
+def origin_country_map(cfg: dict) -> dict:
+    """Código de ciudad de salida -> id del país (sección de la web)."""
+    return {code: cid for cid, c in cfg["countries"].items() for code in c["origins"]}
 
 
 def env(name: str, default: str = "") -> str:
