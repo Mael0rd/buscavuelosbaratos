@@ -2,7 +2,7 @@ name: Buscar ofertas y publicar
 
 on:
   schedule:
-    - cron: "17 */6 * * *"   # cada 6 horas
+    - cron: "17 */3 * * *"   # cada 3 horas
   workflow_dispatch: {}       # botón "Run workflow" manual
   push:
     branches: [main]          # publicar al subir cambios de código

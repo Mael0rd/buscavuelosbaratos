@@ -2,7 +2,7 @@
 
 Busca vuelos baratos saliendo desde 19 países de Hispanoamérica (33 ciudades) hacia cualquier destino,
 detecta ofertas reales contra el historial de precios de cada ruta, genera la web por país y publica
-en Telegram. Corre solo cada 6 horas en GitHub Actions (gratis).
+en Telegram. Corre solo cada 3 horas en GitHub Actions (gratis).
 
 El historial de precios se guarda en la rama `data` (un único commit que se reemplaza en cada corrida).
 
