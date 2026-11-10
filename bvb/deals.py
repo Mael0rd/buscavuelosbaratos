@@ -26,7 +26,8 @@ def cold_cap(km_round_trip: float, cc: dict) -> float:
 
 
 def route_best(tickets: list[dict], max_transfers: int) -> dict:
-    best = {}
+    """Boleto más barato por ruta, con los mínimos de cada mes en t['month_prices']."""
+    best, months = {}, {}
     for t in tickets:
         if not t["destination"] or t["destination"] == t["origin"]:
             continue
@@ -35,7 +36,20 @@ def route_best(tickets: list[dict], max_transfers: int) -> dict:
         k = (t["origin"], t["destination"])
         if k not in best or t["price"] < best[k]["price"]:
             best[k] = t
+        m = months.setdefault(k, {})
+        mo = (t["departure_at"] or "")[:7]
+        m[mo] = min(m.get(mo, t["price"]), t["price"])
+    for k, t in best.items():
+        best[k] = {**t, "month_prices": sorted(months[k].values())}
     return best
+
+
+def month_baseline(t: dict, min_months: int):
+    """Precio típico de la ruta según los OTROS meses de esta misma corrida."""
+    others = list(t.get("month_prices", []))
+    if t["price"] in others:
+        others.remove(t["price"])
+    return statistics.median(others) if len(others) >= min_months - 1 else None
 
 
 def update_daily(conn, best: dict, today: str) -> None:
@@ -82,10 +96,18 @@ def find_deals(conn, best: dict, cfg: dict, ref, today: str) -> list[dict]:
         if med and n >= dcfg["min_days"]:
             base, threshold = med, med * (1 - dcfg["drop_pct"])
         else:
+            # Sin historial: tope por distancia Y bien por debajo de los otros meses
             a, b = ref.coords(o), ref.coords(d)
             if not a or not b:
                 continue
-            base, threshold = None, cold_cap(2 * haversine_km(a, b), dcfg["cold_start"])
+            cs = dcfg["cold_start"]
+            cap = cold_cap(2 * haversine_km(a, b), cs)
+            mb = month_baseline(t, cs["min_months"])
+            base = None
+            if mb is None:  # pocos meses con precio: solo pasa si es muy barata
+                threshold = cap * cs["few_months_factor"]
+            else:
+                threshold = min(cap, mb * (1 - cs["month_drop"]))
 
         if t["price"] > threshold:
             continue

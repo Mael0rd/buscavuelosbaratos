@@ -40,9 +40,12 @@ deals:
   drop_pct: 0.30
   min_days: 7            # días de historial necesarios para usar la mediana
   history_days: 60
-  # Sin historial (primeros días): tope según distancia.
-  # tope_usd = k * (km ida y vuelta) ^ exp   → p. ej. SJO-MIA ≈ $205, SJO-MAD ≈ $560
-  cold_start: { k: 1.0, exp: 0.65 }
+  # Sin historial (primeros días), deben cumplirse las dos:
+  #  1) bajo el tope por distancia: k * (km ida y vuelta) ^ exp  → SJO-MIA ≈ $175, SJO-MAD ≈ $480
+  #  2) month_drop por debajo de la mediana de los otros meses de la misma ruta
+  #     (si la ruta tiene precio en menos de min_months meses, se exige en cambio
+  #      quedar bajo tope × few_months_factor)
+  cold_start: { k: 0.85, exp: 0.65, month_drop: 0.25, min_months: 3, few_months_factor: 0.75 }
   repost_days: 7         # no repetir una ruta antes de esto...
   repost_extra_drop: 0.10  # ...salvo que baje otro 10%
   show_days: 14          # días que una oferta sigue visible en la web

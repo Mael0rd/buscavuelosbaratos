@@ -7,7 +7,7 @@ from bvb.refdata import Ref
 CFG = {
     "countries": {"costa-rica": {"name": "Costa Rica", "flag": "🇨🇷", "origins": ["SJO"]}},
     "deals": {"drop_pct": 0.30, "min_days": 7, "history_days": 60,
-              "cold_start": {"k": 1.0, "exp": 0.65},
+              "cold_start": {"k": 1.0, "exp": 0.65, "month_drop": 0.25, "min_months": 3, "few_months_factor": 0.75},
               "repost_days": 7, "repost_extra_drop": 0.10},
 }
 REF = Ref(
@@ -54,10 +54,25 @@ def test_route_best_picks_cheapest_month_and_drops_many_stops():
     assert b[("SJO", "MIA")]["price"] == 250
 
 
+OTHER_MONTHS = [t(300, "2027-02"), t(310, "2027-03"), t(290, "2027-04")]  # típico ~$300
+
+
 def test_cold_start_uses_distance_cap():
-    c = conn()  # tope SJO-MIA ≈ $205
-    assert len(dl.find_deals(c, best(t(190)), CFG, REF, TODAY)) == 1
-    assert dl.find_deals(c, best(t(230)), CFG, REF, TODAY) == []
+    c = conn()  # tope SJO-MIA ≈ $205; otros meses ~$300 → tope mensual $225
+    assert len(dl.find_deals(c, best(t(190), *OTHER_MONTHS), CFG, REF, TODAY)) == 1
+    assert dl.find_deals(c, best(t(215), *OTHER_MONTHS), CFG, REF, TODAY) == []
+
+
+def test_cold_start_rejects_route_that_is_always_cheap():
+    c = conn()  # bajo el tope, pero todos los meses cuestan lo mismo: no es oferta
+    same = [t(150, "2027-02"), t(155, "2027-03"), t(148, "2027-04")]
+    assert dl.find_deals(c, best(t(145), *same), CFG, REF, TODAY) == []
+
+
+def test_cold_start_few_months_uses_stricter_cap():
+    c = conn()  # 2 meses: tope estricto ≈ $205 × 0.75 ≈ $154
+    assert dl.find_deals(c, best(t(170), t(300, "2027-02")), CFG, REF, TODAY) == []
+    assert len(dl.find_deals(c, best(t(140), t(300, "2027-02")), CFG, REF, TODAY)) == 1
 
 
 def test_history_requires_30pct_drop():
@@ -78,8 +93,8 @@ def test_today_not_in_baseline():
 
 def test_no_repost_unless_cheaper():
     c = conn()
-    d = dl.find_deals(c, best(t(190)), CFG, REF, TODAY)[0]
+    d = dl.find_deals(c, best(t(190), *OTHER_MONTHS), CFG, REF, TODAY)[0]
     d.update(slug="a", copy_web="", copy_social="")
     dl.save_deal(c, d)
-    assert dl.find_deals(c, best(t(185)), CFG, REF, TODAY) == []     # casi igual
-    assert len(dl.find_deals(c, best(t(160)), CFG, REF, TODAY)) == 1  # bajó >10%
+    assert dl.find_deals(c, best(t(185), *OTHER_MONTHS), CFG, REF, TODAY) == []     # casi igual
+    assert len(dl.find_deals(c, best(t(160), *OTHER_MONTHS), CFG, REF, TODAY)) == 1  # bajó >10%
