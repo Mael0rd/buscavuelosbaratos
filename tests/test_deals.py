@@ -36,7 +36,7 @@ def t(price, month="2027-01", transfers=0):
 
 
 def best(*tickets):
-    return dl.route_best(list(tickets), max_transfers=2)
+    return dl.route_best(list(tickets), max_transfers=1)
 
 
 def seed_history(c, price, days=10):
@@ -50,7 +50,7 @@ def test_haversine_sjo_mia():
 
 
 def test_route_best_picks_cheapest_month_and_drops_many_stops():
-    b = best(t(300, "2027-01"), t(250, "2027-03"), t(100, transfers=3))
+    b = best(t(300, "2027-01"), t(250, "2027-03"), t(100, transfers=2))
     assert b[("SJO", "MIA")]["price"] == 250
 
 

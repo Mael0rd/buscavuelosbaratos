@@ -20,9 +20,9 @@ def run(no_social: bool = False) -> None:
     conn = connect()
     today = datetime.now(timezone.utc).date().isoformat()
 
-    removed = dl.purge_domestic(conn, ref)
+    removed = dl.purge_domestic(conn, ref) + dl.purge_too_many_stops(conn, cfg["search"]["max_transfers"])
     if removed:
-        print(f"Ofertas nacionales retiradas: {removed}")
+        print(f"Ofertas retiradas (nacionales o con muchas escalas): {removed}")
 
     tickets = fetch_all(cfg)
     best = dl.drop_domestic(dl.route_best(tickets, cfg["search"]["max_transfers"]), ref)

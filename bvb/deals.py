@@ -70,6 +70,13 @@ def purge_domestic(conn, ref) -> int:
     return removed
 
 
+def purge_too_many_stops(conn, max_transfers: int) -> int:
+    """Retira ofertas guardadas con más escalas que las permitidas hoy."""
+    cur = conn.execute("DELETE FROM deals WHERE transfers > ?", (max_transfers,))
+    conn.commit()
+    return cur.rowcount
+
+
 def month_baseline(t: dict, min_months: int):
     """Precio típico de la ruta según los OTROS meses de esta misma corrida."""
     others = list(t.get("month_prices", []))

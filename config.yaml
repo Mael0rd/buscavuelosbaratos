@@ -33,7 +33,7 @@ search:
   months_ahead: 9        # meses hacia adelante a revisar
   round_trip: true
   limit_per_query: 1000  # destinos por consulta (un boleto, el más barato, por destino)
-  max_transfers: 2       # descartar boletos con más escalas
+  max_transfers: 1       # solo vuelos directos o con 1 escala (ida y vuelta)
   pause_seconds: 0.5     # pausa entre consultas para respetar límites de la API
 
 deals:
