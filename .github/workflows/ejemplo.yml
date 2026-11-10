@@ -1,0 +1,56 @@
+name: Publicar ejemplo en Telegram
+
+on:
+  workflow_dispatch:
+    inputs:
+      pais:
+        description: "País de salida"
+        type: choice
+        default: costa-rica
+        options:
+          - mexico
+          - guatemala
+          - el-salvador
+          - honduras
+          - nicaragua
+          - costa-rica
+          - panama
+          - cuba
+          - dominicana
+          - puerto-rico
+          - colombia
+          - venezuela
+          - ecuador
+          - peru
+          - bolivia
+          - chile
+          - argentina
+          - uruguay
+          - paraguay
+
+permissions:
+  contents: read
+
+jobs:
+  ejemplo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Recuperar historial
+        run: |
+          mkdir -p data
+          git fetch --depth=1 origin data
+          git show FETCH_HEAD:historial.sqlite > data/historial.sqlite
+      - name: Publicar
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL: ${{ vars.TELEGRAM_CHANNEL }}
+        run: python -m bvb.post_example "${{ inputs.pais }}"
