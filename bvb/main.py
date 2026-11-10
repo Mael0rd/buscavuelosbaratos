@@ -20,9 +20,13 @@ def run(no_social: bool = False) -> None:
     conn = connect()
     today = datetime.now(timezone.utc).date().isoformat()
 
+    removed = dl.purge_domestic(conn, ref)
+    if removed:
+        print(f"Ofertas nacionales retiradas: {removed}")
+
     tickets = fetch_all(cfg)
-    best = dl.route_best(tickets, cfg["search"]["max_transfers"])
-    print(f"Tarifas obtenidas: {len(tickets)} · rutas distintas: {len(best)}")
+    best = dl.drop_domestic(dl.route_best(tickets, cfg["search"]["max_transfers"]), ref)
+    print(f"Tarifas obtenidas: {len(tickets)} · rutas internacionales: {len(best)}")
 
     # Comparar contra el historial ANTERIOR a hoy; luego guardar lo de hoy
     found = dl.find_deals(conn, best, cfg, ref, today)

@@ -6,6 +6,7 @@ site:
   currency: usd
 
 # Países de salida (sección de la web) y sus ciudades de salida (códigos IATA de ciudad).
+# Solo se publican viajes internacionales: las rutas dentro del mismo país se descartan.
 # El orden aquí es el orden en que aparecen en la web.
 countries:
   mexico:          { name: "México",               flag: "🇲🇽", origins: [MEX, CUN, GDL, MTY, TIJ] }

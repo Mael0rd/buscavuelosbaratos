@@ -44,6 +44,32 @@ def route_best(tickets: list[dict], max_transfers: int) -> dict:
     return best
 
 
+def drop_domestic(best: dict, ref) -> dict:
+    """Solo viajes internacionales: descarta rutas dentro del mismo país."""
+    out = {}
+    for (o, d), t in best.items():
+        co, cd = ref.country_code(o), ref.country_code(d)
+        if co and cd and co == cd:
+            continue
+        out[(o, d)] = t
+    return out
+
+
+def purge_domestic(conn, ref) -> int:
+    """Borra ofertas e historial de rutas nacionales ya guardadas (idempotente)."""
+    removed = 0
+    for table in ("deals", "prices_daily"):
+        routes = conn.execute(f"SELECT DISTINCT origin, destination FROM {table}").fetchall()
+        for o, d in routes:
+            co, cd = ref.country_code(o), ref.country_code(d)
+            if co and cd and co == cd:
+                cur = conn.execute(f"DELETE FROM {table} WHERE origin=? AND destination=?", (o, d))
+                if table == "deals":
+                    removed += cur.rowcount
+    conn.commit()
+    return removed
+
+
 def month_baseline(t: dict, min_months: int):
     """Precio típico de la ruta según los OTROS meses de esta misma corrida."""
     others = list(t.get("month_prices", []))

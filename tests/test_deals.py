@@ -98,3 +98,18 @@ def test_no_repost_unless_cheaper():
     dl.save_deal(c, d)
     assert dl.find_deals(c, best(t(185), *OTHER_MONTHS), CFG, REF, TODAY) == []     # casi igual
     assert len(dl.find_deals(c, best(t(160), *OTHER_MONTHS), CFG, REF, TODAY)) == 1  # bajó >10%
+
+
+def test_domestic_routes_are_dropped_and_purged():
+    ref = Ref(cities=[{"code": "SCL", "country_code": "CL"}, {"code": "CJC", "country_code": "CL"},
+                      {"code": "MIA", "country_code": "US"}], countries=[], airlines=[])
+    tk = [dict(t(50), origin="SCL", destination="CJC"), dict(t(300), origin="SCL", destination="MIA")]
+    b = dl.drop_domestic(best(*tk), ref)
+    assert list(b) == [("SCL", "MIA")]
+
+    c = conn()
+    c.execute("INSERT INTO deals (slug, origin, destination) VALUES ('x','SCL','CJC'), ('y','SCL','MIA')")
+    c.execute("INSERT INTO prices_daily VALUES ('SCL','CJC','2026-11-10',50)")
+    assert dl.purge_domestic(c, ref) == 1
+    assert [r[0] for r in c.execute("SELECT slug FROM deals")] == ["y"]
+    assert c.execute("SELECT COUNT(*) FROM prices_daily").fetchone()[0] == 0
