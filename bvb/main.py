@@ -43,8 +43,7 @@ def run(no_social: bool = False) -> None:
     print(f"Web generada con {n} ofertas activas")
 
     if not no_social:
-        sent = telegram.publish_pending(conn, f"https://{cfg['site']['domain']}",
-                                        cfg["social"]["max_per_run"])
+        sent = telegram.publish_pending(conn, cfg)
         print(f"Publicadas en Telegram: {sent}")
 
 
