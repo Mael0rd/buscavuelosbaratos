@@ -1,0 +1,12 @@
+{
+  "name": "bvb-alertas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "python3 gen_origins.py && esbuild src/index.js --bundle --format=esm --platform=neutral --outfile=test/dist/worker.mjs --log-level=warning && node --no-warnings test/test.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "wrangler": "^4.0.0"
+  }
+}

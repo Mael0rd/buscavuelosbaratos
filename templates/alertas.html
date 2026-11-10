@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Alertas de vuelos baratos | {{ site.title }}{% endblock %}
+{% block description %}Recibe un aviso por correo o Telegram cuando haya una oferta real para tu ruta.{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>🔔 Avísame cuando baje</h1>
+  <p>Elige tu ruta y te avisamos solo cuando encontremos una <b>oferta real</b>: un precio muy por debajo de lo normal para ese viaje.</p>
+</section>
+
+<div id="estado" class="notice" hidden></div>
+
+<div class="alert-grid">
+  <section class="panel">
+    <h2>📧 Por correo</h2>
+    <form id="alert-form" autocomplete="off">
+      <label>Tu correo
+        <input type="email" name="email" required maxlength="200" placeholder="tucorreo@ejemplo.com">
+      </label>
+      <label>Sales desde
+        <select name="origin" required>
+          <option value="">Elige tu ciudad…</option>
+          {% for c in countries %}
+          <optgroup label="{{ c.flag }} {{ c.name }}">
+            {% for code in c.origins %}<option value="{{ code }}">{{ origin_names[code] }} ({{ code }})</option>{% endfor %}
+          </optgroup>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Quieres ir a
+        <input name="destination" list="dest-list" required maxlength="60" placeholder="Ej.: Madrid, Miami, Bogotá">
+        <datalist id="dest-list"></datalist>
+      </label>
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="cta" type="submit">Crear alerta</button>
+      <p id="form-msg" class="form-msg" role="status"></p>
+      <p class="muted small">Te enviaremos un correo para confirmar. Solo lo usamos para tus alertas y cada aviso trae un enlace para darte de baja.</p>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>💬 Por Telegram</h2>
+    <p>Habla con nuestro bot y escribe <code>/alerta</code>: te pregunta de dónde sales y a dónde quieres ir.</p>
+    <p class="muted small">También puedes escribir directo, por ejemplo <code>/alerta San José a Madrid</code>.
+      Con <code>/misalertas</code> ves y quitas tus alertas.</p>
+    {% if bot_username %}
+    <a class="cta" href="https://t.me/{{ bot_username }}?start=alerta" target="_blank" rel="noopener">Abrir el bot en Telegram</a>
+    {% endif %}
+  </section>
+</div>
+
+<p class="muted small">Solo vigilamos vuelos internacionales de ida y vuelta, directos o con 1 escala.</p>
+
+<script>
+(function () {
+  var API = {{ alerts_api|tojson }};
+  var form = document.getElementById("alert-form");
+  var msg = document.getElementById("form-msg");
+  var list = document.getElementById("dest-list");
+  var destInput = form.elements.destination;
+  var codes = {};
+  var q = new URLSearchParams(location.search);
+
+  var estados = {
+    confirmada: "✅ ¡Listo! Tu alerta quedó confirmada. Te avisaremos cuando haya una oferta.",
+    baja: "Te diste de baja de esa alerta. No recibirás más avisos de esa ruta.",
+    invalido: "Ese enlace ya no es válido. Si quieres, crea la alerta de nuevo."
+  };
+  if (estados[q.get("estado")]) {
+    var box = document.getElementById("estado");
+    box.textContent = estados[q.get("estado")];
+    box.hidden = false;
+  }
+  if (q.get("o")) form.elements.origin.value = q.get("o");
+  if (q.get("dn")) { destInput.value = q.get("dn"); if (q.get("d")) codes[q.get("dn")] = q.get("d"); }
+
+  var timer;
+  destInput.addEventListener("input", function () {
+    clearTimeout(timer);
+    var term = destInput.value.trim();
+    if (term.length < 2 || codes[term]) return;
+    timer = setTimeout(function () {
+      fetch(API + "/api/places?term=" + encodeURIComponent(term))
+        .then(function (r) { return r.json(); })
+        .then(function (items) {
+          list.innerHTML = "";
+          items.forEach(function (p) {
+            var label = p.name + (p.country ? ", " + p.country : "");
+            codes[label] = p.code;
+            var opt = document.createElement("option");
+            opt.value = label;
+            list.appendChild(opt);
+          });
+        }).catch(function () {});
+    }, 250);
+  });
+
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var btn = form.querySelector("button");
+    var dest = destInput.value.trim();
+    btn.disabled = true;
+    msg.className = "form-msg";
+    msg.textContent = "Enviando…";
+    fetch(API + "/api/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: form.elements.email.value,
+        origin: form.elements.origin.value,
+        destination: codes[dest] || dest,
+        website: form.elements.website.value
+      })
+    }).then(function (r) { return r.json(); })
+      .then(function (res) {
+        msg.className = "form-msg " + (res.ok ? "ok" : "err");
+        msg.textContent = res.ok ? (res.message || "Listo.") : (res.error || "No se pudo crear la alerta.");
+        if (res.ok) form.reset();
+      })
+      .catch(function () {
+        msg.className = "form-msg err";
+        msg.textContent = "No pudimos conectar. Intenta de nuevo en un momento.";
+      })
+      .finally(function () { btn.disabled = false; });
+  });
+})();
+</script>
+{% endblock %}

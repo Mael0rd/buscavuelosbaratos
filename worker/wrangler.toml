@@ -1,0 +1,17 @@
+# Servidor de alertas. Lo despliega el workflow "Desplegar alertas";
+# __D1_ID__ se reemplaza automáticamente con el id de la base de datos.
+name = "bvb-alertas"
+main = "src/index.js"
+compatibility_date = "2026-01-15"
+workers_dev = false
+routes = [{ pattern = "api.buscavuelosbaratos.com", custom_domain = true }]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bvb-alertas"
+database_id = "__D1_ID__"
+
+[vars]
+SITE_URL = "https://buscavuelosbaratos.com"
+API_URL = "https://api.buscavuelosbaratos.com"
+MAIL_FROM = "Busca Vuelos Baratos <alertas@buscavuelosbaratos.com>"

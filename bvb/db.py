@@ -23,6 +23,12 @@ CREATE TABLE IF NOT EXISTS deals (
     telegram_sent INTEGER DEFAULT 0   -- 0 pendiente, 1 enviado, 2 omitido
 );
 CREATE INDEX IF NOT EXISTS idx_deals_route ON deals(origin, destination, published_at);
+
+-- Avisos enviados por alerta (para no repetir)
+CREATE TABLE IF NOT EXISTS alert_log (
+    sub_id INTEGER, price REAL, sent_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_alert_log ON alert_log(sub_id, sent_at);
 """
 
 

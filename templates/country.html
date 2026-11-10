@@ -10,6 +10,8 @@
 
 {% include "_chips.html" %}
 
+<p class="muted small">¿Buscas una ruta en particular? <a href="/alertas.html" style="color:var(--accent);font-weight:600">Crea una alerta</a> y te avisamos cuando baje.</p>
+
 {% if c.deals %}
 <ul class="grid">
   {% for d in c.deals %}{% include "_card.html" %}{% endfor %}

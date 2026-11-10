@@ -7,7 +7,7 @@ import argparse
 from datetime import datetime, timezone
 
 from . import deals as dl
-from . import refdata, site, telegram
+from . import alerts, refdata, site, telegram
 from .config import load_config
 from .copywriter import write_copy
 from .db import connect
@@ -38,6 +38,12 @@ def run(no_social: bool = False) -> None:
         d["slug"] = dl.make_slug(d)
         d.update(write_copy(d))
         dl.save_deal(conn, d)
+
+    subs = alerts.fetch_subscriptions(cfg)
+    if subs:
+        st = alerts.process(conn, best, cfg, ref, today, subs)
+        print(f"Alertas activas: {len(subs)} · avisos enviados: "
+              f"{st['telegram']} por Telegram, {st['email']} por correo")
 
     n = site.build(conn, cfg)
     print(f"Web generada con {n} ofertas activas")

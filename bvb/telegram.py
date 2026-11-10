@@ -56,16 +56,28 @@ def build_message(row: dict, site_url: str, country_name: str) -> tuple[str, dic
     return "\n".join(lines), markup
 
 
-def send(text: str, markup: dict) -> bool:
+def send(text: str, markup: dict, chat_id: str | None = None) -> bool:
+    """Envía al canal (por defecto) o a un chat privado (alertas)."""
     r = requests.post(
         f"https://api.telegram.org/bot{env('TELEGRAM_BOT_TOKEN')}/sendMessage",
-        json={"chat_id": env("TELEGRAM_CHANNEL"), "text": text, "parse_mode": "HTML",
+        json={"chat_id": chat_id or env("TELEGRAM_CHANNEL"), "text": text, "parse_mode": "HTML",
               "reply_markup": markup, "link_preview_options": {"is_disabled": True}},
         timeout=20,
     )
     if not r.ok:
         print(f"[telegram] error {r.status_code}: {r.text[:200]}")
     return r.ok
+
+
+def bot_username() -> str:
+    """Usuario del bot (para enlazarlo desde la web); vacío si no se puede obtener."""
+    if not env("TELEGRAM_BOT_TOKEN"):
+        return ""
+    try:
+        r = requests.get(f"https://api.telegram.org/bot{env('TELEGRAM_BOT_TOKEN')}/getMe", timeout=15)
+        return r.json().get("result", {}).get("username", "") if r.ok else ""
+    except Exception:
+        return ""
 
 
 def publish_pending(conn, cfg: dict) -> int:

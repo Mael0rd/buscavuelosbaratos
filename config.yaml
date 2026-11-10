@@ -9,25 +9,25 @@ site:
 # Solo se publican viajes internacionales: las rutas dentro del mismo país se descartan.
 # El orden aquí es el orden en que aparecen en la web.
 countries:
-  mexico:          { name: "México",               flag: "🇲🇽", origins: [MEX, CUN, GDL, MTY, TIJ] }
-  guatemala:       { name: "Guatemala",            flag: "🇬🇹", origins: [GUA] }
-  el-salvador:     { name: "El Salvador",          flag: "🇸🇻", origins: [SAL] }
-  honduras:        { name: "Honduras",             flag: "🇭🇳", origins: [SAP, TGU] }
-  nicaragua:       { name: "Nicaragua",            flag: "🇳🇮", origins: [MGA] }
-  costa-rica:      { name: "Costa Rica",           flag: "🇨🇷", origins: [SJO, LIR] }
-  panama:          { name: "Panamá",               flag: "🇵🇦", origins: [PTY] }
-  cuba:            { name: "Cuba",                 flag: "🇨🇺", origins: [HAV] }
-  dominicana:      { name: "República Dominicana", flag: "🇩🇴", origins: [SDQ, PUJ, STI] }
-  puerto-rico:     { name: "Puerto Rico",          flag: "🇵🇷", origins: [SJU] }
-  colombia:        { name: "Colombia",             flag: "🇨🇴", origins: [BOG, MDE, CLO, CTG] }
-  venezuela:       { name: "Venezuela",            flag: "🇻🇪", origins: [CCS] }
-  ecuador:         { name: "Ecuador",              flag: "🇪🇨", origins: [UIO, GYE] }
-  peru:            { name: "Perú",                 flag: "🇵🇪", origins: [LIM] }
-  bolivia:         { name: "Bolivia",              flag: "🇧🇴", origins: [VVI, LPB] }
-  chile:           { name: "Chile",                flag: "🇨🇱", origins: [SCL] }
-  argentina:       { name: "Argentina",            flag: "🇦🇷", origins: [BUE, COR] }
-  uruguay:         { name: "Uruguay",              flag: "🇺🇾", origins: [MVD] }
-  paraguay:        { name: "Paraguay",             flag: "🇵🇾", origins: [ASU] }
+  mexico:          { name: "México",               cc: MX, flag: "🇲🇽", origins: [MEX, CUN, GDL, MTY, TIJ] }
+  guatemala:       { name: "Guatemala",            cc: GT, flag: "🇬🇹", origins: [GUA] }
+  el-salvador:     { name: "El Salvador",          cc: SV, flag: "🇸🇻", origins: [SAL] }
+  honduras:        { name: "Honduras",             cc: HN, flag: "🇭🇳", origins: [SAP, TGU] }
+  nicaragua:       { name: "Nicaragua",            cc: NI, flag: "🇳🇮", origins: [MGA] }
+  costa-rica:      { name: "Costa Rica",           cc: CR, flag: "🇨🇷", origins: [SJO, LIR] }
+  panama:          { name: "Panamá",               cc: PA, flag: "🇵🇦", origins: [PTY] }
+  cuba:            { name: "Cuba",                 cc: CU, flag: "🇨🇺", origins: [HAV] }
+  dominicana:      { name: "República Dominicana", cc: DO, flag: "🇩🇴", origins: [SDQ, PUJ, STI] }
+  puerto-rico:     { name: "Puerto Rico",          cc: PR, flag: "🇵🇷", origins: [SJU] }
+  colombia:        { name: "Colombia",             cc: CO, flag: "🇨🇴", origins: [BOG, MDE, CLO, CTG] }
+  venezuela:       { name: "Venezuela",            cc: VE, flag: "🇻🇪", origins: [CCS] }
+  ecuador:         { name: "Ecuador",              cc: EC, flag: "🇪🇨", origins: [UIO, GYE] }
+  peru:            { name: "Perú",                 cc: PE, flag: "🇵🇪", origins: [LIM] }
+  bolivia:         { name: "Bolivia",              cc: BO, flag: "🇧🇴", origins: [VVI, LPB] }
+  chile:           { name: "Chile",                cc: CL, flag: "🇨🇱", origins: [SCL] }
+  argentina:       { name: "Argentina",            cc: AR, flag: "🇦🇷", origins: [BUE, COR] }
+  uruguay:         { name: "Uruguay",              cc: UY, flag: "🇺🇾", origins: [MVD] }
+  paraguay:        { name: "Paraguay",             cc: PY, flag: "🇵🇾", origins: [ASU] }
 
 search:
   months_ahead: 9        # meses hacia adelante a revisar
@@ -53,3 +53,46 @@ deals:
 
 social:
   max_per_run: 5         # máximo de posts en Telegram por corrida (las mejores)
+
+alerts:
+  api_base: https://api.buscavuelosbaratos.com   # servidor de alertas (Cloudflare Worker)
+  repeat_days: 7          # no repetir el aviso de una alerta antes de esto...
+  repeat_extra_drop: 0.10 # ...salvo que el precio baje otro 10%
+  max_emails_per_run: 80  # tope de correos por corrida
+  mail_from: "Busca Vuelos Baratos <alertas@buscavuelosbaratos.com>"
+
+# Nombre de cada ciudad de salida (para el bot y el formulario)
+origin_names:
+  MEX: Ciudad de México
+  CUN: Cancún
+  GDL: Guadalajara
+  MTY: Monterrey
+  TIJ: Tijuana
+  GUA: Ciudad de Guatemala
+  SAL: San Salvador
+  SAP: San Pedro Sula
+  TGU: Tegucigalpa
+  MGA: Managua
+  SJO: San José
+  LIR: Liberia
+  PTY: Ciudad de Panamá
+  HAV: La Habana
+  SDQ: Santo Domingo
+  PUJ: Punta Cana
+  STI: Santiago de los Caballeros
+  SJU: San Juan
+  BOG: Bogotá
+  MDE: Medellín
+  CLO: Cali
+  CTG: Cartagena
+  CCS: Caracas
+  UIO: Quito
+  GYE: Guayaquil
+  LIM: Lima
+  VVI: Santa Cruz de la Sierra
+  LPB: La Paz
+  SCL: Santiago de Chile
+  BUE: Buenos Aires
+  COR: Córdoba
+  MVD: Montevideo
+  ASU: Asunción

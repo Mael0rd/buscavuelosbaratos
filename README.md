@@ -32,6 +32,17 @@ python -m pytest -q
    y un CNAME `www` → `<tu-usuario>.github.io`. Activa "Enforce HTTPS".
 6. Ve a *Actions → Buscar ofertas y publicar → Run workflow* para la primera corrida.
 
+## Alertas por ruta (Telegram y correo)
+Las personas crean alertas origen → destino desde `/alertas.html` (correo, con confirmación) o
+hablando con el bot de Telegram (`/alerta`, `/misalertas`). Se avisa solo cuando la ruta pasa
+la regla de oferta, sin repetir el aviso en 7 días salvo que baje otro 10%.
+
+- `worker/`: servidor de alertas en Cloudflare Workers + D1 (`api.buscavuelosbaratos.com`).
+  Lo despliega el workflow **Desplegar alertas**. Pruebas: `cd worker && npm install && npm test`.
+- `bvb/alerts.py`: en cada corrida lee las alertas activas y envía los avisos (Telegram / Resend).
+- Secrets necesarios: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `RESEND_API_KEY`
+  (más `TELEGRAM_BOT_TOKEN`, que ya existe).
+
 ## Ajustes (config.yaml)
 - `countries`: países (secciones de la web) y sus ciudades de salida.
 - `deals.drop_pct`: qué tan por debajo de la mediana de la ruta debe estar (0.30 = 30%).
@@ -46,7 +57,9 @@ python -m pytest -q
 | `bvb/deals.py` | Historial, mediana, reglas de oferta y anti-repetición |
 | `bvb/copywriter.py` | Textos con Claude (Haiku) o plantilla |
 | `bvb/site.py` + `templates/` | Web estática, sitemap, robots, CNAME |
-| `bvb/telegram.py` | Publica ofertas pendientes en el canal |
+| `bvb/telegram.py` | Publica ofertas pendientes en el canal (formato con botones) |
+| `bvb/alerts.py` | Avisos de alertas por ruta (Telegram y correo) |
+| `worker/` | Servidor de alertas (bot de Telegram, formulario, confirmación y bajas) |
 | `.github/workflows/run.yml` | Programación cada 6 h + despliegue a Pages |
 
 ## Siguientes pasos sugeridos

@@ -18,5 +18,6 @@
   </dl>
   <p>{{ d.copy_web }}</p>
   <a class="cta" href="{{ d.link }}" rel="sponsored nofollow noopener" target="_blank">Ver vuelo y precio actual</a>
+  <a class="alert-link" href="/alertas.html?o={{ d.origin|urlencode }}&d={{ d.destination|urlencode }}&dn={{ d.dest_name|urlencode }}">🔔 Avísame de futuras ofertas en esta ruta</a>
 </article>
 {% endblock %}

@@ -120,47 +120,55 @@ def recently_published(conn, origin, destination, days: int):
     ).fetchone()
 
 
+def evaluate(conn, route: tuple, t: dict, cfg: dict, ref, today: str):
+    """Aplica la regla de oferta a una ruta. Devuelve la oferta (dict) o None.
+    No revisa repeticiones: eso depende de dónde se publique."""
+    o, d = route
+    dcfg = cfg["deals"]
+    med, n = baseline(conn, o, d, today, dcfg["history_days"])
+    if med and n >= dcfg["min_days"]:
+        base, threshold = med, med * (1 - dcfg["drop_pct"])
+    else:
+        # Sin historial: tope por distancia Y bien por debajo de los otros meses
+        a, b = ref.coords(o), ref.coords(d)
+        if not a or not b:
+            return None
+        cs = dcfg["cold_start"]
+        cap = cold_cap(2 * haversine_km(a, b), cs)
+        mb = month_baseline(t, cs["min_months"])
+        base = None
+        if mb is None:  # pocos meses con precio: solo pasa si es muy barata
+            threshold = cap * cs["few_months_factor"]
+        else:
+            threshold = min(cap, mb * (1 - cs["month_drop"]))
+    if t["price"] > threshold:
+        return None
+    cid = origin_country_map(cfg).get(o, "otros")
+    return {
+        **t,
+        "country": cid,
+        "flag": cfg["countries"].get(cid, {}).get("flag", ""),
+        "baseline": base,
+        "threshold": threshold,
+        "score": t["price"] / threshold,  # menor = mejor oferta
+        "origin_name": ref.city_name(o),
+        "dest_name": ref.city_name(d),
+        "dest_country": ref.country_name(ref.country_code(d)),
+        "airline_name": ref.airline_name(t["airline"]),
+    }
+
+
 def find_deals(conn, best: dict, cfg: dict, ref, today: str) -> list[dict]:
     dcfg = cfg["deals"]
-    country_of = origin_country_map(cfg)
     out = []
-    for (o, d), t in best.items():
-        med, n = baseline(conn, o, d, today, dcfg["history_days"])
-        if med and n >= dcfg["min_days"]:
-            base, threshold = med, med * (1 - dcfg["drop_pct"])
-        else:
-            # Sin historial: tope por distancia Y bien por debajo de los otros meses
-            a, b = ref.coords(o), ref.coords(d)
-            if not a or not b:
-                continue
-            cs = dcfg["cold_start"]
-            cap = cold_cap(2 * haversine_km(a, b), cs)
-            mb = month_baseline(t, cs["min_months"])
-            base = None
-            if mb is None:  # pocos meses con precio: solo pasa si es muy barata
-                threshold = cap * cs["few_months_factor"]
-            else:
-                threshold = min(cap, mb * (1 - cs["month_drop"]))
-
-        if t["price"] > threshold:
+    for route, t in best.items():
+        deal = evaluate(conn, route, t, cfg, ref, today)
+        if not deal:
             continue
-        prev = recently_published(conn, o, d, dcfg["repost_days"])
+        prev = recently_published(conn, *route, dcfg["repost_days"])
         if prev and t["price"] > prev["price"] * (1 - dcfg["repost_extra_drop"]):
             continue
-
-        cid = country_of.get(o, "otros")
-        out.append({
-            **t,
-            "country": cid,
-            "flag": cfg["countries"].get(cid, {}).get("flag", ""),
-            "baseline": base,
-            "threshold": threshold,
-            "score": t["price"] / threshold,  # menor = mejor oferta
-            "origin_name": ref.city_name(o),
-            "dest_name": ref.city_name(d),
-            "dest_country": ref.country_name(ref.country_code(d)),
-            "airline_name": ref.airline_name(t["airline"]),
-        })
+        out.append(deal)
     return sorted(out, key=lambda x: x["score"])
 
 

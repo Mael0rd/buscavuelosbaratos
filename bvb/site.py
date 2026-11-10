@@ -6,6 +6,7 @@ from datetime import date, datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
+from . import telegram
 from .copywriter import fmt_date, fmt_stops, savings_pct
 
 PER_COUNTRY_HOME = 6
@@ -40,7 +41,7 @@ def build(conn, cfg: dict) -> int:
     deals = active_deals(conn, cfg)
     countries = []
     for cid, c in cfg["countries"].items():
-        countries.append({"id": cid, "name": c["name"], "flag": c["flag"],
+        countries.append({"id": cid, "name": c["name"], "flag": c["flag"], "origins": c["origins"],
                           "deals": [d for d in deals if d["country"] == cid]})
 
     if SITE_DIR.exists():
@@ -52,6 +53,9 @@ def build(conn, cfg: dict) -> int:
 
     ctx = {"site": cfg["site"], "countries": countries, "total": len(deals),
            "per_home": PER_COUNTRY_HOME,
+           "origin_names": cfg.get("origin_names", {}),
+           "alerts_api": cfg.get("alerts", {}).get("api_base", ""),
+           "bot_username": telegram.bot_username(),
            "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}
     by_id = {c["id"]: c for c in countries}
 
@@ -59,13 +63,14 @@ def build(conn, cfg: dict) -> int:
         (SITE_DIR / path).write_text(env.get_template(template).render(**ctx, **kw), encoding="utf-8")
 
     write("index.html", "index.html")
+    write("alertas.html", "alertas.html")
     for c in countries:
         write(f"pais/{c['id']}.html", "country.html", c=c)
     for d in deals:
         write(f"oferta/{d['slug']}.html", "deal.html", d=d, c=by_id.get(d["country"]))
 
     base = f"https://{cfg['site']['domain']}"
-    urls = ([f"{base}/"] + [f"{base}/pais/{c['id']}.html" for c in countries]
+    urls = ([f"{base}/", f"{base}/alertas.html"] + [f"{base}/pais/{c['id']}.html" for c in countries]
             + [f"{base}/oferta/{d['slug']}.html" for d in deals])
     (SITE_DIR / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'

@@ -6,7 +6,7 @@ on:
   workflow_dispatch: {}       # botón "Run workflow" manual
   push:
     branches: [main]          # publicar al subir cambios de código
-    paths-ignore: ["**.md"]
+    paths-ignore: ["**.md", "worker/**"]
 
 permissions:
   contents: write
@@ -51,6 +51,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL: ${{ vars.TELEGRAM_CHANNEL }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: python -m bvb.main
 
       - name: Guardar historial
