@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ site.title }} — {{ site.tagline }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ site.tagline }}{% endblock %}">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/">✈ {{ site.title }}</a>
+    <span class="tag">{{ site.tagline }}</span>
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+  <footer>
+    <p>Precios en USD encontrados recientemente; pueden cambiar en cualquier momento.
+       Algunos enlaces son de afiliado: si compras, recibimos una comisión sin costo extra para ti.</p>
+    <p class="muted">Actualizado: {{ updated }}</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ d.origin }} → {{ d.dest_name }} por ${{ "%.0f"|format(d.price) }} | {{ site.title }}{% endblock %}
+{% block description %}{{ d.copy_web[:155] }}{% endblock %}
+{% block content %}
+<article class="deal">
+  <a class="back" href="/">← Todas las ofertas</a>
+  <h1>{{ d.origin }} → {{ d.dest_name }}</h1>
+  <div class="price big">${{ "%.0f"|format(d.price) }} <small>ida y vuelta</small></div>
+  {% if d.ahorro >= 10 %}<div class="badge">−{{ d.ahorro }}% vs. lo normal (~${{ "%.0f"|format(d.baseline) }})</div>{% endif %}
+  <dl>
+    <dt>Salida</dt><dd>{{ d.departure_at|fecha }}</dd>
+    {% if d.return_at %}<dt>Regreso</dt><dd>{{ d.return_at|fecha }}</dd>{% endif %}
+    <dt>Escalas</dt><dd>{% if d.transfers == 0 %}Directo{% else %}{{ d.transfers }}{% endif %}</dd>
+    {% if d.airline %}<dt>Aerolínea</dt><dd>{{ d.airline }}</dd>{% endif %}
+  </dl>
+  <p>{{ d.copy_web }}</p>
+  <a class="cta" href="{{ d.link }}" rel="sponsored nofollow noopener" target="_blank">Ver vuelo y precio actual</a>
+</article>
+{% endblock %}

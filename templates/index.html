@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>Ofertas de vuelos desde Costa Rica</h1>
+  <p>Revisamos precios varias veces al día y publicamos solo los que están claramente por debajo de lo normal.</p>
+</section>
+
+{% if deals %}
+<ul class="grid">
+  {% for d in deals %}
+  <li class="card">
+    <a href="/oferta/{{ d.slug }}.html">
+      <div class="route">{{ d.origin }} <span>→</span> {{ d.dest_name }}</div>
+      <div class="price">${{ "%.0f"|format(d.price) }} <small>ida y vuelta</small></div>
+      {% if d.ahorro >= 10 %}<div class="badge">−{{ d.ahorro }}% vs. lo normal</div>{% endif %}
+      <div class="meta">{{ d.departure_at|fecha }}{% if d.return_at %} – {{ d.return_at|fecha }}{% endif %}
+        · {% if d.transfers == 0 %}directo{% else %}{{ d.transfers }} escala(s){% endif %}</div>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">Ahora mismo no hay ofertas destacadas. Volvemos a revisar en unas horas.</p>
+{% endif %}
+{% endblock %}

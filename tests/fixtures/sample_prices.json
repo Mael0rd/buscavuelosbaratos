@@ -1,0 +1,562 @@
+[
+ {
+  "origin": "SJO",
+  "destination": "MIA",
+  "price": 224,
+  "airline": "AV",
+  "departure_at": "2027-01-10T08:15:00-06:00",
+  "return_at": "2027-01-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1001MIA17011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MIA",
+  "price": 222,
+  "airline": "AA",
+  "departure_at": "2027-01-15T08:15:00-06:00",
+  "return_at": "2027-01-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1501MIA22011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MIA",
+  "price": 284,
+  "airline": "CM",
+  "departure_at": "2027-01-20T08:15:00-06:00",
+  "return_at": "2027-01-27T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO2001MIA27011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MIA",
+  "price": 265,
+  "airline": "AA",
+  "departure_at": "2027-02-10T08:15:00-06:00",
+  "return_at": "2027-02-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1002MIA17021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MIA",
+  "price": 279,
+  "airline": "AV",
+  "departure_at": "2027-02-15T08:15:00-06:00",
+  "return_at": "2027-02-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1502MIA22021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MIA",
+  "price": 260,
+  "airline": "CM",
+  "departure_at": "2027-02-20T08:15:00-06:00",
+  "return_at": "2027-02-27T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO2002MIA27021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MIA",
+  "price": 319,
+  "airline": "UA",
+  "departure_at": "2027-03-10T08:15:00-06:00",
+  "return_at": "2027-03-17T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1003MIA17031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MIA",
+  "price": 211,
+  "airline": "IB",
+  "departure_at": "2027-03-15T08:15:00-06:00",
+  "return_at": "2027-03-22T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1503MIA22031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MIA",
+  "price": 318,
+  "airline": "AA",
+  "departure_at": "2027-03-20T08:15:00-06:00",
+  "return_at": "2027-03-27T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO2003MIA27031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "NYC",
+  "price": 341,
+  "airline": "AA",
+  "departure_at": "2027-01-10T08:15:00-06:00",
+  "return_at": "2027-01-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1001NYC17011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "NYC",
+  "price": 309,
+  "airline": "CM",
+  "departure_at": "2027-01-15T08:15:00-06:00",
+  "return_at": "2027-01-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1501NYC22011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "NYC",
+  "price": 465,
+  "airline": "IB",
+  "departure_at": "2027-01-20T08:15:00-06:00",
+  "return_at": "2027-01-27T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO2001NYC27011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "NYC",
+  "price": 363,
+  "airline": "CM",
+  "departure_at": "2027-02-10T08:15:00-06:00",
+  "return_at": "2027-02-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1002NYC17021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "NYC",
+  "price": 467,
+  "airline": "AV",
+  "departure_at": "2027-02-15T08:15:00-06:00",
+  "return_at": "2027-02-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1502NYC22021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "NYC",
+  "price": 447,
+  "airline": "IB",
+  "departure_at": "2027-02-20T08:15:00-06:00",
+  "return_at": "2027-02-27T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO2002NYC27021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "NYC",
+  "price": 321,
+  "airline": "UA",
+  "departure_at": "2027-03-10T08:15:00-06:00",
+  "return_at": "2027-03-17T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1003NYC17031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "NYC",
+  "price": 431,
+  "airline": "IB",
+  "departure_at": "2027-03-15T08:15:00-06:00",
+  "return_at": "2027-03-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1503NYC22031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "NYC",
+  "price": 391,
+  "airline": "CM",
+  "departure_at": "2027-03-20T08:15:00-06:00",
+  "return_at": "2027-03-27T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO2003NYC27031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MAD",
+  "price": 668,
+  "airline": "AA",
+  "departure_at": "2027-01-10T08:15:00-06:00",
+  "return_at": "2027-01-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1001MAD17011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MAD",
+  "price": 703,
+  "airline": "AV",
+  "departure_at": "2027-01-15T08:15:00-06:00",
+  "return_at": "2027-01-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1501MAD22011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MAD",
+  "price": 655,
+  "airline": "AA",
+  "departure_at": "2027-01-20T08:15:00-06:00",
+  "return_at": "2027-01-27T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO2001MAD27011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MAD",
+  "price": 791,
+  "airline": "UA",
+  "departure_at": "2027-02-10T08:15:00-06:00",
+  "return_at": "2027-02-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1002MAD17021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MAD",
+  "price": 862,
+  "airline": "UA",
+  "departure_at": "2027-02-15T08:15:00-06:00",
+  "return_at": "2027-02-22T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1502MAD22021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MAD",
+  "price": 718,
+  "airline": "IB",
+  "departure_at": "2027-02-20T08:15:00-06:00",
+  "return_at": "2027-02-27T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO2002MAD27021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MAD",
+  "price": 828,
+  "airline": "IB",
+  "departure_at": "2027-03-10T08:15:00-06:00",
+  "return_at": "2027-03-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1003MAD17031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MAD",
+  "price": 696,
+  "airline": "AV",
+  "departure_at": "2027-03-15T08:15:00-06:00",
+  "return_at": "2027-03-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1503MAD22031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MAD",
+  "price": 590,
+  "airline": "IB",
+  "departure_at": "2027-03-20T08:15:00-06:00",
+  "return_at": "2027-03-27T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO2003MAD27031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "CUN",
+  "price": 329,
+  "airline": "CM",
+  "departure_at": "2027-01-10T08:15:00-06:00",
+  "return_at": "2027-01-17T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1001CUN17011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "CUN",
+  "price": 318,
+  "airline": "AV",
+  "departure_at": "2027-01-15T08:15:00-06:00",
+  "return_at": "2027-01-22T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1501CUN22011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "CUN",
+  "price": 323,
+  "airline": "IB",
+  "departure_at": "2027-01-20T08:15:00-06:00",
+  "return_at": "2027-01-27T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO2001CUN27011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "CUN",
+  "price": 304,
+  "airline": "UA",
+  "departure_at": "2027-02-10T08:15:00-06:00",
+  "return_at": "2027-02-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1002CUN17021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "CUN",
+  "price": 297,
+  "airline": "UA",
+  "departure_at": "2027-02-15T08:15:00-06:00",
+  "return_at": "2027-02-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1502CUN22021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "CUN",
+  "price": 324,
+  "airline": "AV",
+  "departure_at": "2027-02-20T08:15:00-06:00",
+  "return_at": "2027-02-27T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO2002CUN27021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "CUN",
+  "price": 357,
+  "airline": "IB",
+  "departure_at": "2027-03-10T08:15:00-06:00",
+  "return_at": "2027-03-17T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1003CUN17031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "CUN",
+  "price": 320,
+  "airline": "IB",
+  "departure_at": "2027-03-15T08:15:00-06:00",
+  "return_at": "2027-03-22T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1503CUN22031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "CUN",
+  "price": 307,
+  "airline": "AV",
+  "departure_at": "2027-03-20T08:15:00-06:00",
+  "return_at": "2027-03-27T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO2003CUN27031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "BOG",
+  "price": 357,
+  "airline": "IB",
+  "departure_at": "2027-01-10T08:15:00-06:00",
+  "return_at": "2027-01-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1001BOG17011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "BOG",
+  "price": 267,
+  "airline": "IB",
+  "departure_at": "2027-01-15T08:15:00-06:00",
+  "return_at": "2027-01-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1501BOG22011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "BOG",
+  "price": 305,
+  "airline": "UA",
+  "departure_at": "2027-01-20T08:15:00-06:00",
+  "return_at": "2027-01-27T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO2001BOG27011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "BOG",
+  "price": 287,
+  "airline": "IB",
+  "departure_at": "2027-02-10T08:15:00-06:00",
+  "return_at": "2027-02-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1002BOG17021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "BOG",
+  "price": 324,
+  "airline": "IB",
+  "departure_at": "2027-02-15T08:15:00-06:00",
+  "return_at": "2027-02-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1502BOG22021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "BOG",
+  "price": 302,
+  "airline": "AV",
+  "departure_at": "2027-02-20T08:15:00-06:00",
+  "return_at": "2027-02-27T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO2002BOG27021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "BOG",
+  "price": 326,
+  "airline": "IB",
+  "departure_at": "2027-03-10T08:15:00-06:00",
+  "return_at": "2027-03-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1003BOG17031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "BOG",
+  "price": 264,
+  "airline": "AV",
+  "departure_at": "2027-03-15T08:15:00-06:00",
+  "return_at": "2027-03-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1503BOG22031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "BOG",
+  "price": 348,
+  "airline": "UA",
+  "departure_at": "2027-03-20T08:15:00-06:00",
+  "return_at": "2027-03-27T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO2003BOG27031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "PTY",
+  "price": 248,
+  "airline": "AV",
+  "departure_at": "2027-01-10T08:15:00-06:00",
+  "return_at": "2027-01-17T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1001PTY17011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "PTY",
+  "price": 250,
+  "airline": "AA",
+  "departure_at": "2027-01-15T08:15:00-06:00",
+  "return_at": "2027-01-22T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1501PTY22011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "PTY",
+  "price": 239,
+  "airline": "UA",
+  "departure_at": "2027-01-20T08:15:00-06:00",
+  "return_at": "2027-01-27T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO2001PTY27011?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "PTY",
+  "price": 193,
+  "airline": "IB",
+  "departure_at": "2027-02-10T08:15:00-06:00",
+  "return_at": "2027-02-17T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1002PTY17021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "PTY",
+  "price": 201,
+  "airline": "AV",
+  "departure_at": "2027-02-15T08:15:00-06:00",
+  "return_at": "2027-02-22T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO1502PTY22021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "PTY",
+  "price": 183,
+  "airline": "IB",
+  "departure_at": "2027-02-20T08:15:00-06:00",
+  "return_at": "2027-02-27T14:40:00-06:00",
+  "transfers": 0,
+  "link": "/search/SJO2002PTY27021?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "PTY",
+  "price": 230,
+  "airline": "UA",
+  "departure_at": "2027-03-10T08:15:00-06:00",
+  "return_at": "2027-03-17T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1003PTY17031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "PTY",
+  "price": 234,
+  "airline": "AA",
+  "departure_at": "2027-03-15T08:15:00-06:00",
+  "return_at": "2027-03-22T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO1503PTY22031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "PTY",
+  "price": 179,
+  "airline": "UA",
+  "departure_at": "2027-03-20T08:15:00-06:00",
+  "return_at": "2027-03-27T14:40:00-06:00",
+  "transfers": 1,
+  "link": "/search/SJO2003PTY27031?t=demo"
+ },
+ {
+  "origin": "SJO",
+  "destination": "MAD",
+  "price": 489,
+  "airline": "IB",
+  "departure_at": "2027-02-03T17:00:00-06:00",
+  "return_at": "2027-02-17T12:00:00+01:00",
+  "transfers": 1,
+  "link": "/search/SJO0302MAD17021?t=demo"
+ },
+ {
+  "origin": "LIR",
+  "destination": "NYC",
+  "price": 219,
+  "airline": "UA",
+  "departure_at": "2027-01-20T06:00:00-06:00",
+  "return_at": "2027-01-27T09:00:00-05:00",
+  "transfers": 0,
+  "link": "/search/LIR2001NYC27011?t=demo"
+ }
+]
