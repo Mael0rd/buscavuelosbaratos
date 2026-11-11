@@ -31,7 +31,7 @@ Una tarifa se publica solo si cumple **todo** esto:
 | Ida y vuelta, directo o con 1 escala | máx. 1 escala | `search.max_transfers` |
 | Duración del viaje | mínimo 3 días entre ida y vuelta | `search.min_trip_days` |
 | Precio bajo lo normal (con ≥ 7 días de historial de la ruta) | ≥ 10% bajo la mediana | `deals.drop_pct`, `deals.min_days` |
-| Precio bajo lo normal (rutas sin historial aún) | tope por distancia **y** 10% bajo los otros meses | `deals.cold_start` |
+| Precio bajo lo normal (rutas sin historial aún) | bajo el tope por distancia (p. ej. SJO-MIA ≈ $218, SJO-MAD ≈ $598) **y**, si hay precios de ≥ 3 meses, 10% bajo los otros meses | `deals.cold_start` |
 | Precio reciente (mismo viaje visto hace poco) | < 6 h | `freshness.max_age_hours` |
 | No repetida | misma ruta no antes de 7 días, salvo que baje otro 10% | `deals.repost_*` |
 
