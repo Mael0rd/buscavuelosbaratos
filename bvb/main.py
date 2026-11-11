@@ -45,10 +45,14 @@ def run(no_social: bool = False) -> None:
 
     # Solo se guardan ofertas cuyo precio se vio hace poco (honestidad ante el público)
     saved = skipped = 0
+    ages = []
     for d in found:
         found_at = checker.is_fresh(d)
         if not found_at:
             skipped += 1
+            st, seen = checker.check(d)  # (caché) para registrar hace cuánto se vio
+            if st == "match":
+                ages.append(round(fresh.age_hours(seen)))
             continue
         d["found_at"] = found_at
         d["slug"] = dl.make_slug(d)
@@ -56,6 +60,8 @@ def run(no_social: bool = False) -> None:
         dl.save_deal(conn, d)
         saved += 1
     print(f"Ofertas nuevas: {saved} (descartadas por precio no reciente: {skipped})")
+    if ages:
+        print(f"  horas desde que se vieron las descartadas: {sorted(ages)}")
 
     # Revisar las ofertas publicadas: las que subieron o ya no se confirman, terminan
     expired = fresh.revalidate(conn, checker, cfg)
