@@ -1,7 +1,9 @@
 """Genera la web estática en ./site: portada con secciones por país,
-una página por país y una por oferta."""
+una página por país, una por destino y una por oferta."""
 import hashlib
+import re
 import shutil
+import unicodedata
 from datetime import date, datetime, timezone
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -12,6 +14,21 @@ from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
 
 PER_COUNTRY_HOME = 6
+
+
+def card_image(url: str) -> tuple[str, str]:
+    """Foto al tamaño de la tarjeta (~320x150) y al doble para pantallas retina. Unsplash recorta y comprime."""
+    if "images.unsplash.com" not in url:
+        return url, ""
+    base = url.split("?")[0] + "?auto=format&fit=crop&q=60"
+    return f"{base}&w=400&h=190", f"{base}&w=800&h=380"
+
+
+def dest_slug(name: str, code: str) -> str:
+    """'São Paulo', 'SAO' -> 'sao-paulo-sao' (el código evita choques como San José CR / EE. UU.)."""
+    ascii_ = unicodedata.normalize("NFKD", name or "").encode("ascii", "ignore").decode()
+    words = re.sub(r"[^a-z0-9]+", "-", ascii_.lower()).strip("-")
+    return f"{words}-{code.lower()}" if words else code.lower()
 
 
 def active_deals(conn, cfg: dict, status: str = "active") -> list[dict]:
@@ -34,6 +51,9 @@ def active_deals(conn, cfg: dict, status: str = "active") -> list[dict]:
         seen.add(key)
         d = dict(r)
         d["ahorro"] = savings_pct(d)
+        d["dest_slug"] = dest_slug(d["dest_name"], d["destination"])
+        d["img"], d["img2x"] = card_image((cfg.get("dest_images") or {}).get(d["destination"], ""))
+        d["tone"] = sum(map(ord, d["destination"] or "")) % 6  # degradado fijo por destino si no hay foto
         out.append(d)
     return out
 
@@ -57,6 +77,7 @@ def build(conn, cfg: dict) -> int:
         shutil.rmtree(SITE_DIR)
     (SITE_DIR / "oferta").mkdir(parents=True)
     (SITE_DIR / "pais").mkdir()
+    (SITE_DIR / "destino").mkdir()
     if STATIC_DIR.exists():
         shutil.copytree(STATIC_DIR, SITE_DIR / "static")
 
@@ -82,11 +103,18 @@ def build(conn, cfg: dict) -> int:
     write("alertas.html", "alertas.html")
     for c in countries:
         write(f"pais/{c['id']}.html", "country.html", c=c)
+    # shortcut: solo destinos con ofertas activas; la página desaparece cuando no hay, cambiar si afecta SEO
+    destinations = {}
+    for d in deals:  # deals ya viene ordenado de mejor a peor
+        destinations.setdefault(d["dest_slug"], []).append(d)
+    for slug, ds in destinations.items():
+        write(f"destino/{slug}.html", "destination.html", dest=ds[0], deals=ds)
     for d in deals + ended:
-        write(f"oferta/{d['slug']}.html", "deal.html", d=d, c=by_id.get(d["country"]))
+        write(f"oferta/{d['slug']}.html", "deal.html", d=d, c=by_id.get(d["country"]), dest_pages=destinations)
 
     base = f"https://{cfg['site']['domain']}"
     urls = ([f"{base}/", f"{base}/alertas.html"] + [f"{base}/pais/{c['id']}.html" for c in countries]
+            + [f"{base}/destino/{s}.html" for s in destinations]
             + [f"{base}/oferta/{d['slug']}.html" for d in deals])
     (SITE_DIR / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'

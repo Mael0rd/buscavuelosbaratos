@@ -154,3 +154,75 @@ origin_names:
   COR: Córdoba
   MVD: Montevideo
   ASU: Asunción
+
+# Foto de cabecera de las tarjetas por destino (código IATA de ciudad). Unsplash, uso libre.
+# Los destinos sin foto muestran un degradado con el nombre de la ciudad.
+dest_images:
+  NYC: https://images.unsplash.com/photo-1496588152823-86ff7695e68f?auto=format&fit=crop&w=800&q=70
+  MIA: https://images.unsplash.com/photo-1533106497176-45ae19e68ba2?auto=format&fit=crop&w=800&q=70
+  ORL: https://images.unsplash.com/photo-1605723517503-3cadb5818a0c?auto=format&fit=crop&w=800&q=70
+  FLL: https://images.unsplash.com/photo-1484199383121-dfa3c30608cd?auto=format&fit=crop&w=800&q=70
+  TPA: https://images.unsplash.com/photo-1561063139-e183e66909c4?auto=format&fit=crop&w=800&q=70
+  JAX: https://images.unsplash.com/photo-1613231365618-5ebf85a8209e?auto=format&fit=crop&w=800&q=70
+  LAX: https://images.unsplash.com/photo-1580655653885-65763b2597d0?auto=format&fit=crop&w=800&q=70
+  LAS: https://images.unsplash.com/photo-1581351721010-8cf859cb14a4?auto=format&fit=crop&w=800&q=70
+  SFO: https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=800&q=70
+  SEA: https://images.unsplash.com/photo-1502175353174-a7a70e73b362?auto=format&fit=crop&w=800&q=70
+  BOS: https://images.unsplash.com/photo-1565127803082-69dd82351360?auto=format&fit=crop&w=800&q=70
+  CHI: https://images.unsplash.com/photo-1714662660476-022bfd34cf44?auto=format&fit=crop&w=800&q=70
+  WAS: https://images.unsplash.com/photo-1581097543550-b3cbe2e6ea6e?auto=format&fit=crop&w=800&q=70
+  PHL: https://images.unsplash.com/photo-1569761316261-9a8696fa2ca3?auto=format&fit=crop&w=800&q=70
+  BWI: https://images.unsplash.com/photo-1611316491868-a683302aa917?auto=format&fit=crop&w=800&q=70
+  PIT: https://images.unsplash.com/photo-1761405378313-622deb755731?auto=format&fit=crop&w=800&q=70
+  ATL: https://images.unsplash.com/photo-1663601460253-aba72eea6edf?auto=format&fit=crop&w=800&q=70
+  DFW: https://images.unsplash.com/photo-1758592406429-8240cc112ebe?auto=format&fit=crop&w=800&q=70
+  AUS: https://images.unsplash.com/photo-1557335200-a65f7f032602?auto=format&fit=crop&w=800&q=70
+  DEN: https://images.unsplash.com/photo-1709689702529-6fa1f343e108?auto=format&fit=crop&w=800&q=70
+  BNA: https://images.unsplash.com/photo-1556033681-83abea291a96?auto=format&fit=crop&w=800&q=70
+  IND: https://images.unsplash.com/photo-1651035157347-e92d6a3cd958?auto=format&fit=crop&w=800&q=70
+  SDF: https://images.unsplash.com/photo-1615825742158-5aac7849e4a4?auto=format&fit=crop&w=800&q=70
+  BDL: https://images.unsplash.com/photo-1694276308868-001f56408ccc?auto=format&fit=crop&w=800&q=70
+  YVR: https://images.unsplash.com/photo-1647655806923-e8202f4f2b8c?auto=format&fit=crop&w=800&q=70
+  YTO: https://images.unsplash.com/photo-1543962226-818f4301073f?auto=format&fit=crop&w=800&q=70
+  YMQ: https://images.unsplash.com/photo-1470181942237-78ce33fec141?auto=format&fit=crop&w=800&q=70
+  MEX: https://images.unsplash.com/photo-1547686669-9a8cb1a22d91?auto=format&fit=crop&w=800&q=70
+  CUN: https://images.unsplash.com/photo-1630252421399-ddde79af47b3?auto=format&fit=crop&w=800&q=70
+  GDL: https://images.unsplash.com/photo-1565670105658-ea35d27f7de7?auto=format&fit=crop&w=800&q=70
+  MTY: https://images.unsplash.com/photo-1783614221259-107cb8c396be?auto=format&fit=crop&w=800&q=70
+  TIJ: https://images.unsplash.com/photo-1563609814792-9efc6f4a36a4?auto=format&fit=crop&w=800&q=70
+  GUA: https://images.unsplash.com/photo-1713063297072-051cb0e1f7f7?auto=format&fit=crop&w=800&q=70
+  SAL: https://images.unsplash.com/photo-1634072724319-96cd27fcbb35?auto=format&fit=crop&w=800&q=70
+  TGU: https://images.unsplash.com/photo-1697343662729-9a91ac3a6d51?auto=format&fit=crop&w=800&q=70
+  MGA: https://images.unsplash.com/photo-1654374530352-fedf4de12366?auto=format&fit=crop&w=800&q=70
+  SJO: https://images.unsplash.com/photo-1629337451443-3a43721f196b?auto=format&fit=crop&w=800&q=70
+  LIR: https://images.unsplash.com/photo-1626060451577-8b90a394e355?auto=format&fit=crop&w=800&q=70
+  PTY: https://images.unsplash.com/photo-1773424210357-7ba8d1b2e0f3?auto=format&fit=crop&w=800&q=70
+  HAV: https://images.unsplash.com/photo-1570299437488-d430e1e677c7?auto=format&fit=crop&w=800&q=70
+  PUJ: https://images.unsplash.com/photo-1569700946659-fe1941c71fe4?auto=format&fit=crop&w=800&q=70
+  SDQ: https://images.unsplash.com/photo-1650171111438-ea9bc8c675fe?auto=format&fit=crop&w=800&q=70
+  SJU: https://images.unsplash.com/photo-1589402249680-5ff95f2ac3bd?auto=format&fit=crop&w=800&q=70
+  BOG: https://images.unsplash.com/photo-1568632234157-ce7aecd03d0d?auto=format&fit=crop&w=800&q=70
+  MDE: https://images.unsplash.com/photo-1715503234327-b57d32e5da0f?auto=format&fit=crop&w=800&q=70
+  CLO: https://images.unsplash.com/photo-1728588519059-a62e06050425?auto=format&fit=crop&w=800&q=70
+  CTG: https://images.unsplash.com/photo-1583531352515-8884af319dc1?auto=format&fit=crop&w=800&q=70
+  CCS: https://images.unsplash.com/photo-1714594923299-e915b7d71701?auto=format&fit=crop&w=800&q=70
+  UIO: https://images.unsplash.com/photo-1610226977124-9fd2755d09f2?auto=format&fit=crop&w=800&q=70
+  GYE: https://images.unsplash.com/photo-1628004566999-83b23fdc411f?auto=format&fit=crop&w=800&q=70
+  LIM: https://images.unsplash.com/photo-1531968455001-5c5272a41129?auto=format&fit=crop&w=800&q=70
+  CUZ: https://images.unsplash.com/photo-1769358730767-ea63216351b7?auto=format&fit=crop&w=800&q=70
+  LPB: https://images.unsplash.com/photo-1544142447-e43d0fe04bf2?auto=format&fit=crop&w=800&q=70
+  SCL: https://images.unsplash.com/photo-1776583593322-00239f0ed91d?auto=format&fit=crop&w=800&q=70
+  BUE: https://images.unsplash.com/photo-1612294037637-ec328d0e075e?auto=format&fit=crop&w=800&q=70
+  MVD: https://images.unsplash.com/photo-1598289993193-5efe1657f971?auto=format&fit=crop&w=800&q=70
+  ASU: https://images.unsplash.com/photo-1708007736300-89c16fa57b40?auto=format&fit=crop&w=800&q=70
+  SAO: https://images.unsplash.com/photo-1645918899630-85e2f3132a84?auto=format&fit=crop&w=800&q=70
+  RIO: https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=800&q=70
+  REC: https://images.unsplash.com/photo-1563455227142-d0f82238d6f8?auto=format&fit=crop&w=800&q=70
+  FLN: https://images.unsplash.com/photo-1689301109191-ff1f55d2e243?auto=format&fit=crop&w=800&q=70
+  MAD: https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=70
+  BCN: https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=800&q=70
+  LIS: https://images.unsplash.com/photo-1784600239568-179055885288?auto=format&fit=crop&w=800&q=70
+  PAR: https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=70
+  LON: https://images.unsplash.com/photo-1486299267070-83823f5448dd?auto=format&fit=crop&w=800&q=70
+  ROM: https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=70
+  AMS: https://images.unsplash.com/photo-1584003564911-a7a321c84e1c?auto=format&fit=crop&w=800&q=70

@@ -28,6 +28,7 @@
   {% if d.status != 'expired' %}
   <a class="cta" href="{{ d.link }}" rel="sponsored nofollow noopener" target="_blank">Ver vuelo y precio actual</a>
   {% endif %}
-  <a class="alert-link{% if d.status == 'expired' %} strong{% endif %}" href="/alertas.html?o={{ d.origin|urlencode }}&d={{ d.destination|urlencode }}&dn={{ d.dest_name|urlencode }}">🔔 Avísame de futuras ofertas en esta ruta</a>
+  {% if d.dest_slug in dest_pages %}<a class="alert-link" href="/destino/{{ d.dest_slug }}.html">✈ Más ofertas a {{ d.dest_name }}</a>{% endif %}
+  <a class="alert-link{% if d.status == 'expired' %} strong{% endif %}" href="/alertas.html?o={{ d.origin|urlencode }}&d={{ d.destination|urlencode }}&dn={{ d.dest_name|urlencode }}"><span class="bell" aria-hidden="true">🔔</span> Avísame de futuras ofertas en esta ruta</a>
 </article>
 {% endblock %}

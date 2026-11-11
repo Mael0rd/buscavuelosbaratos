@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Vuelos baratos a {{ dest.dest_name }} desde ${{ "%.0f"|format(deals|map(attribute="price")|min) }} | {{ site.title }}{% endblock %}
+{% block description %}Ofertas de vuelos baratos a {{ dest.dest_name }}{% if dest.dest_country %}, {{ dest.dest_country }}{% endif %}, saliendo desde Hispanoamérica. Actualizadas varias veces al día.{% endblock %}
+{% block content %}
+<a class="back" href="/">← Todos los países</a>
+<section class="hero">
+  <h1>Vuelos baratos a {{ dest.dest_name }}</h1>
+  <p>{% if dest.dest_country %}{{ dest.dest_country }} · {% endif %}{{ deals|length }} {{ "oferta" if deals|length == 1 else "ofertas" }} de ida y vuelta muy por debajo de su precio habitual.</p>
+</section>
+
+<ul class="grid">
+  {% for d in deals %}{% include "_card.html" %}{% endfor %}
+</ul>
+
+<p class="muted small">¿No sales desde estas ciudades? <a href="/alertas.html?d={{ dest.destination|urlencode }}&dn={{ dest.dest_name|urlencode }}" style="color:var(--accent);font-weight:600">Crea una alerta a {{ dest.dest_name }}</a> y te avisamos cuando baje.</p>
+{% endblock %}

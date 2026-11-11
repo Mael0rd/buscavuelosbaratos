@@ -178,7 +178,7 @@ cd worker && npm install && npm test        # pruebas del servidor de alertas
 | `bvb/fresh.py` | Verifica cuándo se vio cada precio y termina las ofertas que ya no se sostienen |
 | `bvb/verify.py` | Verificación en vivo (SerpApi → Apify) con presupuesto mensual/diario/por hora; se verifican primero los precios más recientes (`verify.freshness_weight_hours`) |
 | `bvb/copywriter.py` | Textos con Claude (Haiku) o plantilla |
-| `bvb/site.py` + `templates/` | Web estática, sitemap, robots, CNAME |
+| `bvb/site.py` + `templates/` | Web estática (portada, país, destino, oferta), sitemap, robots, CNAME |
 | `bvb/telegram.py` | Canales general y por país, cupos, horario, edición de posts terminados |
 | `bvb/alerts.py` | Avisos de alertas por ruta (Telegram y correo vía Resend) |
 | `bvb/post_example.py` | Post de ejemplo por país |
