@@ -1,0 +1,10 @@
+{# Botones para compartir. Necesita: share_text (texto) y page_path (lo pone site.write). #}
+{% set share_url = "https://" ~ site.domain ~ page_path %}
+<div class="share">
+  <span class="share-label">Compártela:</span>
+  <a class="share-btn wa" href="https://wa.me/?text={{ (share_text ~ ' ' ~ share_url ~ '?utm_source=whatsapp&utm_medium=share')|urlencode }}" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="share-btn tg" href="https://t.me/share/url?url={{ (share_url ~ '?utm_source=telegram&utm_medium=share')|urlencode }}&text={{ share_text|urlencode }}" target="_blank" rel="noopener">Telegram</a>
+  <a class="share-btn fb" href="https://www.facebook.com/sharer/sharer.php?u={{ (share_url ~ '?utm_source=facebook&utm_medium=share')|urlencode }}" target="_blank" rel="noopener">Facebook</a>
+  <button class="share-btn more" type="button" data-share-native data-url="{{ share_url }}?utm_source=nativo&utm_medium=share" data-text="{{ share_text }}">Más…</button>
+  <button class="share-btn copy" type="button" data-copy="{{ share_url }}">Copiar enlace</button>
+</div>

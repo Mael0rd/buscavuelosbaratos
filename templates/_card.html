@@ -1,5 +1,5 @@
 <li class="card">
-  <a href="/oferta/{{ d.slug }}.html">
+  <a href="/oferta/{{ d.slug }}">
     <div class="card-img tone-{{ d.tone }}">
       {% if d.img %}<img src="{{ d.img }}"{% if d.img2x %} srcset="{{ d.img }} 1x, {{ d.img2x }} 2x"{% endif %} alt="" loading="lazy" decoding="async" width="400" height="190" onerror="this.remove()">{% endif %}
       <span class="card-city" aria-hidden="true">{{ d.dest_name }}</span>

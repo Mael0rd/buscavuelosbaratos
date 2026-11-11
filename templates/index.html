@@ -17,7 +17,7 @@
 <section class="country" id="{{ c.id }}" data-country="{{ c.id }}">
   <div class="sec-head">
     <h2><img class="flag" src="/static/flags/{{ c.cc|lower }}.png" alt="" width="20" height="15"> Desde {{ c.name }}</h2>
-    <a href="/pais/{{ c.id }}.html">{% if c.deals|length > per_home %}Ver las {{ c.deals|length }} ofertas{% else %}Ver país{% endif %} →</a>
+    <a href="/pais/{{ c.id }}">{% if c.deals|length > per_home %}Ver las {{ c.deals|length }} ofertas{% else %}Ver país{% endif %} →</a>
   </div>
   <ul class="grid">
     {% for d in c.deals[:per_home] %}{% include "_card.html" %}{% endfor %}
@@ -41,7 +41,7 @@
     var n = document.getElementById("sin-ofertas-pais");
     n.innerHTML = '<img class="flag" src="/static/flags/' + info.cc.toLowerCase() +
       '.png" alt="" width="20" height="15"> Ahora mismo no hay ofertas desde <b>' + info.name +
-      '</b>. <a href="/alertas.html?o=' + info.origins[0] + '">Crea una alerta</a> y te avisamos cuando baje tu ruta.';
+      '</b>. <a href="/alertas?o=' + info.origins[0] + '">Crea una alerta</a> y te avisamos cuando baje tu ruta.';
     n.hidden = false;
   }
   var tg = document.getElementById("tg-join");
@@ -51,10 +51,17 @@
     tg.href = info.tg; tg.textContent = "📲 Recibe las ofertas desde " + info.name + " en Telegram";
   }
   var chips = document.querySelector(".chips");
-  var chip = chips && chips.querySelector('a[href="/pais/' + id + '.html"]');
+  var chip = chips && chips.querySelector('a[href="/pais/' + id + '"]');
   if (chip) { chips.insertBefore(chip, chips.firstChild); chip.classList.add("mine-chip"); chip.insertAdjacentText("afterbegin", "📍 "); }
 })();
 </script>
+
+<section class="cities">
+  <h2>Vuelos baratos desde tu ciudad</h2>
+  {% for c in countries %}<div class="city-row"><b><img class="flag" src="/static/flags/{{ c.cc|lower }}.png" alt="" width="20" height="15"> <a href="/pais/{{ c.id }}">{{ c.name }}</a></b>
+    {% for o in c.cities %}<a href="/desde/{{ o.slug }}">{{ o.name }}</a>{% endfor %}</div>
+  {% endfor %}
+</section>
 
 {% if not total %}
 <p class="empty">Ahora mismo no hay ofertas destacadas. Volvemos a revisar en unas horas.</p>

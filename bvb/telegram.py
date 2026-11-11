@@ -76,14 +76,14 @@ def build_message(row: dict, site_url: str, country_name: str,
     lines += [f"🔁 {detalle}", ""]
     lines += verified_lines(row, now)
 
-    deal_url = f"{site_url}/oferta/{row['slug']}.html"
+    deal_url = f"{site_url}/oferta/{row['slug']}"
     share_text = (f"✈️ {row['origin_name']} → {row['dest_name']} por ${row['price']:.0f} "
                   f"ida y vuelta. Mira la oferta: {deal_url}")
     markup = {"inline_keyboard": [
         [{"text": "🎟️ Ver precio actual y reservar", "url": row["link"] or deal_url}],
         [{"text": "📲 Compartir en WhatsApp", "url": "https://wa.me/?text=" + quote(share_text)}],
         [{"text": f"🔎 Más ofertas desde {country_name}",
-          "url": f"{site_url}/pais/{row['country']}.html"}],
+          "url": f"{site_url}/pais/{row['country']}"}],
     ]}
     return "\n".join(lines), markup
 
@@ -102,11 +102,11 @@ def build_expired_message(row: dict, site_url: str, country_name: str) -> tuple[
         "",
         "Activa las notificaciones del canal para enterarte primero de la próxima 🔔",
     ]
-    alert_url = (f"{site_url}/alertas.html?o={quote(row['origin'])}&d={quote(row['destination'])}"
+    alert_url = (f"{site_url}/alertas?o={quote(row['origin'])}&d={quote(row['destination'])}"
                  f"&dn={quote(row['dest_name'])}")
     markup = {"inline_keyboard": [
         [{"text": f"🔎 Ver ofertas actuales desde {country_name}",
-          "url": f"{site_url}/pais/{row['country']}.html"}],
+          "url": f"{site_url}/pais/{row['country']}"}],
         [{"text": "🔔 Avísame si vuelve a bajar", "url": alert_url}],
     ]}
     return "\n".join(lines), markup

@@ -11,6 +11,24 @@
   </script>
   <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" href="/static/style.css?v={{ asset_v }}">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <link rel="manifest" href="/static/site.webmanifest">
+  <meta name="theme-color" content="#14213d">
+  {% if page_path %}{% set canonical = "https://" ~ site.domain ~ page_path %}
+  <link rel="canonical" href="{{ canonical }}">
+  <meta property="og:url" content="{{ canonical }}">{% else %}
+  <meta name="robots" content="noindex">{% endif %}
+  <meta property="og:site_name" content="{{ site.title }}">
+  <meta property="og:locale" content="es_419">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ self.title()|striptags|trim }}">
+  <meta property="og:description" content="{{ self.description()|striptags|trim }}">
+  <meta property="og:image" content="https://{{ site.domain }}{{ og }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
   {% block head %}{% endblock %}
   {% include "_geo.html" %}
   <!-- Travelpayouts Drive -->
@@ -28,13 +46,14 @@
   <header class="top">
     <a class="brand" href="/"><img class="logo-light" src="/static/logo.svg?v={{ asset_v }}" alt="{{ site.title }}" width="245" height="64"><img class="logo-dark" src="/static/logo-dark.svg?v={{ asset_v }}" alt="{{ site.title }}" width="245" height="64"></a>
     <span class="tag">{{ site.tagline }}</span>
-    <a class="nav-alert" href="/alertas.html"><span class="bell" aria-hidden="true">🔔</span> Alertas</a>
+    <a class="nav-alert" href="/alertas"><span class="bell" aria-hidden="true">🔔</span> Alertas</a>
     <button class="theme-toggle" type="button" aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro"><span class="moon" aria-hidden="true">🌙</span><span class="sun" aria-hidden="true">☀️</span></button>
   </header>
   <main>{% block content %}{% endblock %}</main>
   <footer>
     <p>Precios en USD encontrados recientemente; pueden cambiar en cualquier momento.
        Algunos enlaces son de afiliado: si compras, recibimos una comisión sin costo extra para ti.</p>
+    <nav class="foot-links"><a href="/como-verificamos">Cómo verificamos los precios</a> · <a href="/quienes-somos">Quiénes somos</a> · <a href="/privacidad">Privacidad</a> · <a href="/alertas">Alertas</a></nav>
     <p class="muted">Actualizado: <time datetime="{{ updated_iso }}" data-local-time>{{ updated }}</time></p>
   </footer>
   {% include "_popup.html" %}
@@ -55,6 +74,25 @@
   })();
   </script>
   <script>
+  // Compartir: hoja nativa del celular si existe; si no, los enlaces normales. Copiar enlace.
+  (function () {
+    var nat = document.querySelectorAll("[data-share-native]");
+    for (var i = 0; i < nat.length; i++) {
+      if (!navigator.share) { nat[i].hidden = true; continue; }
+      nat[i].addEventListener("click", function (e) {
+        var b = e.currentTarget;
+        navigator.share({ title: document.title, text: b.dataset.text, url: b.dataset.url }).catch(function () {});
+      });
+    }
+    var cp = document.querySelectorAll("[data-copy]");
+    for (var j = 0; j < cp.length; j++) {
+      cp[j].addEventListener("click", function (e) {
+        var b = e.currentTarget, old = b.textContent;
+        var done = function () { b.textContent = "✓ Enlace copiado"; setTimeout(function () { b.textContent = old; }, 2000); };
+        if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.copy).then(done, function () {});
+      });
+    }
+  })();
   (function () {
     var btn = document.querySelector(".theme-toggle"), root = document.documentElement;
     var dark = function () { return root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };

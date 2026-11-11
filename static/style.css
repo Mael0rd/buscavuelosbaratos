@@ -239,3 +239,36 @@ table.months tr.best td { color: var(--good); font-weight: 700; }
              border-radius: 10px; padding: .55rem .8rem; }
 .related a:hover { border-color: var(--accent); }
 .related a span { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+
+/* ---- Compartir ---- */
+.share { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 1.25rem 0; }
+.share-label { color: var(--muted); font-size: .9rem; margin-right: .25rem; }
+.share-btn { font: inherit; font-size: .9rem; font-weight: 600; padding: .45rem .9rem; border-radius: 999px;
+             border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+.share-btn:hover { border-color: var(--hover-line); }
+.share-btn.wa { background: #25d366; border-color: #25d366; color: #fff; }
+.share-btn.tg { background: #229ed9; border-color: #229ed9; color: #fff; }
+.share-btn.fb { background: #1877f2; border-color: #1877f2; color: #fff; }
+
+/* ---- Ciudades / destinos ---- */
+.sec-title { font-size: 1.15rem; margin: 1.5rem 0 .75rem; }
+.cities { margin-top: 2.5rem; }
+.cities h2 { font-size: 1.25rem; }
+.city-row { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .9rem; padding: .55rem 0;
+            border-bottom: 1px solid var(--line-soft); font-size: .95rem; }
+.city-row b { min-width: 11rem; display: inline-flex; align-items: center; gap: .35rem; }
+.city-row a { color: var(--accent); }
+.city-row b a { color: var(--ink); }
+table.dests td:first-child a { color: var(--accent); font-weight: 600; }
+.small-link { color: var(--accent); font-size: .85rem; white-space: nowrap; }
+.hub-links { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin: 1rem 0; }
+.hub-links a { color: var(--accent); font-weight: 600; }
+
+/* ---- Páginas informativas ---- */
+.info { max-width: 70ch; }
+.info h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); letter-spacing: -.02em; }
+.info h2 { font-size: 1.15rem; margin-top: 1.75rem; }
+.info .lead { font-size: 1.1rem; }
+.info a:not(.cta):not(.alert-link) { color: var(--accent); font-weight: 600; }
+.foot-links { margin: .5rem 0; font-size: .9rem; }
+.foot-links a { color: var(--accent); }

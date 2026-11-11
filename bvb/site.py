@@ -9,11 +9,14 @@ from datetime import date, datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
-from . import routes, telegram
+from . import hubs, ogimage, routes, telegram
 from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
 
 PER_COUNTRY_HOME = 6
+INFO_PAGES = {"como-verificamos": "Cómo verificamos los precios",
+              "quienes-somos": "Quiénes somos",
+              "privacidad": "Política de privacidad"}
 
 
 def card_image(url: str) -> tuple[str, str]:
@@ -84,14 +87,27 @@ def build(conn, cfg: dict) -> int:
     for c in countries:
         c["routes"] = [r for r in route_pages if r["country"] == c["id"]]
 
+    # Páginas permanentes por ciudad de origen y por destino
+    origins, dest_hubs = hubs.build(conn, cfg, deals, route_pages, dest_slug)
+    origin_by_code = {o["code"]: o for o in origins}
+    for c in countries:
+        c["cities"] = [o for o in origins if o["country"] == c["id"]]
+    for d in deals + ended:
+        o = origin_by_code.get(d["origin"])
+        d["origin_slug"] = o["slug"] if o else None
+
     if SITE_DIR.exists():
         shutil.rmtree(SITE_DIR)
     (SITE_DIR / "oferta").mkdir(parents=True)
     (SITE_DIR / "pais").mkdir()
     (SITE_DIR / "destino").mkdir()
     (SITE_DIR / "vuelos").mkdir()
+    (SITE_DIR / "desde").mkdir()
+    (SITE_DIR / "og").mkdir()
     if STATIC_DIR.exists():
         shutil.copytree(STATIC_DIR, SITE_DIR / "static")
+        if (STATIC_DIR / "favicon.ico").exists():  # los navegadores lo piden en la raíz
+            shutil.copy(STATIC_DIR / "favicon.ico", SITE_DIR / "favicon.ico")
 
     css = STATIC_DIR / "style.css"
     asset_v = hashlib.sha1(css.read_bytes()).hexdigest()[:8] if css.exists() else "1"
@@ -106,27 +122,62 @@ def build(conn, cfg: dict) -> int:
            "bot_username": telegram.bot_username(),
            "channels": channels,
            "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-           "updated_iso": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
+           "updated_iso": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+           "origins": origins, "og": "/og/inicio.jpg"}
     by_id = {c["id"]: c for c in countries}
 
     def write(path, template, **kw):
-        (SITE_DIR / path).write_text(env.get_template(template).render(**ctx, **kw), encoding="utf-8")
+        # Cloudflare Pages sirve /x/y.html en /x/y (y redirige la versión con .html): usamos esa URL
+        page = "/" if path == "index.html" else "/" + path.removesuffix(".html")
+        html = env.get_template(template).render({**ctx, "page_path": page, **kw})
+        (SITE_DIR / path).write_text(html, encoding="utf-8")
+
+    def og(name, fn, *args, **kw):
+        """Genera la imagen para compartir; si algo falla, la página usa la general."""
+        try:
+            fn(*args, SITE_DIR / "og" / f"{name}.jpg", **kw)
+            return f"/og/{name}.jpg"
+        except Exception as e:  # noqa: BLE001 — una imagen nunca debe tumbar la corrida
+            print(f"  ⚠ imagen {name}: {e}")
+            return "/og/inicio.jpg"
+
+    og("inicio", ogimage.page_image, "Vuelos baratos desde Hispanoamérica",
+       "Ofertas de ida y vuelta muy por debajo de su precio normal", tone=1)
 
     write("index.html", "index.html")
-    write("alertas.html", "alertas.html")
+    write("alertas.html", "alertas.html", og=og("alertas", ogimage.page_image, "Alertas de vuelos baratos",
+                                                 "Te avisamos por correo o Telegram cuando baje tu ruta", tone=2))
     for c in countries:
-        write(f"pais/{c['id']}.html", "country.html", c=c)
-    # shortcut: solo destinos con ofertas activas; la página desaparece cuando no hay, cambiar si afecta SEO
+        img = og(f"pais-{c['id']}", ogimage.page_image, f"Vuelos baratos desde {c['name']}",
+                 f"{len(c['deals'])} ofertas verificadas ahora" if c["deals"] else "Ofertas de ida y vuelta verificadas",
+                 cc=c["cc"], tone=sum(map(ord, c["id"])) % 6)
+        write(f"pais/{c['id']}.html", "country.html", c=c, og=img)
+    for o in origins:
+        sub = (f"{o['n_dests']} destinos internacionales · desde ${o['cheapest']['last_price']:.0f}"
+               if o["cheapest"] else "Destinos internacionales de ida y vuelta")
+        o["og"] = og(f"desde-{o['slug']}", ogimage.page_image, f"Vuelos baratos desde {o['name']}", sub,
+                     cc=o["cc"], kicker=o["country_name"], tone=sum(map(ord, o["code"])) % 6)
+        write(f"desde/{o['slug']}.html", "origin.html", o=o, c=by_id.get(o["country"]), og=o["og"])
     destinations = {}
-    for d in deals:  # deals ya viene ordenado de mejor a peor
-        destinations.setdefault(d["dest_slug"], []).append(d)
-    for slug, ds in destinations.items():
-        write(f"destino/{slug}.html", "destination.html", dest=ds[0], deals=ds)
+    for h in dest_hubs:
+        destinations[h["dest_slug"]] = h
+        h["og"] = og(f"destino-{h['dest_slug']}", ogimage.page_image, f"Vuelos baratos a {h['dest_name']}",
+                     f"Desde ${h['low']:.0f} ida y vuelta" + (f" · {h['dest_country']}" if h["dest_country"] else ""),
+                     tone=h["tone"])
+        write(f"destino/{h['dest_slug']}.html", "destination.html", dest=h, deals=h["deals"], og=h["og"])
     for d in deals + ended:
-        write(f"oferta/{d['slug']}.html", "deal.html", d=d, c=by_id.get(d["country"]), dest_pages=destinations)
+        img = og(f"oferta-{d['slug']}", ogimage.deal_image, d, (by_id.get(d["country"]) or {}).get("cc", ""))
+        write(f"oferta/{d['slug']}.html", "deal.html", d=d, c=by_id.get(d["country"]), dest_pages=destinations, og=img)
     for r in route_pages:
-        write(f"vuelos/{r['slug']}.html", "route.html", r=r, c=by_id.get(r["country"]), faqs=routes.faq(r))
-    write("404.html", "404.html")
+        o = origin_by_code.get(r["origin"])
+        dh = destinations.get(dest_slug(r["dest_name"], r["destination"]))
+        r["origin_slug"] = o["slug"] if o else None
+        r["dest_slug"] = dh["dest_slug"] if dh else None
+        write(f"vuelos/{r['slug']}.html", "route.html", r=r, c=by_id.get(r["country"]), faqs=routes.faq(r),
+              og=(r["deal"] and f"/og/oferta-{r['deal']['slug']}.jpg") or (dh or {}).get("og") or (o or {}).get("og", ctx["og"]))
+    for page, title in INFO_PAGES.items():
+        write(f"{page}.html", f"{page}.html", title=title)
+    write("404.html", "404.html", page_path=None)
 
     # Ofertas que ya no tienen página: su URL redirige (301) a la página de la ruta o del país.
     # Cloudflare Pages lee el archivo _redirects (máx. 2.000 reglas estáticas).
@@ -139,15 +190,18 @@ def build(conn, cfg: dict) -> int:
         if x["slug"] in live:
             continue
         rs = slug_of_route.get((x["origin"], x["destination"]))
-        target = f"/vuelos/{rs}.html" if rs else f"/pais/{x['country']}.html"
+        target = f"/vuelos/{rs}" if rs else f"/pais/{x['country']}"
+        redirects.append(f"/oferta/{x['slug']} {target} 301")
         redirects.append(f"/oferta/{x['slug']}.html {target} 301")
     (SITE_DIR / "_redirects").write_text("\n".join(redirects[:1900]) + ("\n" if redirects else ""))
 
     base = f"https://{cfg['site']['domain']}"
-    urls = ([f"{base}/", f"{base}/alertas.html"] + [f"{base}/pais/{c['id']}.html" for c in countries]
-            + [f"{base}/destino/{s}.html" for s in destinations]
-            + [f"{base}/vuelos/{r['slug']}.html" for r in route_pages]
-            + [f"{base}/oferta/{d['slug']}.html" for d in deals])
+    urls = ([f"{base}/", f"{base}/alertas"] + [f"{base}/{p}" for p in INFO_PAGES]
+            + [f"{base}/pais/{c['id']}" for c in countries]
+            + [f"{base}/desde/{o['slug']}" for o in origins]
+            + [f"{base}/destino/{s}" for s in destinations]
+            + [f"{base}/vuelos/{r['slug']}" for r in route_pages]
+            + [f"{base}/oferta/{d['slug']}" for d in deals])
     (SITE_DIR / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'

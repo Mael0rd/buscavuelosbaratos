@@ -21,8 +21,8 @@ def test_message_format_and_buttons():
     assert "http" not in text  # ningún enlace visible en el texto
     buttons = [b[0] for b in markup["inline_keyboard"]]
     assert buttons[0]["url"] == ROW["link"]
-    assert "buscavuelosbaratos.com/oferta/sjo-mad-2027-02-x.html" in unquote(buttons[1]["url"])
-    assert buttons[2]["url"].endswith("/pais/costa-rica.html")
+    assert "buscavuelosbaratos.com/oferta/sjo-mad-2027-02-x" in unquote(buttons[1]["url"])
+    assert buttons[2]["url"].endswith("/pais/costa-rica")
 
 
 def test_no_savings_header_without_history():

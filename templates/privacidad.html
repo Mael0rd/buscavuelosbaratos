@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} | {{ site.title }}{% endblock %}
+{% block description %}Qué datos usa {{ site.title }}, para qué y cómo borrarlos.{% endblock %}
+{% block content %}
+<article class="info">
+  <h1>{{ title }}</h1>
+  <p class="lead">Usamos los mínimos datos necesarios y no los vendemos.</p>
+
+  <h2>Si solo visitas la web</h2>
+  <p>No necesitas cuenta. Guardamos en tu propio navegador si prefieres el modo claro u oscuro. Para mostrarte primero las ofertas de tu país usamos la zona horaria e idioma de tu navegador, sin enviarlos a ningún servidor. Nuestro proveedor de hosting (Cloudflare) procesa datos técnicos como la dirección IP para servir la página y protegerla de ataques.</p>
+
+  <h2>Alertas por correo</h2>
+  <p>Si creas una alerta, guardamos tu correo y la ruta que elegiste, solo para avisarte. Primero te pedimos confirmar el correo. Los correos se envían con Resend. Cada correo trae un enlace para darte de baja al instante: la alerta se desactiva y no te volvemos a escribir. Si además quieres que borremos tu correo por completo, escríbenos.</p>
+
+  <h2>Alertas y canales de Telegram</h2>
+  <p>Si usas nuestro bot, guardamos el identificador de tu chat de Telegram y tus rutas para enviarte los avisos. Puedes quitarlas cuando quieras con el comando /misalertas. En los canales, Telegram no nos muestra quién eres.</p>
+
+  <h2>Enlaces de afiliado</h2>
+  <p>Al hacer clic en "Ver vuelo" vas al sitio de un socio (Aviasales u otros de la red Travelpayouts), que usa sus propias cookies para saber que llegaste desde aquí. Allí aplica su política de privacidad. Nosotros no recibimos tus datos de compra, solo el aviso de que hubo una venta.</p>
+
+  <h2>Tus derechos</h2>
+  <p>Puedes pedir que borremos tus datos cuando quieras escribiéndonos{% if bot_username %} por Telegram a <a href="https://t.me/{{ bot_username }}" target="_blank" rel="noopener">@{{ bot_username }}</a>{% endif %}{% if site.contact_email %} o a <a href="mailto:{{ site.contact_email }}">{{ site.contact_email }}</a>{% endif %}.</p>
+  <p class="muted small">Última actualización: noviembre de 2026.</p>
+</article>
+{% endblock %}

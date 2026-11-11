@@ -13,7 +13,7 @@
 {% set tg = channels.get(c.id) or channels.get('main') %}
 {% if tg %}<a class="tg-join" href="{{ tg }}" target="_blank" rel="noopener">📲 Recibe las ofertas {% if channels.get(c.id) %}desde {{ c.name }} {% endif %}en Telegram</a>{% endif %}
 
-<p class="muted small">¿Buscas una ruta en particular? <a href="/alertas.html" style="color:var(--accent);font-weight:600">Crea una alerta</a> y te avisamos cuando baje.</p>
+<p class="muted small">¿Buscas una ruta en particular? <a href="/alertas" style="color:var(--accent);font-weight:600">Crea una alerta</a> y te avisamos cuando baje.</p>
 
 {% if c.deals %}
 <ul class="grid">
@@ -22,10 +22,16 @@
 {% else %}
 <p class="empty">Ahora mismo no hay ofertas destacadas desde {{ c.name }}. Volvemos a revisar en unas horas.</p>
 {% endif %}
+{% if c.cities %}
+<section class="related">
+  <h2>Vuelos baratos por ciudad de salida</h2>
+  <ul>{% for o in c.cities %}<li><a href="/desde/{{ o.slug }}">Desde {{ o.name }} ({{ o.code }}){% if o.cheapest %} <span>desde ${{ "%.0f"|format(o.cheapest.last_price) }}</span>{% endif %}</a></li>{% endfor %}</ul>
+</section>
+{% endif %}
 {% if c.routes %}
 <section class="related">
   <h2>Rutas desde {{ c.name }}: precios e historial</h2>
-  <ul>{% for r in c.routes %}<li><a href="/vuelos/{{ r.slug }}.html">{{ r.origin_name }} → {{ r.dest_name }} <span>típico ${{ "%.0f"|format(r.typical) }}</span></a></li>{% endfor %}</ul>
+  <ul>{% for r in c.routes %}<li><a href="/vuelos/{{ r.slug }}">{{ r.origin_name }} → {{ r.dest_name }} <span>típico ${{ "%.0f"|format(r.typical) }}</span></a></li>{% endfor %}</ul>
 </section>
 {% endif %}
 {% endblock %}

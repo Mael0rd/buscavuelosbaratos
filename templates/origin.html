@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Vuelos baratos desde {{ o.name }} ({{ o.code }}){% if o.cheapest %} desde ${{ "%.0f"|format(o.cheapest.last_price) }}{% endif %} | {{ site.title }}{% endblock %}
+{% block description %}Vuelos internacionales baratos de ida y vuelta saliendo desde {{ o.name }}, {{ o.country_name }}{% if o.n_dests %}: {{ o.n_dests }} destinos con precios de esta semana{% endif %}. Ofertas verificadas en Google Flights y alertas gratis.{% endblock %}
+{% block head %}
+  <script type="application/ld+json">{{ {
+    "@context": "https://schema.org",
+    "@graph": [
+      {"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://" ~ site.domain ~ "/"},
+        {"@type": "ListItem", "position": 2, "name": "Desde " ~ o.country_name, "item": "https://" ~ site.domain ~ "/pais/" ~ o.country},
+        {"@type": "ListItem", "position": 3, "name": "Desde " ~ o.name, "item": "https://" ~ site.domain ~ page_path}]},
+      {"@type": "FAQPage", "mainEntity": o.faq | map("faq_ld") | list}
+    ]} | tojson }}</script>
+{% endblock %}
+{% block content %}
+<nav class="crumbs"><a href="/">Inicio</a> › <a href="/pais/{{ o.country }}"><img class="flag" src="/static/flags/{{ o.cc|lower }}.png" alt="" width="20" height="15"> {{ o.country_name }}</a> › {{ o.name }}</nav>
+
+<section class="hero">
+  <h1>Vuelos baratos desde {{ o.name }}</h1>
+  <p>Vuelos internacionales de ida y vuelta saliendo de {{ o.name }} ({{ o.code }}), {{ o.country_name }}, directos o con una escala.
+  {% if o.n_dests %}Esta semana encontramos tarifas a <b>{{ o.n_dests }} destinos</b>{% if o.cheapest %}; el más barato fue {{ o.cheapest.dest_name }} desde ${{ "%.0f"|format(o.cheapest.last_price) }}{% endif %}.{% endif %}</p>
+</section>
+
+{% set tg = channels.get(o.country) or channels.get('main') %}
+{% if tg %}<a class="tg-join" href="{{ tg }}" target="_blank" rel="noopener">📲 Recibe las ofertas {% if channels.get(o.country) %}desde {{ o.country_name }} {% endif %}en Telegram</a>{% endif %}
+
+{% if o.deals %}
+<h2 class="sec-title">✅ Ofertas verificadas ahora desde {{ o.name }}</h2>
+<ul class="grid">
+  {% for d in o.deals %}{% include "_card.html" %}{% endfor %}
+</ul>
+{% else %}
+<p class="empty">Ahora mismo no hay una oferta verificada desde {{ o.name }}. Revisamos cada hora:
+  <a href="/alertas?o={{ o.code|urlencode }}">crea una alerta</a> y te avisamos cuando aparezca.</p>
+{% endif %}
+
+{% if o.dests %}
+<section class="panel">
+  <h2>Destinos más baratos desde {{ o.name }}</h2>
+  <p class="muted small">Precio más bajo ida y vuelta que vimos en los últimos días (USD). Son precios de referencia, sin verificar: pueden haber cambiado. Las ofertas verificadas están arriba.</p>
+  <table class="months dests">
+    <thead><tr><th>Destino</th><th>Desde</th><th></th></tr></thead>
+    <tbody>{% for r in o.dests %}<tr>
+      <td>{% if r.route_slug %}<a href="/vuelos/{{ r.route_slug }}">{{ r.dest_name }}</a>{% else %}{{ r.dest_name }}{% endif %}{% if r.dest_country %} <span class="muted">· {{ r.dest_country }}</span>{% endif %}{% if r.direct_seen %} <span class="stops direct">directo</span>{% endif %}</td>
+      <td>${{ "%.0f"|format(r.last_price) }}</td>
+      <td>{% if r.route_slug %}<a class="small-link" href="/vuelos/{{ r.route_slug }}">Historial →</a>{% else %}<a class="small-link" href="/alertas?o={{ o.code|urlencode }}&d={{ r.destination|urlencode }}&dn={{ r.dest_name|urlencode }}">🔔 Alerta</a>{% endif %}</td>
+    </tr>{% endfor %}</tbody>
+  </table>
+</section>
+{% endif %}
+
+{% set share_text = "✈️ Vuelos baratos desde " ~ o.name ~ ": ofertas verificadas de ida y vuelta" %}
+{% include "_share.html" %}
+
+<section class="panel faq">
+  <h2>Preguntas frecuentes</h2>
+  {% for q, a in o.faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
+</section>
+
+{% set others = origins|selectattr("country", "equalto", o.country)|rejectattr("code", "equalto", o.code)|list %}
+{% if others %}
+<section class="related">
+  <h2>Otras ciudades de {{ o.country_name }}</h2>
+  <ul>{% for x in others %}<li><a href="/desde/{{ x.slug }}">Desde {{ x.name }}</a></li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% endblock %}

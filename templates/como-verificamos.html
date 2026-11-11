@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} | {{ site.title }}{% endblock %}
+{% block description %}Cómo encontramos y verificamos cada oferta de vuelo antes de publicarla: comparación con el historial de precios y verificación en vivo en Google Flights.{% endblock %}
+{% block content %}
+<article class="info">
+  <h1>{{ title }}</h1>
+  <p class="lead">Solo publicamos un vuelo si su precio está realmente por debajo de lo normal <b>y</b> lo acabamos de confirmar en Google Flights. Si el precio sube, quitamos la oferta.</p>
+
+  <h2>1. Buscamos cada hora</h2>
+  <p>Revisamos miles de tarifas de ida y vuelta saliendo de {{ origins|length }} ciudades de {{ countries|length }} países de Hispanoamérica hacia destinos internacionales. Solo consideramos viajes con vuelo directo o una escala y con al menos 3 días entre la ida y el regreso.</p>
+
+  <h2>2. Comparamos con lo normal</h2>
+  <p>Guardamos el precio más bajo de cada ruta todos los días. Una tarifa solo es candidata a oferta si está claramente por debajo del precio típico de esa ruta (la mediana de las últimas semanas) y de los otros meses de salida. En rutas nuevas, sin historial, usamos un tope según la distancia del viaje.</p>
+
+  <h2>3. Verificamos en vivo en Google Flights</h2>
+  <p>Antes de publicar, consultamos el precio actual de esas mismas fechas en Google Flights. Publicamos solo si Google lo marca como <b>precio bajo</b> o si el precio actual sigue igual o casi igual al que encontramos. El precio que ves en la web es el verificado, y cada oferta dice hace cuánto se verificó.</p>
+
+  <h2>4. Volvemos a revisar lo publicado</h2>
+  <p>Cada oferta publicada se vuelve a verificar cada 12 horas. Si el precio subió, si ya no se puede confirmar o si la fecha de salida está muy cerca, la marcamos como <b>terminada</b>: deja de aparecer en las listas y actualizamos el mensaje en Telegram.</p>
+
+  <h2>Lo que no podemos garantizar</h2>
+  <p>Los precios de los vuelos cambian en minutos y dependen de cuántos asientos quedan a esa tarifa. Aunque lo verifiquemos, el precio final lo define la aerolínea o la agencia al momento de comprar. Revisa siempre el total antes de pagar.</p>
+
+  <h2>Cómo ganamos dinero</h2>
+  <p>Algunos enlaces son de afiliado (Aviasales / Travelpayouts): si compras, recibimos una pequeña comisión, sin costo extra para ti. No cobramos por publicar ofertas y ninguna aerolínea paga por aparecer.</p>
+
+  <p><a class="cta" href="/">Ver ofertas de hoy</a> <a class="alert-link" href="/alertas">🔔 Crear una alerta gratis</a></p>
+</article>
+{% endblock %}

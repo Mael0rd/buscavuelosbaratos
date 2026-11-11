@@ -1,24 +1,20 @@
 {% extends "base.html" %}
-{% set url = "https://" ~ site.domain ~ "/vuelos/" ~ r.slug ~ ".html" %}
+{% set url = "https://" ~ site.domain ~ "/vuelos/" ~ r.slug %}
 {% block title %}Vuelos baratos de {{ r.origin_name }} a {{ r.dest_name }} desde ${{ "%.0f"|format(r.low) }} | {{ site.title }}{% endblock %}
 {% block description %}Precio típico ida y vuelta {{ r.origin_name }} ({{ r.origin }}) – {{ r.dest_name }} ({{ r.destination }}): ${{ "%.0f"|format(r.typical) }} USD. Mes más barato, historial de precios, aerolíneas y alertas de ofertas.{% endblock %}
 {% block head %}
-  <link rel="canonical" href="{{ url }}">
-  <meta property="og:title" content="Vuelos baratos de {{ r.origin_name }} a {{ r.dest_name }}">
-  <meta property="og:url" content="{{ url }}">
-  <meta property="og:type" content="website">
   <script type="application/ld+json">{{ {
     "@context": "https://schema.org",
     "@graph": [
       {"@type": "BreadcrumbList", "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://" ~ site.domain ~ "/"},
-        {"@type": "ListItem", "position": 2, "name": "Desde " ~ c.name, "item": "https://" ~ site.domain ~ "/pais/" ~ c.id ~ ".html"},
+        {"@type": "ListItem", "position": 2, "name": "Desde " ~ c.name, "item": "https://" ~ site.domain ~ "/pais/" ~ c.id},
         {"@type": "ListItem", "position": 3, "name": r.origin_name ~ " a " ~ r.dest_name, "item": url}]},
       {"@type": "FAQPage", "mainEntity": faqs | map("faq_ld") | list}
     ]} | tojson }}</script>
 {% endblock %}
 {% block content %}
-<nav class="crumbs"><a href="/">Inicio</a> › <a href="/pais/{{ c.id }}.html"><img class="flag" src="/static/flags/{{ c.cc|lower }}.png" alt="" width="20" height="15"> {{ c.name }}</a> › {{ r.origin_name }} a {{ r.dest_name }}</nav>
+<nav class="crumbs"><a href="/">Inicio</a> › <a href="/pais/{{ c.id }}"><img class="flag" src="/static/flags/{{ c.cc|lower }}.png" alt="" width="20" height="15"> {{ c.name }}</a>{% if r.origin_slug %} › <a href="/desde/{{ r.origin_slug }}">{{ r.origin_name }}</a>{% endif %} › {{ r.origin_name }} a {{ r.dest_name }}</nav>
 
 <section class="hero">
   <h1>Vuelos baratos de {{ r.origin_name }} a {{ r.dest_name }}</h1>
@@ -37,13 +33,13 @@
 <section class="panel deal-now">
   <h2>✅ Oferta verificada ahora</h2>
   <p class="price">${{ "%.0f"|format(r.deal.price) }} <small>ida y vuelta · {{ r.deal.departure_at|fecha }}{% if r.deal.return_at %} – {{ r.deal.return_at|fecha }}{% endif %} · {{ r.deal.transfers|escalas }}</small></p>
-  <a class="cta" href="/oferta/{{ r.deal.slug }}.html">Ver la oferta</a>
+  <a class="cta" href="/oferta/{{ r.deal.slug }}">Ver la oferta</a>
 </section>
 {% else %}
 <section class="panel">
   <h2>Ahora no hay una oferta verificada en esta ruta</h2>
   <p>Crea una alerta y te avisamos por correo o Telegram cuando el precio baje de verdad.</p>
-  <a class="cta" href="/alertas.html?o={{ r.origin|urlencode }}&d={{ r.destination|urlencode }}&dn={{ r.dest_name|urlencode }}">🔔 Avísame cuando baje</a>
+  <a class="cta" href="/alertas?o={{ r.origin|urlencode }}&d={{ r.destination|urlencode }}&dn={{ r.dest_name|urlencode }}">🔔 Avísame cuando baje</a>
   {% if r.last_link %}<a class="alert-link" href="{{ r.last_link }}" rel="sponsored nofollow noopener" target="_blank">Ver precios actuales →</a>{% endif %}
 </section>
 {% endif %}
@@ -70,21 +66,26 @@
 </section>
 {% endif %}
 
+{% set share_text = "✈️ Vuelos de " ~ r.origin_name ~ " a " ~ r.dest_name ~ ": precio típico $" ~ "%.0f"|format(r.typical) ~ ", historial y mes más barato" %}
+{% include "_share.html" %}
+
 <section class="panel faq">
   <h2>Preguntas frecuentes</h2>
   {% for q, a in faqs %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
 </section>
 
+<p class="hub-links">{% if r.origin_slug %}<a href="/desde/{{ r.origin_slug }}">🛫 Todos los destinos desde {{ r.origin_name }}</a>{% endif %}{% if r.dest_slug %}<a href="/destino/{{ r.dest_slug }}">🛬 Vuelos a {{ r.dest_name }} desde otras ciudades</a>{% endif %}</p>
+
 {% if r.related_origin %}
 <section class="related">
   <h2>Otros destinos desde {{ r.origin_name }}</h2>
-  <ul>{% for x in r.related_origin %}<li><a href="/vuelos/{{ x.slug }}.html">{{ x.dest_name }} <span>desde ${{ "%.0f"|format(x.low) }}</span></a></li>{% endfor %}</ul>
+  <ul>{% for x in r.related_origin %}<li><a href="/vuelos/{{ x.slug }}">{{ x.dest_name }} <span>desde ${{ "%.0f"|format(x.low) }}</span></a></li>{% endfor %}</ul>
 </section>
 {% endif %}
 {% if r.related_dest %}
 <section class="related">
   <h2>Vuelos a {{ r.dest_name }} desde otras ciudades</h2>
-  <ul>{% for x in r.related_dest %}<li><a href="/vuelos/{{ x.slug }}.html">{{ x.origin_name }} <span>desde ${{ "%.0f"|format(x.low) }}</span></a></li>{% endfor %}</ul>
+  <ul>{% for x in r.related_dest %}<li><a href="/vuelos/{{ x.slug }}">{{ x.origin_name }} <span>desde ${{ "%.0f"|format(x.low) }}</span></a></li>{% endfor %}</ul>
 </section>
 {% endif %}
 {% endblock %}
