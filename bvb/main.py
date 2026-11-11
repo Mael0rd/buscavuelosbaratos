@@ -31,7 +31,9 @@ def run(no_social: bool = False) -> None:
     print(f"Tarifas obtenidas: {len(tickets)} · rutas internacionales: {len(best)}")
 
     # Comparar contra el historial ANTERIOR a hoy; luego guardar lo de hoy
-    found = dl.find_deals(conn, best, cfg, ref, today)
+    funnel: dict = {}
+    found = dl.find_deals(conn, best, cfg, ref, today, funnel)
+    print(f"Embudo ({len(best)} rutas): descartadas {dict(sorted(funnel.items(), key=lambda x: -x[1]))} · pasan el precio: {len(found)}")
     dl.update_daily(conn, best, today)
     dl.prune(conn, today, cfg["deals"]["history_days"] + 5)
     checker = fresh.Checker(cfg)

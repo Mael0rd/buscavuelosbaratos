@@ -142,27 +142,45 @@ def recently_published(conn, origin, destination, days: int):
     ).fetchone()
 
 
-def evaluate(conn, route: tuple, t: dict, cfg: dict, ref, today: str):
+def evaluate(conn, route: tuple, t: dict, cfg: dict, ref, today: str, stats: dict | None = None):
     """Aplica la regla de oferta a una ruta. Devuelve la oferta (dict) o None.
-    No revisa repeticiones: eso depende de dónde se publique."""
+    No revisa repeticiones: eso depende de dónde se publique.
+    stats (opcional) cuenta por qué se descarta cada ruta."""
+    def no(reason):
+        if stats is not None:
+            stats[reason] = stats.get(reason, 0) + 1
+        return None
+
     o, d = route
     dcfg = cfg["deals"]
     med, n = baseline(conn, o, d, today, dcfg["history_days"])
     if med and n >= dcfg["min_days"]:
         base, threshold = med, med * (1 - dcfg["drop_pct"])
+        if t["price"] > threshold:
+            return no("con_historial_no_baja_lo_suficiente")
     else:
         # Sin historial: tope por distancia Y bien por debajo de los otros meses
         a, b = ref.coords(o), ref.coords(d)
         if not a or not b:
-            return None
+            return no("sin_coordenadas")
         cs = dcfg["cold_start"]
         cap = cold_cap(2 * haversine_km(a, b), cs)
         mb = month_baseline(t, cs["min_months"])
         base = None
         if mb is None:  # pocos meses con precio: solo pasa si es muy barata
             threshold = cap * cs["few_months_factor"]
+            if t["price"] > threshold:
+                return no("pocos_meses_y_sobre_tope_estricto")
         else:
-            threshold = min(cap, mb * (1 - cs["month_drop"]))
+            month_thr = mb * (1 - cs["month_drop"])
+            threshold = min(cap, month_thr)
+            over_cap, over_month = t["price"] > cap, t["price"] > month_thr
+            if over_cap and over_month:
+                return no("sobre_tope_y_no_baja_vs_meses")
+            if over_cap:
+                return no("sobre_tope_distancia")
+            if over_month:
+                return no("no_baja_vs_otros_meses")
     if t["price"] > threshold:
         return None
     cid = origin_country_map(cfg).get(o, "otros")
@@ -180,15 +198,17 @@ def evaluate(conn, route: tuple, t: dict, cfg: dict, ref, today: str):
     }
 
 
-def find_deals(conn, best: dict, cfg: dict, ref, today: str) -> list[dict]:
+def find_deals(conn, best: dict, cfg: dict, ref, today: str, stats: dict | None = None) -> list[dict]:
     dcfg = cfg["deals"]
     out = []
     for route, t in best.items():
-        deal = evaluate(conn, route, t, cfg, ref, today)
+        deal = evaluate(conn, route, t, cfg, ref, today, stats)
         if not deal:
             continue
         prev = recently_published(conn, *route, dcfg["repost_days"])
         if prev and t["price"] > prev["price"] * (1 - dcfg["repost_extra_drop"]):
+            if stats is not None:
+                stats["ya_publicada_en_7_dias"] = stats.get("ya_publicada_en_7_dias", 0) + 1
             continue
         out.append(deal)
     return sorted(out, key=lambda x: x["score"])
