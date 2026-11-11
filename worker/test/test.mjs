@@ -2,7 +2,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
-import worker, { adminToken, webhookSecret, resolveOrigin } from "./dist/worker.mjs";
+import worker, { adminToken, webhookSecret, resolveOrigin, dispatchSearch } from "./dist/worker.mjs";
 
 const db = new DatabaseSync(":memory:");
 db.exec(readFileSync(new URL("../schema.sql", import.meta.url), "utf8"));
@@ -33,7 +33,7 @@ globalThis.fetch = async (input, init = {}) => {
     const term = new URL(url).searchParams.get("term").toLowerCase();
     return new Response(JSON.stringify(PLACES[term] || []));
   }
-  if (url.includes("api.telegram.org") || url.includes("api.resend.com")) {
+  if (url.includes("api.telegram.org") || url.includes("api.resend.com") || url.includes("api.github.com")) {
     sent.push({ url, body: JSON.parse(init.body) });
     return new Response(JSON.stringify({ ok: true }));
   }
@@ -131,5 +131,17 @@ assert.ok((await r.json()).ok && sent.length === 0);
 // Autocompletar
 r = await call("/api/places?term=madrid");
 assert.equal((await r.json())[0].code, "MAD");
+
+// Reloj: sin token no hace nada; con token pide a GitHub correr el workflow en main
+assert.equal(await dispatchSearch({ ...env, GH_REPO: "o/r", GH_WORKFLOW: "run.yml" }), false);
+sent.length = 0;
+const pending = [];
+await worker.scheduled({ cron: "17 * * * *" },
+  { ...env, GH_DISPATCH_TOKEN: "ghp_x", GH_REPO: "Mael0rd/buscavuelosbaratos", GH_WORKFLOW: "run.yml" },
+  { waitUntil: (p) => pending.push(p) });
+await Promise.all(pending);
+assert.equal(sent.length, 1);
+assert.match(sent[0].url, /api\.github\.com\/repos\/Mael0rd\/buscavuelosbaratos\/actions\/workflows\/run\.yml\/dispatches$/);
+assert.deepEqual(sent[0].body, { ref: "main" });
 
 console.log("Worker: todas las pruebas pasaron ✔");

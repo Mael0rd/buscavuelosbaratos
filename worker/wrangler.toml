@@ -11,7 +11,13 @@ binding = "DB"
 database_name = "bvb-alertas"
 database_id = "__D1_ID__"
 
+# Reloj: cada hora (minuto 17, UTC) le pide a GitHub correr "Buscar ofertas y publicar"
+[triggers]
+crons = ["17 * * * *"]
+
 [vars]
+GH_REPO = "Mael0rd/buscavuelosbaratos"
+GH_WORKFLOW = "run.yml"
 SITE_URL = "https://buscavuelosbaratos.com"
 API_URL = "https://api.buscavuelosbaratos.com"
 MAIL_FROM = "Busca Vuelos Baratos <alertas@buscavuelosbaratos.com>"

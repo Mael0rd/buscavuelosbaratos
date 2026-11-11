@@ -2,7 +2,7 @@ name: Buscar ofertas y publicar
 
 on:
   schedule:
-    - cron: "17 * * * *"     # cada hora
+    - cron: "47 */6 * * *"   # respaldo: el reloj principal (cada hora) está en Cloudflare
   workflow_dispatch: {}       # botón "Run workflow" manual
   push:
     branches: [main]          # publicar al subir cambios de código

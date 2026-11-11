@@ -347,8 +347,35 @@ async function handleTelegram(req, env) {
   return new Response("ok"); // siempre 200 para que Telegram no reintente
 }
 
+// ---------- reloj: lanza la búsqueda cada hora ----------
+// GitHub no garantiza sus corridas programadas (las retrasa o descarta), así que
+// Cloudflare (Cron Trigger) le pide a GitHub correr el workflow por API.
+export async function dispatchSearch(env) {
+  if (!env.GH_DISPATCH_TOKEN) {
+    console.log("sin GH_DISPATCH_TOKEN: no se lanza la búsqueda");
+    return false;
+  }
+  const r = await fetch(
+    `https://api.github.com/repos/${env.GH_REPO}/actions/workflows/${env.GH_WORKFLOW}/dispatches`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.GH_DISPATCH_TOKEN}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "bvb-alertas",
+      },
+      body: JSON.stringify({ ref: "main" }),
+    });
+  if (!r.ok) console.log("dispatch", r.status, await r.text());
+  return r.ok;
+}
+
 // ---------- router ----------
 export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(dispatchSearch(env));
+  },
+
   async fetch(req, env) {
     const url = new URL(req.url);
     const p = url.pathname;

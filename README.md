@@ -91,6 +91,7 @@ sale de las listas, su página muestra "❌ Esta oferta terminó" (sin botón de
 | `RESEND_API_KEY` | correos de alertas | Resend, con el dominio verificado |
 | `CLOUDFLARE_API_TOKEN` | desplegar el servidor de alertas | plantilla "Edit Cloudflare Workers" + permiso **D1 Write**, zona del dominio |
 | `CLOUDFLARE_ACCOUNT_ID` | ídem | Cloudflare (columna derecha del dominio o en la URL del panel) |
+| `GH_DISPATCH_TOKEN` | reloj de Cloudflare: lanzar la búsqueda cada hora | GitHub → token *fine-grained*, solo este repositorio, permiso **Actions: Read and write** |
 | `ANTHROPIC_API_KEY` | (opcional) textos redactados por Claude | console.anthropic.com |
 
 **Variables:** `TELEGRAM_CHANNEL` y, por país, `TELEGRAM_CHANNEL_<PAÍS>`.
@@ -106,9 +107,14 @@ sale de las listas, su página muestra "❌ Esta oferta terminó" (sin botón de
 ## Workflows
 | Workflow | Cuándo corre | Qué hace |
 |---|---|---|
-| `run.yml` — Buscar ofertas y publicar | cada hora (minuto 17), al subir código, manual | pipeline completo + despliegue de la web |
+| `run.yml` — Buscar ofertas y publicar | cada hora (lo lanza Cloudflare), al subir código, manual; respaldo propio cada 6 h | pipeline completo + despliegue de la web |
 | `worker.yml` — Desplegar alertas | al cambiar `worker/` o `config.yaml`, manual | pruebas, D1, Worker, claves y webhook del bot |
 | `ejemplo.yml` — Publicar ejemplo en Telegram | manual | post de prueba con la mejor oferta de un país |
+
+**Reloj en Cloudflare:** GitHub no garantiza sus corridas programadas (las retrasa o las descarta
+sin avisar, sobre todo en repositorios nuevos). Por eso el Worker tiene un *Cron Trigger*
+(`worker/wrangler.toml`, minuto 17 de cada hora) que le pide a GitHub correr `run.yml` por API.
+Necesita el secret `GH_DISPATCH_TOKEN`.
 
 El historial de precios (`historial.sqlite`) vive en la rama **`data`**, en un único commit que se
 reemplaza en cada corrida para que el repositorio no crezca. La base se actualiza sola cuando se
