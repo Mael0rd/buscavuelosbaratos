@@ -180,7 +180,7 @@ def make_slug(d: dict) -> str:
 COLS = ("slug", "country", "flag", "origin", "origin_name", "origin_airport",
         "destination", "dest_name", "dest_country", "destination_airport",
         "price", "baseline", "threshold", "score", "airline", "airline_name",
-        "departure_at", "return_at", "transfers", "link", "copy_web", "copy_social")
+        "departure_at", "return_at", "transfers", "link", "copy_web", "copy_social", "found_at")
 
 
 def save_deal(conn, d: dict) -> None:

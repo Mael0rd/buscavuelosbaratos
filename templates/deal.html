@@ -2,8 +2,13 @@
 {% block title %}{{ d.origin_name }} → {{ d.dest_name }} por ${{ "%.0f"|format(d.price) }} | {{ site.title }}{% endblock %}
 {% block description %}{{ d.copy_web[:155] }}{% endblock %}
 {% block content %}
-<article class="deal">
+<article class="deal{% if d.status == 'expired' %} is-ended{% endif %}">
   <a class="back" href="/pais/{{ d.country }}.html">← Ofertas desde {% if c %}<img class="flag" src="/static/flags/{{ c.cc|lower }}.png" alt="" width="20" height="15"> {{ c.name }}{% else %}tu país{% endif %}</a>
+  {% if d.status == 'expired' %}
+  <div class="ended">❌ <b>Esta oferta terminó.</b>
+    {% if d.expire_reason == 'subio' %}El precio subió.{% elif d.expire_reason == 'salida' %}La fecha de salida ya está muy cerca.{% else %}Ya no podemos confirmar este precio.{% endif %}
+    <a href="/pais/{{ d.country }}.html">Ver ofertas actuales →</a></div>
+  {% endif %}
   <h1>{{ d.origin_name }} → {{ d.dest_name }}</h1>
   {% if d.dest_country %}<p class="sub">{{ d.dest_country }}</p>{% endif %}
   <div class="price big">${{ "%.0f"|format(d.price) }} <small>ida y vuelta</small></div>
@@ -17,7 +22,10 @@
     {% if d.airline_name %}<dt>Aerolínea</dt><dd>{{ d.airline_name }}</dd>{% endif %}
   </dl>
   <p>{{ d.copy_web }}</p>
+  {% if d.found_at and d.status != 'expired' %}<p class="seen" data-ts="{{ d.found_at }}">🕒 Precio visto {{ d.found_at|hace }} · los precios cambian rápido</p>{% endif %}
+  {% if d.status != 'expired' %}
   <a class="cta" href="{{ d.link }}" rel="sponsored nofollow noopener" target="_blank">Ver vuelo y precio actual</a>
-  <a class="alert-link" href="/alertas.html?o={{ d.origin|urlencode }}&d={{ d.destination|urlencode }}&dn={{ d.dest_name|urlencode }}">🔔 Avísame de futuras ofertas en esta ruta</a>
+  {% endif %}
+  <a class="alert-link{% if d.status == 'expired' %} strong{% endif %}" href="/alertas.html?o={{ d.origin|urlencode }}&d={{ d.destination|urlencode }}&dn={{ d.dest_name|urlencode }}">🔔 Avísame de futuras ofertas en esta ruta</a>
 </article>
 {% endblock %}

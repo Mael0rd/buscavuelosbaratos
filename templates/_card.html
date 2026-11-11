@@ -5,5 +5,6 @@
     <div class="price">${{ "%.0f"|format(d.price) }} <small>ida y vuelta</small></div>
     {% if d.ahorro >= 10 %}<div class="badge">−{{ d.ahorro }}% vs. lo normal</div>{% endif %}
     <div class="meta">{{ d.departure_at|fecha }}{% if d.return_at %} – {{ d.return_at|fecha }}{% endif %} · {{ d.transfers|escalas }}</div>
+    {% if d.found_at %}<div class="seen" data-ts="{{ d.found_at }}">🕒 Precio visto {{ d.found_at|hace }}</div>{% endif %}
   </a>
 </li>

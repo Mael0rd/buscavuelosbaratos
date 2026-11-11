@@ -75,7 +75,19 @@ deals:
   show_days: 14          # días que una oferta sigue visible en la web
 
 social:
-  max_per_run: 5         # máximo de posts en Telegram por corrida (las mejores)
+  # Canal general (TELEGRAM_CHANNEL) y canales por país (variable TELEGRAM_CHANNEL_<PAÍS>,
+  # p. ej. TELEGRAM_CHANNEL_MEXICO). Se publican primero las mejores ofertas.
+  main:    { per_run: 1, per_day: 10 }
+  country: { per_run: 2, per_day: 10 }
+  quiet_hours: [23, 6]           # no publicar de 11 p. m. a 6 a. m. (hora local del canal)
+  timezone: America/Costa_Rica   # hora del canal general
+
+freshness:
+  max_age_hours: 6       # solo se publican precios vistos hace menos de esto
+  stale_hours: 24        # una oferta que no se reconfirma en este tiempo se da por terminada
+  price_tolerance: 0.10  # se considera el mismo precio si no subió más de 10%
+  min_days_before_departure: 2   # termina la oferta si la salida está a menos de 2 días
+  pause_seconds: 0.25
 
 alerts:
   api_base: https://api.buscavuelosbaratos.com   # servidor de alertas (Cloudflare Worker)

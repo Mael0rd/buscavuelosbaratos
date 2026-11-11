@@ -5,6 +5,8 @@
   <p>Revisamos miles de rutas varias veces al día y publicamos solo las que están muy por debajo de su precio normal. Elige tu país de salida:</p>
 </section>
 
+{% if channels.get('main') %}<a class="tg-join" id="tg-join" href="{{ channels['main'] }}" target="_blank" rel="noopener">📲 Recibe las ofertas en Telegram</a>{% endif %}
+
 {% include "_chips.html" %}
 
 <div id="sin-ofertas-pais" class="notice soft" hidden></div>
@@ -41,6 +43,12 @@
       '.png" alt="" width="20" height="15"> Ahora mismo no hay ofertas desde <b>' + info.name +
       '</b>. <a href="/alertas.html?o=' + info.origins[0] + '">Crea una alerta</a> y te avisamos cuando baje tu ruta.';
     n.hidden = false;
+  }
+  var tg = document.getElementById("tg-join");
+  if (info.tg) {
+    if (!tg) { tg = document.createElement("a"); tg.className = "tg-join"; tg.target = "_blank"; tg.rel = "noopener";
+               document.querySelector(".chips").insertAdjacentElement("beforebegin", tg); }
+    tg.href = info.tg; tg.textContent = "📲 Recibe las ofertas desde " + info.name + " en Telegram";
   }
   var chips = document.querySelector(".chips");
   var chip = chips && chips.querySelector('a[href="/pais/' + id + '.html"]');

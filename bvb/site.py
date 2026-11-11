@@ -13,13 +13,14 @@ from .copywriter import fmt_date, fmt_stops, savings_pct
 PER_COUNTRY_HOME = 6
 
 
-def active_deals(conn, cfg: dict) -> list[dict]:
+def active_deals(conn, cfg: dict, status: str = "active") -> list[dict]:
     today = date.today().isoformat()
     rows = conn.execute(
         """SELECT * FROM deals
-           WHERE published_at >= datetime('now', ?) AND substr(departure_at, 1, 10) >= ?
+           WHERE COALESCE(status, 'active') = ?
+             AND published_at >= datetime('now', ?) AND substr(departure_at, 1, 10) >= ?
            ORDER BY score ASC""",
-        (f"-{cfg['deals']['show_days']} days", today),
+        (status, f"-{cfg['deals']['show_days']} days", today),
     ).fetchall()
     seen, out = set(), []
     for r in rows:  # una oferta por ruta: la mejor
@@ -38,8 +39,11 @@ def build(conn, cfg: dict) -> int:
                       autoescape=select_autoescape(["html"]))
     env.filters["fecha"] = fmt_date
     env.filters["escalas"] = fmt_stops
+    env.filters["hace"] = telegram.ago
 
     deals = active_deals(conn, cfg)
+    ended = active_deals(conn, cfg, status="expired")  # sus páginas siguen (con aviso), fuera de listas
+    channels = telegram.channel_links(cfg)
     countries = []
     for cid, c in cfg["countries"].items():
         countries.append({"id": cid, "name": c["name"], "flag": c["flag"], "cc": c["cc"], "origins": c["origins"],
@@ -58,10 +62,12 @@ def build(conn, cfg: dict) -> int:
            "per_home": PER_COUNTRY_HOME,
            "origin_names": cfg.get("origin_names", {}),
            "geo_countries": {cid: {"cc": c["cc"], "tz": cfg.get("timezones", {}).get(cid, []),
-                                   "name": c["name"], "flag": c["flag"], "origins": c["origins"]}
+                                   "name": c["name"], "flag": c["flag"], "origins": c["origins"],
+                                   "tg": channels.get(cid, "")}
                              for cid, c in cfg["countries"].items()},
            "alerts_api": cfg.get("alerts", {}).get("api_base", ""),
            "bot_username": telegram.bot_username(),
+           "channels": channels,
            "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}
     by_id = {c["id"]: c for c in countries}
 
@@ -72,7 +78,7 @@ def build(conn, cfg: dict) -> int:
     write("alertas.html", "alertas.html")
     for c in countries:
         write(f"pais/{c['id']}.html", "country.html", c=c)
-    for d in deals:
+    for d in deals + ended:
         write(f"oferta/{d['slug']}.html", "deal.html", d=d, c=by_id.get(d["country"]))
 
     base = f"https://{cfg['site']['domain']}"

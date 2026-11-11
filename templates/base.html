@@ -31,5 +31,17 @@
     <p class="muted">Actualizado: {{ updated }}</p>
   </footer>
   {% include "_popup.html" %}
+  <script>
+  (function () {
+    var els = document.querySelectorAll("[data-ts]");
+    for (var i = 0; i < els.length; i++) {
+      var t = Date.parse(els[i].getAttribute("data-ts"));
+      if (isNaN(t)) continue;
+      var m = Math.max(1, Math.round((Date.now() - t) / 60000));
+      var txt = m < 60 ? "hace " + m + " min" : "hace " + Math.round(m / 60) + " h";
+      els[i].textContent = els[i].textContent.replace(/hace \d+ (min|h)/, txt);
+    }
+  })();
+  </script>
 </body>
 </html>

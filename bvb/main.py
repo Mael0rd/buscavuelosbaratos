@@ -7,7 +7,7 @@ import argparse
 from datetime import datetime, timezone
 
 from . import deals as dl
-from . import alerts, refdata, site, telegram
+from . import alerts, fresh, refdata, site, telegram
 from .config import load_config
 from .copywriter import write_copy
 from .db import connect
@@ -32,25 +32,41 @@ def run(no_social: bool = False) -> None:
     found = dl.find_deals(conn, best, cfg, ref, today)
     dl.update_daily(conn, best, today)
     dl.prune(conn, today, cfg["deals"]["history_days"] + 5)
-    print(f"Ofertas nuevas: {len(found)}")
+    checker = fresh.Checker(cfg)
 
+    # Solo se guardan ofertas cuyo precio se vio hace poco (honestidad ante el público)
+    saved = skipped = 0
     for d in found:
+        found_at = checker.is_fresh(d)
+        if not found_at:
+            skipped += 1
+            continue
+        d["found_at"] = found_at
         d["slug"] = dl.make_slug(d)
         d.update(write_copy(d))
         dl.save_deal(conn, d)
+        saved += 1
+    print(f"Ofertas nuevas: {saved} (descartadas por precio no reciente: {skipped})")
+
+    # Revisar las ofertas publicadas: las que subieron o ya no se confirman, terminan
+    expired = fresh.revalidate(conn, checker, cfg)
+    print(f"Ofertas terminadas en esta corrida: {len(expired)}")
 
     subs = alerts.fetch_subscriptions(cfg)
     if subs:
-        st = alerts.process(conn, best, cfg, ref, today, subs)
+        st = alerts.process(conn, best, cfg, ref, today, subs, checker)
         print(f"Alertas activas: {len(subs)} · avisos enviados: "
               f"{st['telegram']} por Telegram, {st['email']} por correo")
 
     n = site.build(conn, cfg)
     print(f"Web generada con {n} ofertas activas")
+    print(f"Frescura: {checker.stats} · consultas: {checker.calls}")
 
     if not no_social:
-        sent = telegram.publish_pending(conn, cfg)
-        print(f"Publicadas en Telegram: {sent}")
+        edited = telegram.mark_expired_posts(conn, cfg)
+        if edited:
+            print(f"Posts marcados como terminados en Telegram: {edited}")
+        print(f"Publicadas en Telegram: {telegram.publish(conn, cfg)}")
 
 
 if __name__ == "__main__":

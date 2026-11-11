@@ -100,3 +100,17 @@ code { background: #efece4; padding: .05rem .35rem; border-radius: 5px; font-siz
         box-shadow: 0 0 0 1px rgba(20,33,61,.12); }
 h1 .flag { width: 32px; height: 24px; vertical-align: 0; }
 h2 .flag { width: 26px; height: 19px; vertical-align: -1px; }
+
+/* Frescura y ofertas terminadas */
+.seen { color: var(--muted); font-size: .8rem; margin-top: .35rem; }
+.ended { background: #fdecea; color: #8a1c12; border-radius: 12px; padding: .8rem 1rem; margin: .5rem 0 1rem; }
+.ended a { color: #8a1c12; font-weight: 700; margin-left: .25rem; }
+.alert-link.strong { display: inline-block; margin: .5rem 0 0; background: var(--accent); color: #fff;
+                     padding: .7rem 1.1rem; border-radius: 10px; }
+
+/* Unirse al canal de Telegram */
+.tg-join { display: inline-block; margin: 0 0 1rem; background: #229ED9; color: #fff; font-weight: 700;
+           padding: .55rem 1rem; border-radius: 999px; font-size: .95rem; }
+.tg-join:hover { filter: brightness(1.07); }
+.deal.is-ended .price { color: var(--muted); text-decoration: line-through; }
+.deal.is-ended .badge { display: none; }

@@ -2,7 +2,7 @@
 
 Busca vuelos baratos saliendo desde 19 países de Hispanoamérica (33 ciudades) hacia cualquier destino,
 detecta ofertas reales contra el historial de precios de cada ruta, genera la web por país y publica
-en Telegram. Corre solo cada 3 horas en GitHub Actions (gratis).
+en Telegram. Corre solo cada hora en GitHub Actions (gratis).
 
 El historial de precios se guarda en la rama `data` (un único commit que se reemplaza en cada corrida).
 
@@ -31,6 +31,18 @@ python -m pytest -q
 5. **DNS del dominio**: registros A hacia las IP de GitHub Pages (185.199.108.153, .109.153, .110.153, .111.153)
    y un CNAME `www` → `<tu-usuario>.github.io`. Activa "Enforce HTTPS".
 6. Ve a *Actions → Buscar ofertas y publicar → Run workflow* para la primera corrida.
+
+## Precios honestos y ofertas terminadas
+- Antes de publicar se consulta `/v2/prices/latest` de la ruta para saber cuándo se vio ese viaje
+  (`found_at`). Solo se publica si se vio hace menos de `freshness.max_age_hours` (6 h).
+- Cada corrida revisa las ofertas publicadas: si el precio subió, no se reconfirma en 24 h o la salida
+  está muy cerca, la oferta termina: sale de las listas, su página muestra el aviso y el bot edita el
+  post de Telegram ("❌ OFERTA TERMINADA").
+
+## Canales de Telegram
+- Canal general: variable `TELEGRAM_CHANNEL` (1 post por hora, máx. 10 al día).
+- Canal por país: variable `TELEGRAM_CHANNEL_<PAÍS>`, p. ej. `TELEGRAM_CHANNEL_MEXICO`,
+  `TELEGRAM_CHANNEL_COSTA_RICA` (2 por hora, máx. 10 al día). No se publica de 23:00 a 6:00.
 
 ## Alertas por ruta (Telegram y correo)
 Las personas crean alertas origen → destino desde `/alertas.html` (correo, con confirmación) o

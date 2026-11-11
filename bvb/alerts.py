@@ -95,7 +95,8 @@ def send_email(to: str, subject: str, body: str, unsub_url: str, cfg: dict) -> b
     return r.ok
 
 
-def process(conn, best: dict, cfg: dict, ref, today: str, subs: list[dict]) -> dict:
+def process(conn, best: dict, cfg: dict, ref, today: str, subs: list[dict], checker=None) -> dict:
+    """checker (fresh.Checker): si se pasa, solo se avisa si el precio se vio hace poco."""
     acfg = cfg["alerts"]
     stats = {"telegram": 0, "email": 0}
     for s in subs:
@@ -106,6 +107,11 @@ def process(conn, best: dict, cfg: dict, ref, today: str, subs: list[dict]) -> d
         d = dl.evaluate(conn, route, t, cfg, ref, today)
         if not d or not should_send(conn, s["id"], d["price"], acfg):
             continue
+        if checker is not None:
+            found_at = checker.is_fresh(d)
+            if not found_at:
+                continue
+            d["found_at"] = found_at
         ok = False
         if s["channel"] == "telegram":
             text, markup = telegram_alert(d, cfg)

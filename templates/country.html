@@ -10,6 +10,9 @@
 
 {% include "_chips.html" %}
 
+{% set tg = channels.get(c.id) or channels.get('main') %}
+{% if tg %}<a class="tg-join" href="{{ tg }}" target="_blank" rel="noopener">📲 Recibe las ofertas {% if channels.get(c.id) %}desde {{ c.name }} {% endif %}en Telegram</a>{% endif %}
+
 <p class="muted small">¿Buscas una ruta en particular? <a href="/alertas.html" style="color:var(--accent);font-weight:600">Crea una alerta</a> y te avisamos cuando baje.</p>
 
 {% if c.deals %}
