@@ -105,7 +105,8 @@ def build(conn, cfg: dict) -> int:
            "alerts_api": cfg.get("alerts", {}).get("api_base", ""),
            "bot_username": telegram.bot_username(),
            "channels": channels,
-           "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}
+           "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+           "updated_iso": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
     by_id = {c["id"]: c for c in countries}
 
     def write(path, template, **kw):

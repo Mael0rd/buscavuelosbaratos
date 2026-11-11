@@ -35,9 +35,25 @@
   <footer>
     <p>Precios en USD encontrados recientemente; pueden cambiar en cualquier momento.
        Algunos enlaces son de afiliado: si compras, recibimos una comisión sin costo extra para ti.</p>
-    <p class="muted">Actualizado: {{ updated }}</p>
+    <p class="muted">Actualizado: <time datetime="{{ updated_iso }}" data-local-time>{{ updated }}</time></p>
   </footer>
   {% include "_popup.html" %}
+  <script>
+  // Fechas en la zona horaria de cada visitante (el HTML trae la hora UTC como respaldo)
+  (function () {
+    var els = document.querySelectorAll("time[data-local-time]");
+    for (var i = 0; i < els.length; i++) {
+      var d = new Date(els[i].getAttribute("datetime"));
+      if (isNaN(d)) continue;
+      try {
+        var lang = (navigator.language || "es").indexOf("es") === 0 ? navigator.language : "es";
+        els[i].textContent = d.toLocaleString(lang, {
+          day: "numeric", month: "long", hour: "numeric", minute: "2-digit"
+        }) + " (tu hora local)";
+      } catch (e) {}
+    }
+  })();
+  </script>
   <script>
   (function () {
     var btn = document.querySelector(".theme-toggle"), root = document.documentElement;
