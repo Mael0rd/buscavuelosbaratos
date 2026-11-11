@@ -34,6 +34,22 @@ def ago(found_at: str | None, now: datetime | None = None) -> str:
 
 
 # ---------- mensajes ----------
+def verified_lines(row: dict, now: datetime | None = None) -> list[str]:
+    """'✅ Precio verificado hace X' (+ nivel de Google) o, si no, 'Precio visto hace X'."""
+    if row.get("verify_status") == "ok" and row.get("verified_at"):
+        out = [f"✅ <b>Precio verificado {ago(row['verified_at'], now)}</b> en Google Flights"]
+        if (row.get("price_level") or "") == "low":
+            rng = ""
+            if row.get("typical_low") and row.get("typical_high"):
+                rng = f" (normal: ${row['typical_low']:.0f}–${row['typical_high']:.0f})"
+            out.append(f"📉 Google lo marca como <b>precio bajo</b>{rng}")
+        out.append("<i>Los precios cambian rápido</i>")
+        return out
+    seen = ago(row.get("found_at"), now)
+    return [f"<i>🕒 Precio visto {seen} · puede cambiar rápido</i>" if seen
+            else "<i>Precio encontrado recientemente; puede cambiar.</i>"]
+
+
 def build_message(row: dict, site_url: str, country_name: str,
                   now: datetime | None = None) -> tuple[str, dict]:
     e = html.escape
@@ -57,9 +73,7 @@ def build_message(row: dict, site_url: str, country_name: str,
     if row.get("airline_name"):
         detalle += f" · {e(row['airline_name'])}"
     lines += [f"🔁 {detalle}", ""]
-    seen = ago(row.get("found_at"), now)
-    lines.append(f"<i>🕒 Precio visto {seen} · puede cambiar rápido</i>" if seen
-                 else "<i>Precio encontrado recientemente; puede cambiar.</i>")
+    lines += verified_lines(row, now)
 
     deal_url = f"{site_url}/oferta/{row['slug']}.html"
     share_text = (f"✈️ {row['origin_name']} → {row['dest_name']} por ${row['price']:.0f} "
@@ -181,9 +195,13 @@ def _country_tz(cfg: dict, cid: str) -> str:
 
 
 # ---------- publicación ----------
-def publish(conn, cfg: dict, now: datetime | None = None) -> dict:
-    """Publica las mejores ofertas activas y recientes en cada canal, respetando
-    cupos por corrida y por día, y el horario sin publicaciones."""
+def publish(conn, cfg: dict, now: datetime | None = None, verifier=None) -> dict:
+    """Publica en Telegram las mejores ofertas activas y recientes.
+
+    Cada oferta se verifica en vivo UNA sola vez (verifier) y se reparte a su
+    canal de país y al general, según el cupo libre de cada canal. Sin
+    presupuesto de verificación no se publica (nunca sale nada sin verificar).
+    verifier=None publica sin verificar (solo para pruebas)."""
     if not env("TELEGRAM_BOT_TOKEN"):
         print("[telegram] sin credenciales, se omite")
         return {}
@@ -195,46 +213,64 @@ def publish(conn, cfg: dict, now: datetime | None = None) -> dict:
     print(f"[telegram] variables de canal por país encontradas: {found or 'ninguna'} "
           f"(nombres esperados: TELEGRAM_CHANNEL_<PAÍS>, p. ej. {channel_var('mexico')})")
 
+    general = env("TELEGRAM_CHANNEL")
     targets = []
-    if env("TELEGRAM_CHANNEL"):
-        targets.append(("general", env("TELEGRAM_CHANNEL"), None, soc["main"], soc["timezone"]))
-    for cid, chat in country_channels(cfg).items():
-        targets.append((cid, chat, cid, soc["country"], _country_tz(cfg, cid)))
+    if general:
+        targets.append(("general", general, soc["main"], soc["timezone"]))
+    by_country = country_channels(cfg)
+    for cid, chat in by_country.items():
+        targets.append((cid, chat, soc["country"], _country_tz(cfg, cid)))
 
-    stats = {}
-    for name, chat, country, rules, tzname in targets:
+    stats, room, names = {}, {}, {}
+    for name, chat, rules, tzname in targets:
+        names[chat] = name
         if _quiet(now, tzname, soc["quiet_hours"]):
             stats[name] = "horario sin publicar"
             continue
         sent_24h = conn.execute(
             "SELECT COUNT(*) FROM telegram_posts WHERE chat_id=? AND posted_at >= datetime('now','-1 day')",
             (chat,)).fetchone()[0]
-        room = min(rules["per_run"], rules["per_day"] - sent_24h)
-        sent = 0
-        if room > 0:
-            q = """SELECT * FROM deals d
-                   WHERE d.status='active' AND d.found_at IS NOT NULL
-                     AND d.published_at >= datetime('now','-1 day')
-                     AND NOT EXISTS (SELECT 1 FROM telegram_posts p WHERE p.deal_id=d.id AND p.chat_id=?)"""
-            args = [chat]
-            if country:
-                q += " AND d.country=?"
-                args.append(country)
-            for row in conn.execute(q + " ORDER BY d.score ASC", args).fetchall():
-                if sent >= room:
-                    break
-                d = dict(row)
-                if (age_hours(d["found_at"], now) or 1e9) > max_age:
-                    continue  # el precio ya no es reciente: no se publica
-                cname = cfg["countries"].get(d["country"], {}).get("name", "tu país")
-                text, markup = build_message(d, site, cname, now)
-                mid = send(text, markup, chat_id=chat)
-                if mid:
-                    conn.execute("INSERT INTO telegram_posts (deal_id, chat_id, message_id) VALUES (?,?,?)",
-                                 (d["id"], chat, mid))
-                    sent += 1
-            conn.commit()
-        stats[name] = sent
+        stats[name] = 0
+        free = min(rules["per_run"], rules["per_day"] - sent_24h)
+        if free > 0:
+            room[chat] = free
+    if not room:
+        return stats
+
+    rows = conn.execute(
+        """SELECT * FROM deals WHERE status='active' AND found_at IS NOT NULL
+             AND published_at >= datetime('now','-1 day')
+             AND COALESCE(verify_status, '') != 'rechazada'
+           ORDER BY score ASC""").fetchall()
+    for row in rows:
+        if not room:
+            break
+        d = dict(row)
+        found_age = age_hours(d["found_at"], now)
+        if found_age is None or found_age > max_age:
+            continue
+        posted = {r[0] for r in conn.execute("SELECT chat_id FROM telegram_posts WHERE deal_id=?", (d["id"],))}
+        want = [c for c in (by_country.get(d["country"]), general) if c and c in room and c not in posted]
+        if not want:
+            continue
+        if verifier is not None:
+            res = verifier.ensure(d)
+            if res == "sin_presupuesto":
+                break  # sin presupuesto no se publica nada más en esta corrida
+            if res != "ok":
+                continue
+        cname = cfg["countries"].get(d["country"], {}).get("name", "tu país")
+        text, markup = build_message(d, site, cname, now)
+        for chat in want:
+            mid = send(text, markup, chat_id=chat)
+            if mid:
+                conn.execute("INSERT INTO telegram_posts (deal_id, chat_id, message_id) VALUES (?,?,?)",
+                             (d["id"], chat, mid))
+                stats[names[chat]] += 1
+                room[chat] -= 1
+                if room[chat] <= 0:
+                    del room[chat]
+        conn.commit()
     return stats
 
 

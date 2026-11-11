@@ -7,7 +7,7 @@ import argparse
 from datetime import datetime, timezone
 
 from . import deals as dl
-from . import alerts, fresh, refdata, site, telegram
+from . import alerts, fresh, refdata, site, telegram, verify
 from .config import load_config
 from .copywriter import write_copy
 from .db import connect
@@ -81,7 +81,11 @@ def run(no_social: bool = False) -> None:
         edited = telegram.mark_expired_posts(conn, cfg)
         if edited:
             print(f"Posts marcados como terminados en Telegram: {edited}")
-        print(f"Publicadas en Telegram: {telegram.publish(conn, cfg)}")
+        verifier = verify.Verifier(conn, cfg)
+        if not verifier.providers:
+            print("[verificación] sin SERPAPI_KEY ni APIFY_TOKEN: no se publica en Telegram")
+        print(f"Publicadas en Telegram: {telegram.publish(conn, cfg, verifier=verifier)}")
+        print(verifier.summary())
 
 
 if __name__ == "__main__":

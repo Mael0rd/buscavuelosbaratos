@@ -22,7 +22,9 @@ CREATE TABLE IF NOT EXISTS deals (
     published_at TEXT DEFAULT (datetime('now')),
     telegram_sent INTEGER DEFAULT 0,  -- (versión anterior; ya no se usa)
     status TEXT DEFAULT 'active', found_at TEXT, last_checked_at TEXT,
-    expired_at TEXT, expire_reason TEXT
+    expired_at TEXT, expire_reason TEXT,
+    verify_status TEXT, verified_at TEXT, live_price REAL, price_level TEXT,
+    typical_low REAL, typical_high REAL
 );
 CREATE INDEX IF NOT EXISTS idx_deals_route ON deals(origin, destination, published_at);
 
@@ -49,6 +51,12 @@ MIGRATIONS = {
         "last_checked_at": "TEXT",
         "expired_at": "TEXT",
         "expire_reason": "TEXT",             # subio | sin_confirmar | salida
+        "verify_status": "TEXT",             # ok | rechazada (verificación en vivo)
+        "verified_at": "TEXT",
+        "live_price": "REAL",
+        "price_level": "TEXT",               # nivel de Google Flights: low | typical | high
+        "typical_low": "REAL",
+        "typical_high": "REAL",
     },
 }
 

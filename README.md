@@ -45,6 +45,20 @@ reconfirma en 96 h (`freshness.stale_hours`) o si la salida está a menos de 2 d
 sale de las listas, su página muestra "❌ Esta oferta terminó" (sin botón de reservar) y el bot
 **edita el post de Telegram** para indicarlo.
 
+### Verificación en vivo antes de Telegram (`bvb/verify.py`)
+Travelpayouts (caché, gratis) es el *mapa* que encuentra candidatas; Google Flights es la *lupa*
+que confirma la mejor justo antes de publicarla en Telegram:
+- Se busca el mismo viaje (mismas fechas, máx. 1 escala). Se publica solo si el precio en vivo no
+  subió más de 10% y, si Google da su nivel de precio para la ruta, este es **"bajo"**.
+  Si subió, la oferta termina en todos lados. Se muestra el precio mayor (nunca se promete menos).
+- **Una verificación por oferta**, no por canal: la oferta verificada va a su canal de país y al
+  general. Sirve durante 3 h (`verify.cache_hours`). Tener 2 o 19 canales no cambia el gasto.
+- Proveedores en cadena, cada uno con su cuenta gratuita: **SerpApi** (250/mes, `SERPAPI_KEY`) →
+  **Apify** (~1.000/mes con $5 de crédito, `APIFY_TOKEN`).
+- Presupuesto automático: (lo que queda del mes) ÷ (días que faltan), repartido en las 17 h en que
+  se publica. **Sin presupuesto no se publica** en Telegram. La web y las alertas no gastan
+  verificaciones (muestran "Precio visto hace X").
+
 ## La web
 - **Portada** con una sección por país. El país del visitante (detectado por la zona horaria o el
   idioma del navegador, sin servicios externos) aparece primero con "📍 Tu país".
@@ -92,6 +106,8 @@ sale de las listas, su página muestra "❌ Esta oferta terminó" (sin botón de
 | `CLOUDFLARE_API_TOKEN` | desplegar el servidor de alertas | plantilla "Edit Cloudflare Workers" + permiso **D1 Write**, zona del dominio |
 | `CLOUDFLARE_ACCOUNT_ID` | ídem | Cloudflare (columna derecha del dominio o en la URL del panel) |
 | `GH_DISPATCH_TOKEN` | reloj de Cloudflare: lanzar la búsqueda cada hora | GitHub → token *fine-grained*, solo este repositorio, permiso **Actions: Read and write** |
+| `SERPAPI_KEY` | verificación en vivo (Google Flights), 1.er proveedor | serpapi.com → API key (plan gratis) |
+| `APIFY_TOKEN` | verificación en vivo, 2.º proveedor | console.apify.com → Settings → API & Integrations |
 | `ANTHROPIC_API_KEY` | (opcional) textos redactados por Claude | console.anthropic.com |
 
 **Variables:** `TELEGRAM_CHANNEL` y, por país, `TELEGRAM_CHANNEL_<PAÍS>`.
@@ -131,6 +147,7 @@ Web generada con 25 ofertas activas
 Frescura: {'match': 30, 'higher': 2, 'none': 5} · consultas: 37
 Posts marcados como terminados en Telegram: 1
 Publicadas en Telegram: {'general': 1, 'mexico': 2}
+Verificación: este mes 120/1250 (serpapi 120/250, apify 0/1000) · hoy 9/57 · esta corrida {'ok': 2, 'rechazadas': 1, ...}
 ```
 Si `Frescura` muestra `match` casi siempre en 0, la verificación de precios recientes no está
 encontrando los viajes y no se publicará nada: revisar `bvb/fresh.py`.
@@ -153,6 +170,7 @@ cd worker && npm install && npm test        # pruebas del servidor de alertas
 | `bvb/refdata.py` | Nombres de ciudades, países, aerolíneas y coordenadas (Travelpayouts Data Files) |
 | `bvb/deals.py` | Historial, mediana, reglas de oferta, filtros y anti-repetición |
 | `bvb/fresh.py` | Verifica cuándo se vio cada precio y termina las ofertas que ya no se sostienen |
+| `bvb/verify.py` | Verificación en vivo (SerpApi → Apify) con presupuesto mensual/diario/por hora |
 | `bvb/copywriter.py` | Textos con Claude (Haiku) o plantilla |
 | `bvb/site.py` + `templates/` | Web estática, sitemap, robots, CNAME |
 | `bvb/telegram.py` | Canales general y por país, cupos, horario, edición de posts terminados |

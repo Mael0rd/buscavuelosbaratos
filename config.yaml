@@ -83,6 +83,16 @@ social:
   quiet_hours: [23, 6]           # no publicar de 11 p. m. a 6 a. m. (hora local del canal)
   timezone: America/Costa_Rica   # hora del canal general
 
+verify:
+  # Verificación en vivo (Google Flights) antes de publicar en Telegram.
+  # Cada oferta se verifica UNA vez y se reparte a su canal de país + el general.
+  serpapi_monthly: 250         # plan gratis de SerpApi (secret SERPAPI_KEY)
+  apify_monthly: 1000          # ~$5 gratis al mes de Apify (secret APIFY_TOKEN)
+  apify_actor: kuezi~flight-offers-api
+  cache_hours: 3               # una verificación sirve para todos los canales durante 3 h
+  price_tolerance: 0.10        # el precio en vivo puede ser hasta 10% mayor
+  require_low_level: true      # si Google da su nivel de precio, debe ser "bajo"
+
 freshness:
   max_age_hours: 72      # solo se publican precios vistos hace menos de esto
   stale_hours: 96        # una oferta que no se reconfirma en este tiempo se da por terminada (debe ser > max_age_hours)
