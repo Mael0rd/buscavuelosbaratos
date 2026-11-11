@@ -128,3 +128,15 @@ def test_short_trips_are_dropped_and_purged():
                  ('bien','SJO','MIA','2027-01-10T08:00','2027-01-17T20:00')""")
     assert dl.purge_short_trips(c, 3) == 1
     assert [r[0] for r in c.execute("SELECT slug FROM deals")] == ["bien"]
+
+
+def test_expired_long_ago_does_not_block_repost():
+    c = conn()
+    d = dl.find_deals(c, best(t(190), *OTHER_MONTHS), CFG, REF, TODAY)[0]
+    d.update(slug="a", copy_web="", copy_social="")
+    dl.save_deal(c, d)
+    assert dl.find_deals(c, best(t(190), *OTHER_MONTHS), CFG, REF, TODAY) == []      # activa: bloquea
+    c.execute("UPDATE deals SET status='expired', expired_at=strftime('%Y-%m-%dT%H:%M:%SZ','now','-2 hours')")
+    assert dl.find_deals(c, best(t(190), *OTHER_MONTHS), CFG, REF, TODAY) == []      # terminó hace poco: bloquea
+    c.execute("UPDATE deals SET expired_at=strftime('%Y-%m-%dT%H:%M:%SZ','now','-2 days')")
+    assert len(dl.find_deals(c, best(t(190), *OTHER_MONTHS), CFG, REF, TODAY)) == 1  # terminó hace días: no bloquea

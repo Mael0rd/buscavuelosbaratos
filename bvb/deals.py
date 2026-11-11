@@ -134,9 +134,14 @@ def baseline(conn, origin, destination, today: str, days: int):
 
 
 def recently_published(conn, origin, destination, days: int):
+    """Oferta reciente de la ruta que impide repetirla. Cuentan las activas y las
+    que terminaron hace menos de 24 h (evita el vaivén publicar/terminar/publicar);
+    una oferta terminada hace más tiempo ya no bloquea."""
     return conn.execute(
         """SELECT price FROM deals WHERE origin=? AND destination=?
              AND published_at >= datetime('now', ?)
+             AND (COALESCE(status, 'active') = 'active'
+                  OR expired_at >= strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '-1 day'))
            ORDER BY price ASC LIMIT 1""",
         (origin, destination, f"-{days} days"),
     ).fetchone()
