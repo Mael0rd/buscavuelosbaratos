@@ -20,12 +20,14 @@ def run(no_social: bool = False) -> None:
     conn = connect()
     today = datetime.now(timezone.utc).date().isoformat()
 
-    removed = dl.purge_domestic(conn, ref) + dl.purge_too_many_stops(conn, cfg["search"]["max_transfers"])
+    sc = cfg["search"]
+    removed = (dl.purge_domestic(conn, ref) + dl.purge_too_many_stops(conn, sc["max_transfers"])
+               + dl.purge_short_trips(conn, sc["min_trip_days"]))
     if removed:
-        print(f"Ofertas retiradas (nacionales o con muchas escalas): {removed}")
+        print(f"Ofertas retiradas (nacionales, con muchas escalas o viajes cortos): {removed}")
 
     tickets = fetch_all(cfg)
-    best = dl.drop_domestic(dl.route_best(tickets, cfg["search"]["max_transfers"]), ref)
+    best = dl.drop_domestic(dl.route_best(tickets, sc["max_transfers"], sc["min_trip_days"]), ref)
     print(f"Tarifas obtenidas: {len(tickets)} · rutas internacionales: {len(best)}")
 
     # Comparar contra el historial ANTERIOR a hoy; luego guardar lo de hoy

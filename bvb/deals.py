@@ -25,7 +25,15 @@ def cold_cap(km_round_trip: float, cc: dict) -> float:
     return cc["k"] * km_round_trip ** cc["exp"]
 
 
-def route_best(tickets: list[dict], max_transfers: int) -> dict:
+def trip_days(departure_at: str, return_at: str) -> int | None:
+    """Días entre la fecha de ida y la de vuelta (None si falta alguna)."""
+    try:
+        return (date.fromisoformat((return_at or "")[:10]) - date.fromisoformat((departure_at or "")[:10])).days
+    except ValueError:
+        return None
+
+
+def route_best(tickets: list[dict], max_transfers: int, min_trip_days: int = 0) -> dict:
     """Boleto más barato por ruta, con los mínimos de cada mes en t['month_prices']."""
     best, months = {}, {}
     for t in tickets:
@@ -33,6 +41,10 @@ def route_best(tickets: list[dict], max_transfers: int) -> dict:
             continue
         if max(t["transfers"], t["return_transfers"]) > max_transfers:
             continue
+        if min_trip_days:
+            days = trip_days(t["departure_at"], t["return_at"])
+            if days is None or days < min_trip_days:
+                continue
         k = (t["origin"], t["destination"])
         if k not in best or t["price"] < best[k]["price"]:
             best[k] = t
@@ -68,6 +80,16 @@ def purge_domestic(conn, ref) -> int:
                     removed += cur.rowcount
     conn.commit()
     return removed
+
+
+def purge_short_trips(conn, min_trip_days: int) -> int:
+    """Retira ofertas guardadas cuyo viaje dura menos de min_trip_days."""
+    rows = conn.execute("SELECT id, departure_at, return_at FROM deals").fetchall()
+    bad = [r[0] for r in rows
+           if (lambda n: n is None or n < min_trip_days)(trip_days(r[1], r[2]))]
+    conn.executemany("DELETE FROM deals WHERE id=?", [(i,) for i in bad])
+    conn.commit()
+    return len(bad)
 
 
 def purge_too_many_stops(conn, max_transfers: int) -> int:

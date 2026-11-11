@@ -113,3 +113,18 @@ def test_domestic_routes_are_dropped_and_purged():
     assert dl.purge_domestic(c, ref) == 1
     assert [r[0] for r in c.execute("SELECT slug FROM deals")] == ["y"]
     assert c.execute("SELECT COUNT(*) FROM prices_daily").fetchone()[0] == 0
+
+
+def test_short_trips_are_dropped_and_purged():
+    same_day = dict(t(100), departure_at="2027-01-10T08:00", return_at="2027-01-10T22:00")
+    two_days = dict(t(110), departure_at="2027-01-10T08:00", return_at="2027-01-12T22:00")
+    three = dict(t(300), departure_at="2027-01-10T08:00", return_at="2027-01-13T22:00")
+    b = dl.route_best([same_day, two_days, three], max_transfers=1, min_trip_days=3)
+    assert b[("SJO", "MIA")]["price"] == 300
+
+    c = conn()
+    c.execute("""INSERT INTO deals (slug, origin, destination, departure_at, return_at) VALUES
+                 ('corto','SJO','MIA','2027-01-10T08:00','2027-01-10T20:00'),
+                 ('bien','SJO','MIA','2027-01-10T08:00','2027-01-17T20:00')""")
+    assert dl.purge_short_trips(c, 3) == 1
+    assert [r[0] for r in c.execute("SELECT slug FROM deals")] == ["bien"]

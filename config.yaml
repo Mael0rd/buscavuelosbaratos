@@ -57,6 +57,7 @@ search:
   round_trip: true
   limit_per_query: 1000  # destinos por consulta (un boleto, el más barato, por destino)
   max_transfers: 1       # solo vuelos directos o con 1 escala (ida y vuelta)
+  min_trip_days: 3       # mínimo de días entre la ida y la vuelta
   pause_seconds: 0.5     # pausa entre consultas para respetar límites de la API
 
 deals:
