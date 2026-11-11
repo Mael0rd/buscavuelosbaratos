@@ -33,7 +33,12 @@ def run(no_social: bool = False) -> None:
     # Comparar contra el historial ANTERIOR a hoy; luego guardar lo de hoy
     funnel: dict = {}
     found = dl.find_deals(conn, best, cfg, ref, today, funnel)
+    ratios = funnel.pop("_ratios", [])
     print(f"Embudo ({len(best)} rutas): descartadas {dict(sorted(funnel.items(), key=lambda x: -x[1]))} · pasan el precio: {len(found)}")
+    if ratios:  # cuántas rutas quedarían bajo el tope si se multiplicara por f
+        print("Calibración del tope (rutas bajo tope×f):",
+              {f: sum(1 for r, _ in ratios if r <= f) for f in (0.75, 1.0, 1.25, 1.5, 1.75, 2.0)},
+              f"de {len(ratios)}")
     dl.update_daily(conn, best, today)
     dl.prune(conn, today, cfg["deals"]["history_days"] + 5)
     checker = fresh.Checker(cfg)

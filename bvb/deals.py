@@ -167,6 +167,8 @@ def evaluate(conn, route: tuple, t: dict, cfg: dict, ref, today: str, stats: dic
         cap = cold_cap(2 * haversine_km(a, b), cs)
         mb = month_baseline(t, cs["min_months"])
         base = None
+        if stats is not None:  # precio / tope, para calibrar el tope con datos reales
+            stats.setdefault("_ratios", []).append((t["price"] / cap, mb is None))
         if mb is None:  # pocos meses con precio: solo pasa si es muy barata
             threshold = cap * cs["few_months_factor"]
             if t["price"] > threshold:
