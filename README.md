@@ -170,7 +170,7 @@ cd worker && npm install && npm test        # pruebas del servidor de alertas
 | `bvb/refdata.py` | Nombres de ciudades, países, aerolíneas y coordenadas (Travelpayouts Data Files) |
 | `bvb/deals.py` | Historial, mediana, reglas de oferta, filtros y anti-repetición |
 | `bvb/fresh.py` | Verifica cuándo se vio cada precio y termina las ofertas que ya no se sostienen |
-| `bvb/verify.py` | Verificación en vivo (SerpApi → Apify) con presupuesto mensual/diario/por hora |
+| `bvb/verify.py` | Verificación en vivo (SerpApi → Apify) con presupuesto mensual/diario/por hora; se verifican primero los precios más recientes (`verify.freshness_weight_hours`) |
 | `bvb/copywriter.py` | Textos con Claude (Haiku) o plantilla |
 | `bvb/site.py` + `templates/` | Web estática, sitemap, robots, CNAME |
 | `bvb/telegram.py` | Canales general y por país, cupos, horario, edición de posts terminados |

@@ -195,6 +195,15 @@ def _country_tz(cfg: dict, cid: str) -> str:
 
 
 # ---------- publicación ----------
+def priority(d: dict, cfg: dict, now: datetime) -> float:
+    """Orden para verificar/publicar: el descuento (score, menor = mejor) ajustado
+    por antigüedad del precio. Los precios viejos suelen haber subido, así que se
+    verifican después y se gastan menos verificaciones en rechazos."""
+    weight = cfg.get("verify", {}).get("freshness_weight_hours", 48)
+    age = age_hours(d.get("found_at"), now)
+    return (d.get("score") or 1.0) * (1 + (age if age is not None else 72) / weight)
+
+
 def publish(conn, cfg: dict, now: datetime | None = None, verifier=None) -> dict:
     """Publica en Telegram las mejores ofertas activas y recientes.
 
@@ -242,6 +251,7 @@ def publish(conn, cfg: dict, now: datetime | None = None, verifier=None) -> dict
              AND published_at >= datetime('now','-1 day')
              AND COALESCE(verify_status, '') != 'rechazada'
            ORDER BY score ASC""").fetchall()
+    rows = sorted(rows, key=lambda r: priority(dict(r), cfg, now))
     for row in rows:
         if not room:
             break

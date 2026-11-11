@@ -92,6 +92,10 @@ verify:
   cache_hours: 3               # una verificación sirve para todos los canales durante 3 h
   price_tolerance: 0.10        # el precio en vivo puede ser hasta 10% mayor
   require_low_level: true      # si Google da su nivel de precio, debe ser "bajo"
+  # Orden para verificar: descuento ajustado por antigüedad del precio.
+  # prioridad = score × (1 + horas_desde_que_se_vio / freshness_weight_hours); menor = primero.
+  # Con 48: una oferta vista hace 48 h "pesa" el doble que una recién vista.
+  freshness_weight_hours: 48
 
 freshness:
   max_age_hours: 72      # solo se publican precios vistos hace menos de esto

@@ -17,7 +17,8 @@ CFG = {
                "quiet_hours": [23, 6], "timezone": "America/Costa_Rica"},
     "freshness": {"max_age_hours": 72},
     "verify": {"serpapi_monthly": 250, "apify_monthly": 1000, "apify_actor": "x~y",
-               "cache_hours": 3, "price_tolerance": 0.10, "require_low_level": True},
+               "cache_hours": 3, "price_tolerance": 0.10, "require_low_level": True,
+               "freshness_weight_hours": 48},
 }
 
 
@@ -189,3 +190,23 @@ def test_without_budget_nothing_is_published(tg):
     v = verify.Verifier(c, CFG, NOW, providers=[])
     assert telegram.publish(c, CFG, NOW, verifier=v) == {"general": 0, "mexico": 0}
     assert tg == []
+
+
+def test_fresher_price_is_verified_first(tg):
+    c = conn()
+    # Mejor descuento pero visto hace 70 h  vs  algo menos de descuento pero visto hace 2 h
+    save(c, slug="vieja", score=0.60, found_at=iso(NOW - timedelta(hours=70)))
+    save(c, slug="reciente", score=0.75, found_at=iso(NOW - timedelta(hours=2)))
+    assert telegram.priority({"score": 0.60, "found_at": iso(NOW - timedelta(hours=70))}, CFG, NOW) > \
+           telegram.priority({"score": 0.75, "found_at": iso(NOW - timedelta(hours=2))}, CFG, NOW)
+    seen = []
+
+    class Rec(Fake):
+        def search(self, o, d, dep, ret):
+            seen.append(self.calls)
+            self.calls += 1
+            return ANS_OK
+    v = verify.Verifier(c, CFG, NOW, providers=[Rec("serpapi", 250)])
+    telegram.publish(c, CFG, NOW, verifier=v)
+    first = c.execute("SELECT d.slug FROM verify_log l JOIN deals d ON d.id=l.deal_id ORDER BY l.rowid LIMIT 1").fetchone()[0]
+    assert first == "reciente"
