@@ -7,7 +7,7 @@ import argparse
 from datetime import datetime, timezone
 
 from . import deals as dl
-from . import alerts, fresh, refdata, site, telegram, verify
+from . import alerts, fresh, refdata, routes, site, telegram, verify
 from .config import load_config
 from .copywriter import write_copy
 from .db import connect
@@ -29,6 +29,7 @@ def run(no_social: bool = False) -> None:
     tickets = fetch_all(cfg)
     best = dl.drop_domestic(dl.route_best(tickets, sc["max_transfers"], sc["min_trip_days"]), ref)
     print(f"Tarifas obtenidas: {len(tickets)} · rutas internacionales: {len(best)}")
+    routes.update(conn, best, ref, today)
 
     # Comparar contra el historial ANTERIOR a hoy; luego guardar lo de hoy
     funnel: dict = {}

@@ -69,6 +69,11 @@ que confirma la mejor justo antes de publicarla en Telegram:
 - **Portada** con una sección por país. El país del visitante (detectado por la zona horaria o el
   idioma del navegador, sin servicios externos) aparece primero con "📍 Tu país".
 - **`/pais/<país>.html`**: todas las ofertas de ese país + botón para unirse a su canal de Telegram.
+- **`/vuelos/<origen>-a-<destino>-<cod>-<cod>.html`** (SEO): página **permanente** por ruta con precio
+  típico, el más bajo visto, precio por mes de salida, historial (gráfico), aerolíneas, vuelos directos,
+  la oferta verificada vigente y preguntas frecuentes con datos estructurados (FAQPage, BreadcrumbList).
+  Se crea cuando la ruta tiene ≥ 3 días de historial (`seo.route_min_days`) y se enlaza desde el país
+  y desde cada oferta. Las URL de ofertas viejas redirigen (301) a su ruta vía `_redirects`.
 - **`/oferta/<slug>.html`**: detalle, botón de reserva (enlace de afiliado) y "Avísame de esta ruta".
 - **`/alertas.html`**: formulario de alertas por correo y acceso al bot.
 - Al confirmar o darse de baja de una alerta se llega a la portada con una ventana emergente.

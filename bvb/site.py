@@ -9,7 +9,7 @@ from datetime import date, datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
-from . import telegram
+from . import routes, telegram
 from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
 
@@ -64,6 +64,8 @@ def build(conn, cfg: dict) -> int:
     env.filters["fecha"] = fmt_date
     env.filters["escalas"] = fmt_stops
     env.filters["hace"] = telegram.ago
+    env.filters["faq_ld"] = lambda qa: {"@type": "Question", "name": qa[0],
+                                        "acceptedAnswer": {"@type": "Answer", "text": qa[1]}}
 
     deals = active_deals(conn, cfg)
     ended = active_deals(conn, cfg, status="expired")  # sus páginas siguen (con aviso), fuera de listas
@@ -73,11 +75,21 @@ def build(conn, cfg: dict) -> int:
         countries.append({"id": cid, "name": c["name"], "flag": c["flag"], "cc": c["cc"], "origins": c["origins"],
                           "deals": [d for d in deals if d["country"] == cid]})
 
+    # Páginas permanentes por ruta (SEO)
+    seo = cfg.get("seo", {})
+    route_pages = routes.build_pages(conn, cfg, deals, ended, seo.get("route_min_days", 3))
+    slug_of_route = {(r["origin"], r["destination"]): r["slug"] for r in route_pages}
+    for d in deals + ended:
+        d["route_slug"] = slug_of_route.get((d["origin"], d["destination"]))
+    for c in countries:
+        c["routes"] = [r for r in route_pages if r["country"] == c["id"]]
+
     if SITE_DIR.exists():
         shutil.rmtree(SITE_DIR)
     (SITE_DIR / "oferta").mkdir(parents=True)
     (SITE_DIR / "pais").mkdir()
     (SITE_DIR / "destino").mkdir()
+    (SITE_DIR / "vuelos").mkdir()
     if STATIC_DIR.exists():
         shutil.copytree(STATIC_DIR, SITE_DIR / "static")
 
@@ -111,10 +123,29 @@ def build(conn, cfg: dict) -> int:
         write(f"destino/{slug}.html", "destination.html", dest=ds[0], deals=ds)
     for d in deals + ended:
         write(f"oferta/{d['slug']}.html", "deal.html", d=d, c=by_id.get(d["country"]), dest_pages=destinations)
+    for r in route_pages:
+        write(f"vuelos/{r['slug']}.html", "route.html", r=r, c=by_id.get(r["country"]), faqs=routes.faq(r))
+    write("404.html", "404.html")
+
+    # Ofertas que ya no tienen página: su URL redirige (301) a la página de la ruta o del país.
+    # Cloudflare Pages lee el archivo _redirects (máx. 2.000 reglas estáticas).
+    live = {d["slug"] for d in deals + ended}
+    redirects = []
+    for x in conn.execute(
+            """SELECT slug, origin, destination, country FROM deals
+               WHERE published_at >= datetime('now', ?) ORDER BY published_at DESC""",
+            (f"-{seo.get('redirect_days', 90)} days",)).fetchall():
+        if x["slug"] in live:
+            continue
+        rs = slug_of_route.get((x["origin"], x["destination"]))
+        target = f"/vuelos/{rs}.html" if rs else f"/pais/{x['country']}.html"
+        redirects.append(f"/oferta/{x['slug']}.html {target} 301")
+    (SITE_DIR / "_redirects").write_text("\n".join(redirects[:1900]) + ("\n" if redirects else ""))
 
     base = f"https://{cfg['site']['domain']}"
     urls = ([f"{base}/", f"{base}/alertas.html"] + [f"{base}/pais/{c['id']}.html" for c in countries]
             + [f"{base}/destino/{s}.html" for s in destinations]
+            + [f"{base}/vuelos/{r['slug']}.html" for r in route_pages]
             + [f"{base}/oferta/{d['slug']}.html" for d in deals])
     (SITE_DIR / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'

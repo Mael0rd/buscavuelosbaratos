@@ -76,6 +76,10 @@ deals:
   repost_extra_drop: 0.10  # ...salvo que baje otro 10%
   show_days: 14          # días que una oferta sigue visible en la web
 
+seo:
+  route_min_days: 3      # días de historial para que una ruta tenga página propia (/vuelos/...)
+  redirect_days: 90      # ofertas terminadas: redirigir su URL a la página de la ruta durante 90 días
+
 social:
   # Canal general (TELEGRAM_CHANNEL) y canales por país (variable TELEGRAM_CHANNEL_<PAÍS>,
   # p. ej. TELEGRAM_CHANNEL_MEXICO). Se publican primero las mejores ofertas.

@@ -211,3 +211,31 @@ a:hover .bell, a:focus-visible .bell { animation: bell-ring-once .9s ease-in-out
   :root:not([data-theme="light"]) .brand .logo-light { display: none; }
   :root:not([data-theme="light"]) .brand .logo-dark { display: block; }
 }
+
+/* Páginas por ruta (/vuelos/...) */
+.crumbs { font-size: .85rem; color: var(--muted); margin-bottom: .5rem; }
+.crumbs a { color: var(--muted); }
+.crumbs a:hover { color: var(--accent); }
+.stats { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 0 0 1.25rem; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: .9rem 1rem; }
+.stat span { display: block; color: var(--muted); font-size: .8rem; }
+.stat b { display: block; font-size: 1.5rem; color: var(--accent); margin: .15rem 0; }
+.stat small { color: var(--muted); font-size: .8rem; }
+.panel + .panel, .panel + section, section + .panel { margin-top: 1rem; }
+.deal-now .price { margin: .3rem 0 .8rem; }
+.chart { width: 100%; height: auto; color: var(--accent); }
+.chart .axis { font-size: 12px; fill: var(--muted); }
+table.months { width: 100%; border-collapse: collapse; }
+table.months th, table.months td { text-align: left; padding: .45rem .3rem; border-bottom: 1px solid var(--line); }
+table.months th { color: var(--muted); font-weight: 600; font-size: .85rem; }
+table.months tr.best td { color: var(--good); font-weight: 700; }
+.faq details { border-bottom: 1px solid var(--line); padding: .6rem 0; }
+.faq summary { cursor: pointer; font-weight: 600; }
+.faq p { margin: .5rem 0 0; color: var(--muted); }
+.related { margin-top: 1.5rem; }
+.related h2 { font-size: 1.15rem; }
+.related ul { list-style: none; padding: 0; display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.related a { display: flex; justify-content: space-between; gap: .5rem; background: var(--card); border: 1px solid var(--line);
+             border-radius: 10px; padding: .55rem .8rem; }
+.related a:hover { border-color: var(--accent); }
+.related a span { color: var(--muted); font-size: .85rem; white-space: nowrap; }

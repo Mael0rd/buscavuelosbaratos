@@ -52,7 +52,7 @@ def route_best(tickets: list[dict], max_transfers: int, min_trip_days: int = 0) 
         mo = (t["departure_at"] or "")[:7]
         m[mo] = min(m.get(mo, t["price"]), t["price"])
     for k, t in best.items():
-        best[k] = {**t, "month_prices": sorted(months[k].values())}
+        best[k] = {**t, "month_prices": sorted(months[k].values()), "month_min": dict(sorted(months[k].items()))}
     return best
 
 

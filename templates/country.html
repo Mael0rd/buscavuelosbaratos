@@ -22,4 +22,10 @@
 {% else %}
 <p class="empty">Ahora mismo no hay ofertas destacadas desde {{ c.name }}. Volvemos a revisar en unas horas.</p>
 {% endif %}
+{% if c.routes %}
+<section class="related">
+  <h2>Rutas desde {{ c.name }}: precios e historial</h2>
+  <ul>{% for r in c.routes %}<li><a href="/vuelos/{{ r.slug }}.html">{{ r.origin_name }} → {{ r.dest_name }} <span>típico ${{ "%.0f"|format(r.typical) }}</span></a></li>{% endfor %}</ul>
+</section>
+{% endif %}
 {% endblock %}
