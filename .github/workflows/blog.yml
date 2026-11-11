@@ -1,0 +1,63 @@
+name: Desplegar blog
+
+on:
+  push:
+    branches: [main]
+    paths: ["blog/**", ".github/workflows/blog.yml"]
+  workflow_dispatch: {}
+
+concurrency:
+  group: blog
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: blog
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TRAVELPAYOUTS_TOKEN: ${{ secrets.TRAVELPAYOUTS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Comprobar secrets
+        run: |
+          missing=0
+          for v in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID TRAVELPAYOUTS_TOKEN; do
+            if [ -z "${!v}" ]; then echo "::error::Falta el secret $v (Settings → Secrets and variables → Actions)"; missing=1; fi
+          done
+          exit $missing
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --no-audit --no-fund
+
+      - name: Almacenamiento de las guías (KV)
+        run: |
+          find_id() {
+            npx wrangler kv namespace list | python3 -c "import sys,json; print(next((n['id'] for n in json.load(sys.stdin) if n['title']=='bvb-blog-posts'),''))"
+          }
+          ID=$(find_id)
+          if [ -z "$ID" ]; then
+            npx wrangler kv namespace create bvb-blog-posts
+            ID=$(find_id)
+          fi
+          echo "KV: $ID"
+          test -n "$ID"
+          sed -i "s/__KV_ID__/$ID/" wrangler.toml
+
+      - name: Publicar blog
+        run: npx wrangler deploy
+
+      - name: Clave de Travelpayouts
+        run: printf '%s' "$TRAVELPAYOUTS_TOKEN" | npx wrangler secret put TRAVELPAYOUTS_TOKEN
+
+      - name: Comprobar que responde
+        run: curl -sS -f --retry 10 --retry-delay 15 --retry-all-errors -o /dev/null -w "%{http_code}\n" https://buscavuelosbaratos.com/blog

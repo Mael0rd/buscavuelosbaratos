@@ -1,0 +1,25 @@
+# Blog de guías de viaje en buscavuelosbaratos.com/blog. Lo despliega el workflow "Desplegar blog";
+# __KV_ID__ se reemplaza automáticamente con el id del almacenamiento de las guías.
+name = "bvb-blog"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = false
+# Solo /blog* llega a este Worker; el resto del dominio sigue saliendo de GitHub Pages.
+routes = [{ pattern = "buscavuelosbaratos.com/blog*", zone_name = "buscavuelosbaratos.com" }]
+
+# Una guía nueva cada 3 días a las 14:00 UTC.
+[triggers]
+crons = ["0 14 */3 * *"]
+
+[[kv_namespaces]]
+binding = "POSTS"
+id = "__KV_ID__"
+
+# Workers AI escribe las guías (capa gratis).
+[ai]
+binding = "AI"
+
+[vars]
+TRAVELPAYOUTS_TRS = "598846"    # proyecto Buscavuelosbaratos en Travelpayouts (no es secreto)
+TRAVELPAYOUTS_MARKER = "803749" # ID de socio, va en todos los enlaces (no es secreto)
+# Secreto: TRAVELPAYOUTS_TOKEN (lo pone el workflow desde los secrets de GitHub)

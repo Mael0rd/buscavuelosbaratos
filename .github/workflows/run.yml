@@ -6,7 +6,7 @@ on:
   workflow_dispatch: {}       # botón "Run workflow" manual
   push:
     branches: [main]          # publicar al subir cambios de código
-    paths-ignore: ["**.md", "worker/**"]
+    paths-ignore: ["**.md", "worker/**", "blog/**", ".github/workflows/blog.yml"]
 
 permissions:
   contents: write

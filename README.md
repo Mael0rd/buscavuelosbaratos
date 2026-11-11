@@ -130,6 +130,8 @@ que confirma la mejor justo antes de publicarla en Telegram:
    `www.buscavuelosbaratos.com` (Cloudflare crea los DNS y el HTTPS). Dirección de prueba:
    `buscavuelosbaratos.pages.dev`.
 3. *Actions → Desplegar alertas → Run workflow* (base D1, `api.buscavuelosbaratos.com`, Worker, bot).
+   El blog (`/blog`) es otro Worker (`blog/`) con una ruta en la zona: atiende solo `/blog*`, por
+   delante de Pages. Lo publica *Desplegar blog*.
 4. *Actions → Buscar ofertas y publicar → Run workflow* para la primera corrida.
 
 ## Workflows
@@ -138,6 +140,14 @@ que confirma la mejor justo antes de publicarla en Telegram:
 | `run.yml` — Buscar ofertas y publicar | cada hora (lo lanza Cloudflare), al subir código, manual; respaldo propio cada 6 h | pipeline completo + despliegue de la web |
 | `worker.yml` — Desplegar alertas | al cambiar `worker/` o `config.yaml`, manual | pruebas, D1, Worker, claves y webhook del bot |
 | `ejemplo.yml` — Publicar ejemplo en Telegram | manual | post de prueba con la mejor oferta de un país |
+| `blog.yml` — Desplegar blog | al cambiar `blog/`, manual | KV, Worker `bvb-blog` en `buscavuelosbaratos.com/blog` y su clave |
+
+**Blog (`blog/`):** cada 3 días el Worker escribe una guía de viaje con Workers AI (gratis) a partir
+de la mejor oferta hacia un destino, con enlaces de afiliado (Aviasales, Klook, Tiqets, Kiwitaxi,
+Yesim, Localrent) generados por la API de enlaces de Travelpayouts. Destinos y servicios: listas
+`DESTINOS` y `SERVICIOS` en `blog/src/index.js`. Local: copia `blog/.dev.vars.example` a
+`blog/.dev.vars`, `cd blog && npm install && npm run dev`, y abre `http://localhost:8787/__scheduled`
+para generar una guía.
 
 **Reloj en Cloudflare:** GitHub no garantiza sus corridas programadas (las retrasa o las descarta
 sin avisar, sobre todo en repositorios nuevos). Por eso el Worker tiene un *Cron Trigger*
