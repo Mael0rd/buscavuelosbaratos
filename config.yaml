@@ -96,6 +96,11 @@ verify:
   # prioridad = score × (1 + horas_desde_que_se_vio / freshness_weight_hours); menor = primero.
   # Con 48: una oferta vista hace 48 h "pesa" el doble que una recién vista.
   freshness_weight_hours: 48
+  # Web: solo se muestran ofertas verificadas en vivo. Se re-verifican cada
+  # web_reverify_hours (antes que las nuevas) y se ocultan si no se reconfirman
+  # en web_max_age_hours.
+  web_reverify_hours: 12
+  web_max_age_hours: 24
 
 freshness:
   max_age_hours: 72      # solo se publican precios vistos hace menos de esto

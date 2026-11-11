@@ -12,6 +12,7 @@ import requests
 from .config import env
 from .copywriter import fmt_date, fmt_stops, savings_pct
 from .fresh import age_hours
+from .verify import priority
 
 API = "https://api.telegram.org/bot{token}/{method}"
 
@@ -195,15 +196,6 @@ def _country_tz(cfg: dict, cid: str) -> str:
 
 
 # ---------- publicación ----------
-def priority(d: dict, cfg: dict, now: datetime) -> float:
-    """Orden para verificar/publicar: el descuento (score, menor = mejor) ajustado
-    por antigüedad del precio. Los precios viejos suelen haber subido, así que se
-    verifican después y se gastan menos verificaciones en rechazos."""
-    weight = cfg.get("verify", {}).get("freshness_weight_hours", 48)
-    age = age_hours(d.get("found_at"), now)
-    return (d.get("score") or 1.0) * (1 + (age if age is not None else 72) / weight)
-
-
 def publish(conn, cfg: dict, now: datetime | None = None, verifier=None) -> dict:
     """Publica en Telegram las mejores ofertas activas y recientes.
 
@@ -265,10 +257,8 @@ def publish(conn, cfg: dict, now: datetime | None = None, verifier=None) -> dict
             continue
         if verifier is not None:
             res = verifier.ensure(d)
-            if res == "sin_presupuesto":
-                break  # sin presupuesto no se publica nada más en esta corrida
             if res != "ok":
-                continue
+                continue  # sin verificar (o rechazada): no se publica; las ya verificadas sí
         cname = cfg["countries"].get(d["country"], {}).get("name", "tu país")
         text, markup = build_message(d, site, cname, now)
         for chat in want:

@@ -73,6 +73,12 @@ def run(no_social: bool = False) -> None:
         print(f"Alertas activas: {len(subs)} · avisos enviados: "
               f"{st['telegram']} por Telegram, {st['email']} por correo")
 
+    # Web honesta: verificar en vivo lo que se muestra (re-verifica las viejas primero)
+    verifier = verify.Verifier(conn, cfg)
+    if not verifier.providers:
+        print("[verificación] sin SERPAPI_KEY ni APIFY_TOKEN: la web y Telegram no mostrarán ofertas nuevas")
+    print(f"Verificación para la web: {verifier.refresh_web()}")
+
     n = site.build(conn, cfg)
     print(f"Web generada con {n} ofertas activas")
     print(f"Frescura: {checker.stats} · consultas: {checker.calls}")
@@ -81,11 +87,8 @@ def run(no_social: bool = False) -> None:
         edited = telegram.mark_expired_posts(conn, cfg)
         if edited:
             print(f"Posts marcados como terminados en Telegram: {edited}")
-        verifier = verify.Verifier(conn, cfg)
-        if not verifier.providers:
-            print("[verificación] sin SERPAPI_KEY ni APIFY_TOKEN: no se publica en Telegram")
         print(f"Publicadas en Telegram: {telegram.publish(conn, cfg, verifier=verifier)}")
-        print(verifier.summary())
+    print(verifier.summary())
 
 
 if __name__ == "__main__":

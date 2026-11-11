@@ -8,6 +8,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
 from . import telegram
+from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
 
 PER_COUNTRY_HOME = 6
@@ -22,6 +23,9 @@ def active_deals(conn, cfg: dict, status: str = "active") -> list[dict]:
            ORDER BY score ASC""",
         (status, f"-{cfg['deals']['show_days']} days", today),
     ).fetchall()
+    now = datetime.now(timezone.utc)
+    if status == "active" and cfg.get("verify"):
+        rows = [r for r in rows if web_visible(dict(r), cfg, now)]  # solo verificadas en vivo
     seen, out = set(), []
     for r in rows:  # una oferta por ruta: la mejor
         key = (r["origin"], r["destination"])

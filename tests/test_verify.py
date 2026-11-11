@@ -18,7 +18,7 @@ CFG = {
     "freshness": {"max_age_hours": 72},
     "verify": {"serpapi_monthly": 250, "apify_monthly": 1000, "apify_actor": "x~y",
                "cache_hours": 3, "price_tolerance": 0.10, "require_low_level": True,
-               "freshness_weight_hours": 48},
+               "freshness_weight_hours": 48, "web_reverify_hours": 12, "web_max_age_hours": 24},
 }
 
 
@@ -210,3 +210,47 @@ def test_fresher_price_is_verified_first(tg):
     telegram.publish(c, CFG, NOW, verifier=v)
     first = c.execute("SELECT d.slug FROM verify_log l JOIN deals d ON d.id=l.deal_id ORDER BY l.rowid LIMIT 1").fetchone()[0]
     assert first == "reciente"
+
+
+# ---------- web: solo verificadas, re-verificación ----------
+def test_web_shows_only_recently_verified():
+    ok = {"verify_status": "ok", "verified_at": iso(NOW - timedelta(hours=5))}
+    assert verify.web_visible(ok, CFG, NOW)
+    assert not verify.web_visible({**ok, "verified_at": iso(NOW - timedelta(hours=30))}, CFG, NOW)
+    assert not verify.web_visible({"verify_status": None}, CFG, NOW)
+    assert not verify.web_visible({**ok, "verify_status": "rechazada"}, CFG, NOW)
+
+
+def test_refresh_web_reverifies_old_ones_first():
+    c = conn()
+    save(c, slug="nueva", score=0.5)
+    save(c, slug="vieja", score=0.9, verify_status="ok", verified_at=iso(NOW - timedelta(hours=13)))
+    save(c, slug="reciente", score=0.9, verify_status="ok", verified_at=iso(NOW - timedelta(hours=2)))
+    order = []
+
+    class Rec(Fake):
+        def search(self, o, d, dep, ret):
+            self.calls += 1
+            return ANS_OK
+    v = verify.Verifier(c, CFG, NOW, providers=[Rec("serpapi", 250)])
+    orig = v._verify
+    v._verify = lambda d: order.append(d["slug"]) or orig(d)
+    assert v.refresh_web() == {"reverificadas": 1, "nuevas": 1}
+    assert order == ["vieja", "nueva"]          # 'reciente' (2 h) no gasta verificación
+
+
+def test_reverification_that_finds_higher_price_ends_the_deal():
+    c = conn()
+    save(c, slug="v", verify_status="ok", verified_at=iso(NOW - timedelta(hours=13)))
+    verify.Verifier(c, CFG, NOW, providers=[Fake("serpapi", 250, {**ANS_OK, "price": 700.0})]).refresh_web()
+    assert tuple(c.execute("SELECT status, expire_reason FROM deals").fetchone()) == ("expired", "subio")
+
+
+def test_publish_skips_unverified_but_posts_cached_when_budget_is_out(tg):
+    c = conn()
+    save(c, slug="sin_verificar", score=0.4)
+    save(c, slug="verificada", score=0.9, verify_status="ok", verified_at=iso(NOW - timedelta(hours=1)))
+    v = verify.Verifier(c, CFG, NOW, providers=[])     # sin presupuesto
+    telegram.publish(c, CFG, NOW, verifier=v)
+    posted = {r[0] for r in c.execute("SELECT d.slug FROM telegram_posts p JOIN deals d ON d.id=p.deal_id")}
+    assert posted == {"verificada"}

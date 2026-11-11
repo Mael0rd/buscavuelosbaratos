@@ -167,6 +167,22 @@ class Mock:
         return {"price": self.deal_price_of(), "level": "low", "low": None, "high": None}
 
 
+def priority(d: dict, cfg: dict, now: datetime) -> float:
+    """Orden para verificar: el descuento (score, menor = mejor) ajustado por la
+    antigüedad del precio. Los precios viejos suelen haber subido, así que se
+    verifican después y se gastan menos verificaciones en rechazos."""
+    weight = cfg.get("verify", {}).get("freshness_weight_hours", 48)
+    age = age_hours(d.get("found_at"), now)
+    return (d.get("score") or 1.0) * (1 + (age if age is not None else 72) / weight)
+
+
+def web_visible(d: dict, cfg: dict, now: datetime) -> bool:
+    """Una oferta activa se muestra en la web solo si está verificada en vivo
+    y la verificación no tiene más de web_max_age_hours."""
+    a = age_hours(d.get("verified_at"), now)
+    return d.get("verify_status") == "ok" and a is not None and a <= cfg["verify"]["web_max_age_hours"]
+
+
 # ---------- verificador con presupuesto ----------
 class Verifier:
     def __init__(self, conn, cfg: dict, now: datetime | None = None, providers: list | None = None):
@@ -256,6 +272,10 @@ class Verifier:
         if not self.providers or self.budget()["allowed_now"] <= 0:
             self.run_stats["sin_presupuesto"] += 1
             return "sin_presupuesto"
+        return self._verify(deal)
+
+    def _verify(self, deal: dict) -> str:
+        """Verifica ya (sin mirar caché). Supone que hay presupuesto."""
         provider, res = self._search(deal, deal["id"])
         if res is None:
             self.run_stats["sin_presupuesto"] += 1
@@ -286,6 +306,36 @@ class Verifier:
         deal.update(fields)
         self.run_stats["ok" if result == "ok" else "rechazadas"] += 1
         return "ok" if result == "ok" else "rechazada"
+
+    def refresh_web(self) -> dict:
+        """Verifica, dentro del presupuesto de esta hora, lo que muestra la web:
+        primero re-verifica las ofertas ya verificadas hace > web_reverify_hours
+        (para no mantener precios falsos), luego verifica las candidatas nuevas."""
+        out = {"reverificadas": 0, "nuevas": 0}
+        if not self.providers:
+            return out
+        rows = [dict(r) for r in self.conn.execute(
+            """SELECT * FROM deals WHERE status='active'
+                 AND published_at >= datetime('now', ?)
+                 AND substr(departure_at, 1, 10) >= ?
+                 AND COALESCE(verify_status, '') != 'rechazada'""",
+            (f"-{self.cfg['deals']['show_days']} days", self.now.strftime("%Y-%m-%d"))).fetchall()]
+        re_h = self.vcfg["web_reverify_hours"]
+        stale = [d for d in rows if d.get("verify_status") == "ok"
+                 and (age_hours(d.get("verified_at"), self.now) or 0) > re_h]
+        new = [d for d in rows if not d.get("verify_status")
+               and (age_hours(d.get("found_at"), self.now) is not None)
+               and age_hours(d.get("found_at"), self.now) <= self.cfg["freshness"]["max_age_hours"]]
+        key = lambda d: priority(d, self.cfg, self.now)
+        for kind, group in (("reverificadas", sorted(stale, key=key)), ("nuevas", sorted(new, key=key))):
+            for d in group:
+                if self.budget()["allowed_now"] <= 0:
+                    return out
+                res = self._verify(d)
+                if res == "sin_presupuesto":
+                    return out
+                out[kind] += 1
+        return out
 
     def summary(self) -> str:
         b = self.budget()
