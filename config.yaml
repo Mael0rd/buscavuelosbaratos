@@ -29,6 +29,29 @@ countries:
   uruguay:         { name: "Uruguay",              cc: UY, flag: "🇺🇾", origins: [MVD] }
   paraguay:        { name: "Paraguay",             cc: PY, flag: "🇵🇾", origins: [ASU] }
 
+# Zonas horarias de cada país (para poner primero las ofertas del país del visitante).
+# Una zona que termina en '/' cubre todas las que empiezan así.
+timezones:
+  mexico: [America/Mexico_City, America/Cancun, America/Merida, America/Monterrey, America/Matamoros, America/Chihuahua, America/Ciudad_Juarez, America/Ojinaga, America/Mazatlan, America/Bahia_Banderas, America/Hermosillo, America/Tijuana]
+  guatemala: [America/Guatemala]
+  el-salvador: [America/El_Salvador]
+  honduras: [America/Tegucigalpa]
+  nicaragua: [America/Managua]
+  costa-rica: [America/Costa_Rica]
+  panama: [America/Panama]
+  cuba: [America/Havana]
+  dominicana: [America/Santo_Domingo]
+  puerto-rico: [America/Puerto_Rico]
+  colombia: [America/Bogota]
+  venezuela: [America/Caracas]
+  ecuador: [America/Guayaquil, Pacific/Galapagos]
+  peru: [America/Lima]
+  bolivia: [America/La_Paz]
+  chile: [America/Santiago, America/Punta_Arenas, Pacific/Easter]
+  argentina: [America/Argentina/, America/Buenos_Aires, America/Cordoba, America/Mendoza, America/Catamarca, America/Jujuy]
+  uruguay: [America/Montevideo]
+  paraguay: [America/Asuncion]
+
 search:
   months_ahead: 9        # meses hacia adelante a revisar
   round_trip: true

@@ -371,7 +371,7 @@ export default {
           : "UPDATE subscriptions SET status='removed' WHERE token=?"
       ).bind(t).run();
       const ok = r.meta && r.meta.changes > 0;
-      return redirect(`${env.SITE_URL}/alertas.html?estado=${ok ? (confirm ? "confirmada" : "baja") : "invalido"}`);
+      return redirect(`${env.SITE_URL}/?alerta=${ok ? (confirm ? "confirmada" : "baja") : "invalido"}`);
     }
 
     if (p === "/api/subscriptions") {

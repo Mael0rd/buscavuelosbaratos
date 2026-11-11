@@ -7,8 +7,6 @@
   <p>Elige tu ruta y te avisamos solo cuando encontremos una <b>oferta real</b>: un precio muy por debajo de lo normal para ese viaje.</p>
 </section>
 
-<div id="estado" class="notice" hidden></div>
-
 <div class="alert-grid">
   <section class="panel">
     <h2>📧 Por correo</h2>
@@ -60,17 +58,11 @@
   var codes = {};
   var q = new URLSearchParams(location.search);
 
-  var estados = {
-    confirmada: "✅ ¡Listo! Tu alerta quedó confirmada. Te avisaremos cuando haya una oferta.",
-    baja: "Te diste de baja de esa alerta. No recibirás más avisos de esa ruta.",
-    invalido: "Ese enlace ya no es válido. Si quieres, crea la alerta de nuevo."
-  };
-  if (estados[q.get("estado")]) {
-    var box = document.getElementById("estado");
-    box.textContent = estados[q.get("estado")];
-    box.hidden = false;
-  }
   if (q.get("o")) form.elements.origin.value = q.get("o");
+  else {
+    var pais = window.bvbDetectarPais && window.bvbDetectarPais();
+    if (pais) form.elements.origin.value = window.BVB_PAISES[pais].origins[0];
+  }
   if (q.get("dn")) { destInput.value = q.get("dn"); if (q.get("d")) codes[q.get("dn")] = q.get("d"); }
 
   var timer;

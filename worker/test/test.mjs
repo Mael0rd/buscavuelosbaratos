@@ -109,7 +109,7 @@ assert.equal(subs().find((s) => s.channel === "email").status, "pending");
 // Confirmar y darse de baja
 r = await call(new URL(confirmUrl).pathname + new URL(confirmUrl).search);
 assert.equal(r.status, 302);
-assert.match(r.headers.get("Location"), /estado=confirmada/);
+assert.match(r.headers.get("Location"), /\/\?alerta=confirmada$/);
 assert.equal(subs().find((s) => s.channel === "email").status, "active");
 
 // API para el buscador (con clave)
@@ -119,9 +119,9 @@ const list = await r.json();
 assert.equal(list.length, 2);
 const tok = list.find((s) => s.channel === "email").token;
 r = await call(`/api/unsubscribe?t=${tok}`);
-assert.match(r.headers.get("Location"), /estado=baja/);
+assert.match(r.headers.get("Location"), /\?alerta=baja$/);
 assert.equal(subs().find((s) => s.channel === "email").status, "removed");
-assert.match((await call("/api/unsubscribe?t=nope")).headers.get("Location"), /invalido/);
+assert.match((await call("/api/unsubscribe?t=nope")).headers.get("Location"), /\?alerta=invalido$/);
 
 // Honeypot
 sent.length = 0;

@@ -54,6 +54,9 @@ def build(conn, cfg: dict) -> int:
     ctx = {"site": cfg["site"], "countries": countries, "total": len(deals),
            "per_home": PER_COUNTRY_HOME,
            "origin_names": cfg.get("origin_names", {}),
+           "geo_countries": {cid: {"cc": c["cc"], "tz": cfg.get("timezones", {}).get(cid, []),
+                                   "name": c["name"], "flag": c["flag"], "origins": c["origins"]}
+                             for cid, c in cfg["countries"].items()},
            "alerts_api": cfg.get("alerts", {}).get("api_base", ""),
            "bot_username": telegram.bot_username(),
            "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}

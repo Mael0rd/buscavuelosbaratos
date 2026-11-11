@@ -1,0 +1,32 @@
+{# Ventana emergente tras confirmar / darse de baja de una alerta (?alerta=...) #}
+<dialog id="bvb-popup" class="popup" aria-labelledby="popup-title">
+  <div class="popup-icon" id="popup-icon"></div>
+  <h2 id="popup-title"></h2>
+  <p id="popup-text"></p>
+  <div class="popup-actions">
+    <button type="button" class="cta" id="popup-ok">Ver ofertas</button>
+    <a class="popup-link" id="popup-link" href="/alertas.html" hidden>Crear otra alerta</a>
+  </div>
+</dialog>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), k = q.get("alerta");
+  var M = {
+    confirmada: ["✅", "¡Alerta confirmada!", "Te avisaremos por correo cuando encontremos una oferta real para tu ruta.", true],
+    baja: ["👋", "Alerta eliminada", "Ya no recibirás avisos de esa ruta. Puedes crear otra cuando quieras.", true],
+    invalido: ["⚠️", "Enlace no válido", "Ese enlace ya se usó o expiró. Si quieres, crea la alerta de nuevo.", true]
+  };
+  if (!M[k]) return;
+  var d = document.getElementById("bvb-popup");
+  document.getElementById("popup-icon").textContent = M[k][0];
+  document.getElementById("popup-title").textContent = M[k][1];
+  document.getElementById("popup-text").textContent = M[k][2];
+  document.getElementById("popup-link").hidden = !M[k][3];
+  document.getElementById("popup-ok").onclick = function () { d.close ? d.close() : d.removeAttribute("open"); };
+  d.addEventListener("click", function (e) { if (e.target === d && d.close) d.close(); });
+  if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+  q.delete("alerta");
+  var rest = q.toString();
+  try { history.replaceState(null, "", location.pathname + (rest ? "?" + rest : "") + location.hash); } catch (e) {}
+})();
+</script>

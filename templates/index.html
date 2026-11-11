@@ -7,8 +7,12 @@
 
 {% include "_chips.html" %}
 
+<div id="sin-ofertas-pais" class="notice soft" hidden></div>
+
+<div id="secciones">
+
 {% for c in countries if c.deals %}
-<section class="country" id="{{ c.id }}">
+<section class="country" id="{{ c.id }}" data-country="{{ c.id }}">
   <div class="sec-head">
     <h2>{{ c.flag }} Desde {{ c.name }}</h2>
     <a href="/pais/{{ c.id }}.html">{% if c.deals|length > per_home %}Ver las {{ c.deals|length }} ofertas{% else %}Ver país{% endif %} →</a>
@@ -18,6 +22,30 @@
   </ul>
 </section>
 {% endfor %}
+</div>
+
+<script>
+(function () {
+  var id = window.bvbDetectarPais && window.bvbDetectarPais();
+  if (!id) return;
+  var info = window.BVB_PAISES[id];
+  var cont = document.getElementById("secciones");
+  var sec = cont && cont.querySelector('[data-country="' + id + '"]');
+  if (sec) {
+    cont.insertBefore(sec, cont.firstChild);
+    var h = sec.querySelector("h2");
+    if (h) h.insertAdjacentHTML("beforeend", ' <span class="mine">📍 Tu país</span>');
+  } else {
+    var n = document.getElementById("sin-ofertas-pais");
+    n.innerHTML = info.flag + " Ahora mismo no hay ofertas desde <b>" + info.name +
+      "</b>. <a href=\"/alertas.html?o=" + info.origins[0] + "\">Crea una alerta</a> y te avisamos cuando baje tu ruta.";
+    n.hidden = false;
+  }
+  var chips = document.querySelector(".chips");
+  var chip = chips && chips.querySelector('a[href="/pais/' + id + '.html"]');
+  if (chip) { chips.insertBefore(chip, chips.firstChild); chip.classList.add("mine-chip"); chip.insertAdjacentText("afterbegin", "📍 "); }
+})();
+</script>
 
 {% if not total %}
 <p class="empty">Ahora mismo no hay ofertas destacadas. Volvemos a revisar en unas horas.</p>

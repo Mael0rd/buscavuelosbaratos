@@ -1,0 +1,22 @@
+{# Detección del país del visitante (zona horaria o idioma del navegador), sin servicios externos #}
+<script>
+window.BVB_PAISES = {{ geo_countries|tojson }};
+window.bvbDetectarPais = function () {
+  var P = window.BVB_PAISES, tz = "", langs = [];
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+  for (var id in P) {
+    var zs = P[id].tz;
+    for (var i = 0; i < zs.length; i++) {
+      var z = zs[i];
+      if (z.slice(-1) === "/" ? tz.indexOf(z) === 0 : tz === z) return id;
+    }
+  }
+  try { langs = navigator.languages || [navigator.language || ""]; } catch (e) {}
+  for (var j = 0; j < langs.length; j++) {
+    var m = /^es-([A-Z]{2})$/i.exec(langs[j] || "");
+    if (!m) continue;
+    for (var k in P) if (P[k].cc === m[1].toUpperCase()) return k;
+  }
+  return null;
+};
+</script>

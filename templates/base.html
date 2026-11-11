@@ -6,6 +6,7 @@
   <title>{% block title %}{{ site.title }} — {{ site.tagline }}{% endblock %}</title>
   <meta name="description" content="{% block description %}{{ site.tagline }}{% endblock %}">
   <link rel="stylesheet" href="/static/style.css">
+  {% include "_geo.html" %}
   <!-- Travelpayouts Drive -->
   <script nowprocket data-noptimize="1" data-cfasync="false" data-wpfc-render="false" seraph-accel-crit="1" data-no-defer="1" data-cmp-ab="2">
     (function () {
@@ -29,5 +30,6 @@
        Algunos enlaces son de afiliado: si compras, recibimos una comisión sin costo extra para ti.</p>
     <p class="muted">Actualizado: {{ updated }}</p>
   </footer>
+  {% include "_popup.html" %}
 </body>
 </html>
