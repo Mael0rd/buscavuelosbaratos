@@ -152,5 +152,4 @@ def build(conn, cfg: dict) -> int:
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         + "".join(f"  <url><loc>{u}</loc></url>\n" for u in urls) + "</urlset>\n")
     (SITE_DIR / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n")
-    (SITE_DIR / "CNAME").write_text(cfg["site"]["domain"] + "\n")
     return len(deals)

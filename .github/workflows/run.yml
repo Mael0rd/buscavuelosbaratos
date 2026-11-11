@@ -10,8 +10,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: bvb
@@ -21,8 +19,6 @@ jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    environment:
-      name: github-pages
     steps:
       - uses: actions/checkout@v4
         with:
@@ -70,19 +66,11 @@ jobs:
               commit -qm "Historial $(date -u +'%Y-%m-%d %H:%M')"
           git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data
 
-      # --- Publicación ---
-      # Migración: se publica en GitHub Pages (dominio actual) y, en paralelo, en
-      # Cloudflare Pages (Direct Upload: no cuenta para el límite de builds).
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-      - uses: actions/deploy-pages@v4
-
+      # --- Publicación en Cloudflare Pages (Direct Upload: no cuenta para el límite de builds) ---
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
       - name: Publicar en Cloudflare Pages
-        continue-on-error: true   # mientras dura la migración, un fallo aquí no detiene nada
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

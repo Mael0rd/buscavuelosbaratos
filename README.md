@@ -6,8 +6,8 @@ reales comparando contra el historial de cada ruta, verifica que el precio sea r
 la web y en Telegram. Las personas pueden crear **alertas por ruta** (correo o bot de Telegram).
 Los ingresos vienen de comisiones de afiliado de Travelpayouts (Aviasales).
 
-Todo corre gratis: GitHub Actions (repositorio público), GitHub Pages y el plan gratuito de
-Cloudflare Workers.
+Todo corre gratis: GitHub Actions (repositorio público) arma el sitio y lo publica en **Cloudflare Pages**
+(uso comercial permitido, tráfico ilimitado); las alertas y el reloj horario corren en Cloudflare Workers.
 
 ```
                     ┌──────────── cada hora (GitHub Actions) ────────────┐
@@ -123,12 +123,13 @@ que confirma la mejor justo antes de publicarla en Telegram:
 
 **Variables:** `TELEGRAM_CHANNEL` y, por país, `TELEGRAM_CHANNEL_<PAÍS>`.
 
-**Hosting y dominio:**
-1. *Settings → Pages → Source: GitHub Actions*; dominio `buscavuelosbaratos.com`; *Enforce HTTPS*.
-2. DNS en Cloudflare con **nube gris (DNS only)**: registros A `@` → 185.199.108.153, .109.153,
-   .110.153, .111.153 y CNAME `www` → `mael0rd.github.io`.
-3. *Actions → Desplegar alertas → Run workflow* (crea la base D1, `api.buscavuelosbaratos.com`,
-   publica el Worker y conecta el bot).
+**Hosting y dominio (Cloudflare Pages):**
+1. El workflow publica la carpeta `site/` con `wrangler pages deploy` en el proyecto `buscavuelosbaratos`
+   (lo crea solo la primera vez). Requiere el permiso **Cloudflare Pages: Edit** en `CLOUDFLARE_API_TOKEN`.
+2. Dominios: *Workers & Pages → buscavuelosbaratos → Custom domains*: `buscavuelosbaratos.com` y
+   `www.buscavuelosbaratos.com` (Cloudflare crea los DNS y el HTTPS). Dirección de prueba:
+   `buscavuelosbaratos.pages.dev`.
+3. *Actions → Desplegar alertas → Run workflow* (base D1, `api.buscavuelosbaratos.com`, Worker, bot).
 4. *Actions → Buscar ofertas y publicar → Run workflow* para la primera corrida.
 
 ## Workflows
