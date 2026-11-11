@@ -4,7 +4,7 @@
 {% block content %}
 <a class="back" href="/">← Todos los países</a>
 <section class="hero">
-  <h1>{{ c.flag }} Vuelos baratos desde {{ c.name }}</h1>
+  <h1><img class="flag" src="/static/flags/{{ c.cc|lower }}.png" alt="" width="20" height="15"> Vuelos baratos desde {{ c.name }}</h1>
   <p>Ofertas de ida y vuelta saliendo desde {{ c.name }} que están muy por debajo de su precio habitual.</p>
 </section>
 

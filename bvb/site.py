@@ -1,5 +1,6 @@
 """Genera la web estática en ./site: portada con secciones por país,
 una página por país y una por oferta."""
+import hashlib
 import shutil
 from datetime import date, datetime, timezone
 
@@ -41,7 +42,7 @@ def build(conn, cfg: dict) -> int:
     deals = active_deals(conn, cfg)
     countries = []
     for cid, c in cfg["countries"].items():
-        countries.append({"id": cid, "name": c["name"], "flag": c["flag"], "origins": c["origins"],
+        countries.append({"id": cid, "name": c["name"], "flag": c["flag"], "cc": c["cc"], "origins": c["origins"],
                           "deals": [d for d in deals if d["country"] == cid]})
 
     if SITE_DIR.exists():
@@ -51,7 +52,9 @@ def build(conn, cfg: dict) -> int:
     if STATIC_DIR.exists():
         shutil.copytree(STATIC_DIR, SITE_DIR / "static")
 
-    ctx = {"site": cfg["site"], "countries": countries, "total": len(deals),
+    css = STATIC_DIR / "style.css"
+    asset_v = hashlib.sha1(css.read_bytes()).hexdigest()[:8] if css.exists() else "1"
+    ctx = {"site": cfg["site"], "asset_v": asset_v, "countries": countries, "total": len(deals),
            "per_home": PER_COUNTRY_HOME,
            "origin_names": cfg.get("origin_names", {}),
            "geo_countries": {cid: {"cc": c["cc"], "tz": cfg.get("timezones", {}).get(cid, []),

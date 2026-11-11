@@ -1,5 +1,5 @@
 <nav class="chips" aria-label="Países de salida">
   {% for x in countries if x.deals %}
-  <a href="/pais/{{ x.id }}.html"{% if c is defined and c and c.id == x.id %} class="on"{% endif %}>{{ x.flag }} {{ x.name }} <b>{{ x.deals|length }}</b></a>
+  <a href="/pais/{{ x.id }}.html"{% if c is defined and c and c.id == x.id %} class="on"{% endif %}><img class="flag" src="/static/flags/{{ x.cc|lower }}.png" alt="" width="20" height="15"> {{ x.name }} <b>{{ x.deals|length }}</b></a>
   {% endfor %}
 </nav>

@@ -3,7 +3,7 @@
 {% block description %}{{ d.copy_web[:155] }}{% endblock %}
 {% block content %}
 <article class="deal">
-  <a class="back" href="/pais/{{ d.country }}.html">← Ofertas desde {% if c %}{{ c.flag }} {{ c.name }}{% else %}tu país{% endif %}</a>
+  <a class="back" href="/pais/{{ d.country }}.html">← Ofertas desde {% if c %}<img class="flag" src="/static/flags/{{ c.cc|lower }}.png" alt="" width="20" height="15"> {{ c.name }}{% else %}tu país{% endif %}</a>
   <h1>{{ d.origin_name }} → {{ d.dest_name }}</h1>
   {% if d.dest_country %}<p class="sub">{{ d.dest_country }}</p>{% endif %}
   <div class="price big">${{ "%.0f"|format(d.price) }} <small>ida y vuelta</small></div>

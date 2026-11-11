@@ -14,7 +14,7 @@
 {% for c in countries if c.deals %}
 <section class="country" id="{{ c.id }}" data-country="{{ c.id }}">
   <div class="sec-head">
-    <h2>{{ c.flag }} Desde {{ c.name }}</h2>
+    <h2><img class="flag" src="/static/flags/{{ c.cc|lower }}.png" alt="" width="20" height="15"> Desde {{ c.name }}</h2>
     <a href="/pais/{{ c.id }}.html">{% if c.deals|length > per_home %}Ver las {{ c.deals|length }} ofertas{% else %}Ver país{% endif %} →</a>
   </div>
   <ul class="grid">
@@ -37,8 +37,9 @@
     if (h) h.insertAdjacentHTML("beforeend", ' <span class="mine">📍 Tu país</span>');
   } else {
     var n = document.getElementById("sin-ofertas-pais");
-    n.innerHTML = info.flag + " Ahora mismo no hay ofertas desde <b>" + info.name +
-      "</b>. <a href=\"/alertas.html?o=" + info.origins[0] + "\">Crea una alerta</a> y te avisamos cuando baje tu ruta.";
+    n.innerHTML = '<img class="flag" src="/static/flags/' + info.cc.toLowerCase() +
+      '.png" alt="" width="20" height="15"> Ahora mismo no hay ofertas desde <b>' + info.name +
+      '</b>. <a href="/alertas.html?o=' + info.origins[0] + '">Crea una alerta</a> y te avisamos cuando baje tu ruta.';
     n.hidden = false;
   }
   var chips = document.querySelector(".chips");
