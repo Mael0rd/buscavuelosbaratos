@@ -76,7 +76,8 @@ footer { max-width: 1040px; margin: 0 auto; padding: 0 1.25rem 2rem; font-size: 
 .sub { color: var(--muted); margin: .1rem 0 0; }
 
 /* Alertas */
-.top .nav-alert { margin-left: auto; font-weight: 700; color: var(--accent); }
+.top .nav-blog { margin-left: auto; }
+.top .nav-blog, .top .nav-alert { font-weight: 700; color: var(--accent); }
 .alert-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-bottom: 1.5rem; }
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 1.4rem; }
 .panel h2 { margin: 0 0 .75rem; font-size: 1.2rem; }
