@@ -2,8 +2,10 @@
 
 Travelpayouts (caché, gratis) encuentra las candidatas; aquí se confirma la
 mejor justo antes de publicarla:
-  - el mismo viaje (mismas fechas, máx. 1 escala) sigue a ese precio (± tolerancia), y
-  - si Google da su "nivel de precio" para la ruta, debe ser "low" (bajo).
+  - si Google marca el precio en vivo como "low" (bajo) para esa ruta y fechas, se
+    publica con el precio de Google;
+  - si da "typical"/"high", no se publica;
+  - si no da nivel, el precio en vivo no puede subir más de price_tolerance.
 
 Proveedores en cadena (cuenta propia en cada uno): SerpApi → Apify.
 El presupuesto mensual se reparte solo: (lo que queda del mes) ÷ (días que
@@ -282,22 +284,22 @@ class Verifier:
             return "sin_presupuesto"
 
         live, level = res["price"], (res["level"] or "").lower() or None
-        tol = self.vcfg["price_tolerance"]
+        within = live is not None and live <= deal["price"] * (1 + self.vcfg["price_tolerance"])
         if live is None:
             result = "sin_resultados"
-        elif live > deal["price"] * (1 + tol):
-            result = "subio"
-        elif self.vcfg["require_low_level"] and level and level != "low":
-            result = "no_es_baja"
+        elif level == "low":
+            result = "ok"            # Google lo considera barato para esa ruta y fechas
+        elif level and self.vcfg["require_low_level"]:
+            result = "no_es_baja" if within else "subio"
         else:
-            result = "ok"
+            result = "ok" if within else "subio"   # sin nivel de Google: regla propia
         self._log(provider, deal["id"], result, live, level)
 
         fields = {"verified_at": iso(self.now), "live_price": live, "price_level": level,
                   "typical_low": res["low"], "typical_high": res["high"],
                   "verify_status": "ok" if result == "ok" else "rechazada"}
-        if result == "ok" and live and live > deal["price"]:
-            fields["price"] = live  # se muestra el mayor: nunca prometer menos de lo real
+        if result == "ok" and live:
+            fields["price"] = live  # siempre se muestra el precio real verificado
         if result == "subio":  # Google confirma que subió: la oferta termina en todos lados
             fields.update(status="expired", expired_at=iso(self.now), expire_reason="subio")
         self.conn.execute(f"UPDATE deals SET {', '.join(k + '=?' for k in fields)} WHERE id=?",

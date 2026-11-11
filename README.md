@@ -48,9 +48,11 @@ sale de las listas, su página muestra "❌ Esta oferta terminó" (sin botón de
 ### Verificación en vivo antes de Telegram (`bvb/verify.py`)
 Travelpayouts (caché, gratis) es el *mapa* que encuentra candidatas; Google Flights es la *lupa*
 que confirma la mejor justo antes de publicarla en Telegram:
-- Se busca el mismo viaje (mismas fechas, máx. 1 escala). Se publica solo si el precio en vivo no
-  subió más de 10% y, si Google da su nivel de precio para la ruta, este es **"bajo"**.
-  Si subió, la oferta termina en todos lados. Se muestra el precio mayor (nunca se promete menos).
+- Se busca el mismo viaje (mismas fechas, máx. 1 escala). **Google es la referencia:** si marca el
+  precio en vivo como **"bajo"** para esa ruta y fechas, se publica. Si dice "típico"/"alto", no.
+  Si no da nivel (rutas poco buscadas), el precio en vivo no puede subir más de 15%
+  (`verify.price_tolerance`). Si subió y no es "bajo", la oferta termina en todos lados.
+  Siempre se muestra el **precio real verificado** de Google.
 - **Una verificación por oferta**, no por canal: la oferta verificada va a su canal de país y al
   general. Sirve durante 3 h (`verify.cache_hours`). Tener 2 o 19 canales no cambia el gasto.
 - Proveedores en cadena, cada uno con su cuenta gratuita: **SerpApi** (250/mes, `SERPAPI_KEY`) →

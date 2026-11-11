@@ -17,7 +17,7 @@ CFG = {
                "quiet_hours": [23, 6], "timezone": "America/Costa_Rica"},
     "freshness": {"max_age_hours": 72},
     "verify": {"serpapi_monthly": 250, "apify_monthly": 1000, "apify_actor": "x~y",
-               "cache_hours": 3, "price_tolerance": 0.10, "require_low_level": True,
+               "cache_hours": 3, "price_tolerance": 0.15, "require_low_level": True,
                "freshness_weight_hours": 48, "web_reverify_hours": 12, "web_max_age_hours": 24},
 }
 
@@ -106,10 +106,10 @@ def test_ok_once_then_cached():
     assert v.ensure(row) == "ok" and p.calls == 1          # caché: no gasta otra búsqueda
 
 
-def test_price_up_expires_deal():
+def test_price_up_and_typical_expires_deal():
     c = conn()
     d = save(c)
-    v = verify.Verifier(c, CFG, NOW, providers=[Fake("serpapi", 250, {**ANS_OK, "price": 620.0})])
+    v = verify.Verifier(c, CFG, NOW, providers=[Fake("serpapi", 250, {**ANS_OK, "price": 620.0, "level": "typical"})])
     assert v.ensure(d) == "rechazada"
     row = c.execute("SELECT status, expire_reason, verify_status FROM deals").fetchone()
     assert tuple(row) == ("expired", "subio", "rechazada")
@@ -177,7 +177,7 @@ def test_rejected_is_skipped_and_next_is_tried(tg):
     class Seq(Fake):
         def search(self, *a):
             self.calls += 1
-            return {**ANS_OK, "price": 900.0} if self.calls == 1 else ANS_OK
+            return {**ANS_OK, "price": 900.0, "level": "typical"} if self.calls == 1 else ANS_OK
     v = verify.Verifier(c, CFG, NOW, providers=[Seq("serpapi", 250)])
     telegram.publish(c, CFG, NOW, verifier=v)
     slugs = [r[0] for r in c.execute("SELECT d.slug FROM telegram_posts p JOIN deals d ON d.id=p.deal_id")]
@@ -242,7 +242,7 @@ def test_refresh_web_reverifies_old_ones_first():
 def test_reverification_that_finds_higher_price_ends_the_deal():
     c = conn()
     save(c, slug="v", verify_status="ok", verified_at=iso(NOW - timedelta(hours=13)))
-    verify.Verifier(c, CFG, NOW, providers=[Fake("serpapi", 250, {**ANS_OK, "price": 700.0})]).refresh_web()
+    verify.Verifier(c, CFG, NOW, providers=[Fake("serpapi", 250, {**ANS_OK, "price": 700.0, "level": "high"})]).refresh_web()
     assert tuple(c.execute("SELECT status, expire_reason FROM deals").fetchone()) == ("expired", "subio")
 
 
@@ -254,3 +254,26 @@ def test_publish_skips_unverified_but_posts_cached_when_budget_is_out(tg):
     telegram.publish(c, CFG, NOW, verifier=v)
     posted = {r[0] for r in c.execute("SELECT d.slug FROM telegram_posts p JOIN deals d ON d.id=p.deal_id")}
     assert posted == {"verificada"}
+
+
+def test_google_low_is_enough_even_if_price_changed():
+    c = conn()
+    d = save(c, price=140.0)
+    v = verify.Verifier(c, CFG, NOW, providers=[Fake("serpapi", 250, {**ANS_OK, "price": 175.0})])  # +25%, pero "bajo"
+    assert v.ensure(d) == "ok"
+    assert c.execute("SELECT price FROM deals").fetchone()[0] == 175.0      # se muestra el de Google
+
+
+def test_without_google_level_uses_15_percent():
+    c = conn()
+    v = verify.Verifier(c, CFG, NOW, providers=[Fake("serpapi", 250, {"price": 160.0, "level": None, "low": None, "high": None})])
+    assert v.ensure(save(c, slug="a", price=140.0)) == "ok"          # +14%
+    v2 = verify.Verifier(c, CFG, NOW, providers=[Fake("serpapi", 250, {"price": 170.0, "level": None, "low": None, "high": None})])
+    assert v2.ensure(save(c, slug="b", price=140.0)) == "rechazada"  # +21%
+
+
+def test_lower_live_price_is_shown():
+    c = conn()
+    d = save(c, price=500.0)
+    verify.Verifier(c, CFG, NOW, providers=[Fake("serpapi", 250, {**ANS_OK, "price": 470.0})]).ensure(d)
+    assert c.execute("SELECT price FROM deals").fetchone()[0] == 470.0
