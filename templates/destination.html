@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Vuelos baratos a {{ dest.dest_name }} desde ${{ "%.0f"|format(dest.low) }} | {{ site.title }}{% endblock %}
-{% block description %}Vuelos baratos de ida y vuelta a {{ dest.dest_name }}{% if dest.dest_country %}, {{ dest.dest_country }}{% endif %}, desde {{ dest.origins|length or "varias" }} ciudades de Hispanoamérica. Ofertas verificadas en Google Flights y alertas gratis.{% endblock %}
+{% block description %}Vuelos baratos de ida y vuelta a {{ dest.dest_name }}{% if dest.dest_country %}, {{ dest.dest_country }}{% endif %}, desde {{ dest.origins|length or "varias" }} ciudades de Latinoamérica. Ofertas verificadas en Google Flights y alertas gratis.{% endblock %}
 {% block head %}
   <script type="application/ld+json">{{ {
     "@context": "https://schema.org",
@@ -15,7 +15,7 @@
 <a class="back" href="/">← Todos los países</a>
 <section class="hero">
   <h1>Vuelos baratos a {{ dest.dest_name }}</h1>
-  <p>{% if dest.dest_country %}{{ dest.dest_country }} · {% endif %}Vuelos de ida y vuelta a {{ dest.dest_name }} desde Hispanoamérica, directos o con una escala{% if dest.cheapest %}. El más barato que vimos esta semana sale de {{ dest.cheapest.origin_name }} desde ${{ "%.0f"|format(dest.cheapest.last_price) }}{% endif %}.</p>
+  <p>{% if dest.dest_country %}{{ dest.dest_country }} · {% endif %}Vuelos de ida y vuelta a {{ dest.dest_name }} desde Latinoamérica, directos o con una escala{% if dest.cheapest %}. El más barato que vimos esta semana sale de {{ dest.cheapest.origin_name }} desde ${{ "%.0f"|format(dest.cheapest.last_price) }}{% endif %}.</p>
 </section>
 
 {% if deals %}

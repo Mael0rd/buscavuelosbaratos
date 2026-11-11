@@ -2,7 +2,7 @@
 site:
   domain: buscavuelosbaratos.com
   title: "Busca Vuelos Baratos"
-  tagline: "Ofertas de vuelos desde Hispanoamérica, detectadas automáticamente"
+  tagline: "Ofertas de vuelos desde Latinoamérica, detectadas automáticamente"
   currency: usd
   contact_email: contacto@buscavuelosbaratos.com
 

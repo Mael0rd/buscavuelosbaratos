@@ -1,6 +1,6 @@
 # buscavuelosbaratos.com
 
-Plataforma automática de ofertas de vuelos para Hispanoamérica. Cada hora revisa los precios desde
+Plataforma automática de ofertas de vuelos para Latinoamérica. Cada hora revisa los precios desde
 **19 países (33 ciudades de salida)** hacia cualquier destino internacional, detecta las ofertas
 reales comparando contra el historial de cada ruta, verifica que el precio sea reciente y publica en
 la web y en Telegram. Las personas pueden crear **alertas por ruta** (correo o bot de Telegram).

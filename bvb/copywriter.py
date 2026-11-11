@@ -60,7 +60,7 @@ def claude_copy(d: dict) -> dict:
     }
     prompt = (
         "Eres el redactor de buscavuelosbaratos.com, sitio de ofertas de vuelos para "
-        "viajeros de Hispanoamérica. Con estos datos, escribe en español neutro y cercano:\n"
+        "viajeros de Latinoamérica. Con estos datos, escribe en español neutro y cercano:\n"
         "1) copy_web: 2-3 frases para la página de la oferta.\n"
         "2) copy_social: post corto para Telegram (máx 280 caracteres, 2-3 emojis, sin hashtags, "
         "sin el enlace).\n"

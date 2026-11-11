@@ -141,7 +141,7 @@ def build(conn, cfg: dict) -> int:
             print(f"  ⚠ imagen {name}: {e}")
             return "/og/inicio.jpg"
 
-    og("inicio", ogimage.page_image, "Vuelos baratos desde Hispanoamérica",
+    og("inicio", ogimage.page_image, "Vuelos baratos desde Latinoamérica",
        "Ofertas de ida y vuelta muy por debajo de su precio normal", tone=1)
 
     write("index.html", "index.html")

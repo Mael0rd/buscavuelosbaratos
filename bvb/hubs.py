@@ -114,7 +114,7 @@ def dest_faq(d: dict) -> list[tuple[str, str]]:
     if d["cheapest"]:
         c = d["cheapest"]
         out.append((f"¿Desde dónde es más barato volar a {n}?",
-                    f"En nuestras búsquedas recientes, la ciudad hispanoamericana con el vuelo ida y vuelta más "
+                    f"En nuestras búsquedas recientes, la ciudad latinoamericana con el vuelo ida y vuelta más "
                     f"barato a {n} fue {c['origin_name']}, desde unos ${c['last_price']:.0f} USD."))
     if d["direct_from"]:
         out.append((f"¿Desde qué ciudades hay vuelos directos a {n}?",

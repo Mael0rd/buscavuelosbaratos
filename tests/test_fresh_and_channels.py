@@ -272,3 +272,15 @@ def test_multipart_payload(monkeypatch):
     assert telegram.edit_photo("@c", 9, b"img", "fin", {"inline_keyboard": []})
     assert calls[1][0].endswith("/editMessageMedia") and '"attach://photo"' in calls[1][1]["data"]["media"]
     assert telegram._caption_len("<b>a&amp;b</b>") == 3
+
+
+def test_failing_channel_is_not_retried_in_same_run(tg, monkeypatch):
+    calls = []
+    monkeypatch.setattr(telegram, "send_photo", lambda photo, text, markup, chat: calls.append(chat) and None)
+    monkeypatch.setattr(telegram, "send", lambda text, markup, chat_id=None: calls.append(chat_id) and None)
+    c = conn()
+    for i in range(4):
+        save(c, slug=f"mx{i}", score=0.5 + i / 10, found_at=ts(1))
+    stats = telegram.publish(c, CFG, NOW)
+    assert stats == {"general": "error al enviar", "mexico": "error al enviar"}
+    assert len(calls) == 4  # foto + texto por canal, una sola vez

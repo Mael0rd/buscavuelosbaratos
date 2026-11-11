@@ -119,7 +119,7 @@ def _call(method: str, payload: dict) -> dict | None:
     r = requests.post(API.format(token=env("TELEGRAM_BOT_TOKEN"), method=method),
                       json=payload, timeout=20)
     if not r.ok:
-        print(f"[telegram] {method} error {r.status_code}: {r.text[:200]}")
+        print(f"[telegram] {method} a {payload.get('chat_id', '?')} error {r.status_code}: {r.text[:200]}")
         return None
     return r.json().get("result")
 
@@ -131,7 +131,7 @@ def _call_files(method: str, data: dict, photo: bytes) -> dict | None:
     r = requests.post(API.format(token=env("TELEGRAM_BOT_TOKEN"), method=method), data=fields,
                       files={"photo": ("oferta.jpg", photo, "image/jpeg")}, timeout=40)
     if not r.ok:
-        print(f"[telegram] {method} error {r.status_code}: {r.text[:200]}")
+        print(f"[telegram] {method} a {data.get('chat_id', '?')} error {r.status_code}: {r.text[:200]}")
         return None
     return r.json().get("result")
 
@@ -308,6 +308,12 @@ def publish(conn, cfg: dict, now: datetime | None = None, verifier=None) -> dict
                 kind, mid = "text", send(text, markup, chat_id=chat)
             elif not photo:
                 mid = send(text, markup, chat_id=chat)
+            if not mid:
+                # El canal no acepta mensajes (p. ej. el bot no es administrador): no insistir en esta corrida
+                print(f"[telegram] ⚠ no se pudo publicar en {chat}: revisa que el bot sea administrador del canal")
+                stats[names[chat]] = "error al enviar"
+                del room[chat]
+                continue
             if mid:
                 conn.execute("INSERT INTO telegram_posts (deal_id, chat_id, message_id, kind) VALUES (?,?,?,?)",
                              (d["id"], chat, mid, kind))
