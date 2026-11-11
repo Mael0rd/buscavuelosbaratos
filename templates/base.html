@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ site.title }} — {{ site.tagline }}{% endblock %}</title>
   <meta name="description" content="{% block description %}{{ site.tagline }}{% endblock %}">
+  <script>
+    /* Modo elegido antes (claro/oscuro) antes de pintar, para que no parpadee. Sin elección: el del sistema. */
+    try { var t = localStorage.getItem("tema"); if (t === "dark" || t === "light") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" href="/static/style.css?v={{ asset_v }}">
   {% include "_geo.html" %}
   <!-- Travelpayouts Drive -->
@@ -20,9 +25,10 @@
 </head>
 <body>
   <header class="top">
-    <a class="brand" href="/"><img src="/static/logo.svg?v={{ asset_v }}" alt="{{ site.title }}" width="245" height="64"></a>
+    <a class="brand" href="/"><img class="logo-light" src="/static/logo.svg?v={{ asset_v }}" alt="{{ site.title }}" width="245" height="64"><img class="logo-dark" src="/static/logo-dark.svg?v={{ asset_v }}" alt="{{ site.title }}" width="245" height="64"></a>
     <span class="tag">{{ site.tagline }}</span>
     <a class="nav-alert" href="/alertas.html"><span class="bell" aria-hidden="true">🔔</span> Alertas</a>
+    <button class="theme-toggle" type="button" aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro"><span class="moon" aria-hidden="true">🌙</span><span class="sun" aria-hidden="true">☀️</span></button>
   </header>
   <main>{% block content %}{% endblock %}</main>
   <footer>
@@ -32,6 +38,18 @@
   </footer>
   {% include "_popup.html" %}
   <script>
+  (function () {
+    var btn = document.querySelector(".theme-toggle"), root = document.documentElement;
+    var dark = function () { return root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+    var label = function () { var l = dark() ? "Cambiar a modo claro" : "Cambiar a modo oscuro"; btn.setAttribute("aria-label", l); btn.title = l; };
+    label();
+    btn.addEventListener("click", function () {
+      var t = dark() ? "light" : "dark";
+      root.dataset.theme = t;
+      try { localStorage.setItem("tema", t); } catch (e) {}
+      label();
+    });
+  })();
   (function () {
     var els = document.querySelectorAll("[data-ts]");
     for (var i = 0; i < els.length; i++) {

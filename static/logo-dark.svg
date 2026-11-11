@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 22 792 208" width="792" height="208" role="img" aria-label="Busca Vuelos Baratos">
+  <defs>
+    <!-- Gradiente turquesa para lupa, globo y estela -->
+    <linearGradient id="tealGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#168AAD" />
+      <stop offset="50%" stop-color="#34A0A4" />
+      <stop offset="100%" stop-color="#52E5B7" />
+    </linearGradient>
+
+    <!-- Gradiente naranja para el ticket y "baratos" -->
+    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBB03B" />
+      <stop offset="100%" stop-color="#F77F00" />
+    </linearGradient>
+
+    <!-- Gradientes para el avión (volumen 3D) -->
+    <linearGradient id="planeBody" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="65%" stop-color="#E0F2FE" />
+      <stop offset="100%" stop-color="#7DD3FC" />
+    </linearGradient>
+
+    <linearGradient id="planeWing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+
+    <linearGradient id="planeDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0369A1" />
+      <stop offset="100%" stop-color="#072B40" />
+    </linearGradient>
+
+    <!-- Sombra suave -->
+    <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#041926" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- ICONO IZQUIERDA (Lupa, Globo, Avión, Ticket) -->
+  <g transform="translate(15, 5) scale(0.78)">
+    <!-- GRUPO LUPA Y GLOBO -->
+    <g transform="translate(145, 135)" filter="url(#dropShadow)">
+      <!-- Globo terráqueo interior -->
+      <g stroke="url(#tealGrad)" stroke-width="6.5" fill="none" stroke-linecap="round">
+        <circle cx="0" cy="0" r="80" />
+        <ellipse cx="0" cy="0" rx="40" ry="80" />
+        <line x1="0" y1="-80" x2="0" y2="80" />
+        <path d="M -70 -36 Q 0 -16 70 -36" />
+        <line x1="-80" y1="0" x2="80" y2="0" />
+        <path d="M -70 36 Q 0 16 70 36" />
+      </g>
+
+      <!-- Aro de la lupa -->
+      <circle cx="0" cy="0" r="100" fill="none" stroke="#E7ECF3" stroke-width="14" />
+
+      <!-- Mango de la lupa -->
+      <g transform="rotate(45)">
+        <rect x="-10" y="104" width="20" height="20" rx="4" fill="#168AAD" />
+        <rect x="-14" y="120" width="28" height="66" rx="14" fill="#E7ECF3" />
+        <rect x="-8" y="128" width="6" height="50" rx="3" fill="#168AAD" opacity="0.5" />
+      </g>
+    </g>
+
+    <!-- ESTELA DEL AVIÓN -->
+    <path d="M 61 209 C 57 243, 129 233, 199 161 C 149 196, 85 219, 67 199 Z" fill="url(#tealGrad)" filter="url(#dropShadow)" />
+
+    <!-- AVIÓN MEJORADO (UNA TURBINA POR DEBAJO DEL ALA) -->
+    <g transform="translate(213, 131) rotate(-26)" filter="url(#dropShadow)">
+      <!-- Ala trasera con winglet -->
+      <path d="M -10 -7 L -58 -48 L -66 -54 L -50 -48 L 16 -8 Z" fill="url(#planeWing)" />
+      <path d="M -58 -48 L -66 -54 L -48 -49 Z" fill="#E0F2FE" />
+
+      <!-- Estabilizador vertical (cola) -->
+      <path d="M -62 -3 L -88 -34 L -70 -34 L -40 -5 Z" fill="url(#planeWing)" />
+      <path d="M -88 -34 L -80 -34 L -56 -5 L -62 -3 Z" fill="#0284C7" />
+
+      <!-- Estabilizador horizontal (cola inferior) -->
+      <path d="M -68 2 L -86 15 L -72 16 L -52 5 Z" fill="url(#planeDark)" />
+
+      <!-- Fuselaje principal -->
+      <path d="M -78 2 C -78 -4, -30 -13, 35 -13 C 68 -13, 92 -5, 96 1 C 92 7, 68 12, 30 12 C -25 12, -78 7, -78 2 Z" fill="url(#planeBody)" />
+
+      <!-- Sombra inferior del fuselaje -->
+      <path d="M -74 4 C -30 9, 30 10, 92 2 C 70 10, 30 12, -30 11 C -55 10, -70 7, -74 4 Z" fill="#38BDF8" opacity="0.7" />
+
+      <!-- Cabina de pilotos -->
+      <path d="M 71 -8 C 78 -8, 86 -5, 89 -2 L 77 -2 C 74 -2, 72 -5, 71 -8 Z" fill="#072B40" />
+
+      <!-- Puerta delantera y ventanillas -->
+      <rect x="57" y="-5" width="4.5" height="9" rx="1.5" fill="none" stroke="#0284C7" stroke-width="1.2" />
+      <g fill="#0369A1">
+        <circle cx="48" cy="-2.5" r="2" />
+        <circle cx="40" cy="-2.5" r="2" />
+        <circle cx="32" cy="-2.5" r="2" />
+        <circle cx="24" cy="-2.5" r="2" />
+        <circle cx="16" cy="-2.5" r="2" />
+        <circle cx="8" cy="-2.5" r="2" />
+        <circle cx="-18" cy="-1.5" r="1.8" />
+        <circle cx="-25" cy="-1.5" r="1.8" />
+        <circle cx="-32" cy="-1.5" r="1.8" />
+      </g>
+
+      <!-- Turbina única debajo del ala -->
+      <g transform="translate(-4, 15)">
+        <rect x="-14" y="-7" width="24" height="14" rx="7" fill="url(#planeDark)" />
+        <ellipse cx="10" cy="0" rx="5" ry="7" fill="#E0F2FE" />
+        <ellipse cx="10.5" cy="0" rx="3.2" ry="4.8" fill="#072B40" />
+        <circle cx="10.5" cy="0" r="1" fill="#38BDF8" />
+      </g>
+
+      <!-- Ala delantera -->
+      <path d="M -4 3 L -42 42 L -24 44 L 22 6 Z" fill="url(#planeBody)" />
+      <path d="M -4 3 L -42 42 L -36 42 L 4 5 Z" fill="#0284C7" opacity="0.5" />
+    </g>
+
+    <!-- ETIQUETA / TICKET DE DESCUENTO (%) -->
+    <g transform="translate(232, 175) rotate(42)" filter="url(#dropShadow)">
+      <path d="M 12 0 L 62 0 A 8 8 0 0 1 70 8 L 70 54 A 8 8 0 0 1 62 62 L 12 62 L 0 46 L 0 16 Z" fill="url(#orangeGrad)" />
+      <circle cx="14" cy="31" r="4.5" fill="#FFFFFF" />
+      <line x1="26" y1="8" x2="26" y2="54" stroke="#FFFFFF" stroke-width="2.5" stroke-dasharray="4,4" />
+      <text x="48" y="40" font-family="&#39;Montserrat&#39;, &#39;Arial Black&#39;, sans-serif" font-weight="900" font-size="28" fill="#FFFFFF" text-anchor="middle" transform="rotate(-42 48 31)">%</text>
+    </g>
+  </g>
+
+  <!-- TEXTO DEL LOGO (FORMATO HORIZONTAL) -->
+  <g transform="translate(285, 148)" font-family="&#39;Montserrat&#39;, &#39;Segoe UI&#39;, &#39;Arial Black&#39;, sans-serif" font-weight="900" font-size="52" letter-spacing="-0.5">
+    <text x="0" y="0">
+      <tspan fill="#E7ECF3">Busca</tspan><tspan fill="#168AAD">vuelos</tspan><tspan fill="url(#orangeGrad)">baratos</tspan>
+    </text>
+  </g>
+</svg>
