@@ -202,3 +202,12 @@ def test_expired_posts_are_edited_once(tg):
     chat, mid, text = edits[0]
     assert (chat, mid) == ("@buscavuelosbaratos_mx", 77)
     assert "OFERTA TERMINADA" in text and "El precio subió" in text and "<s>" in text
+
+
+def test_recent_live_verification_prevents_stale_expiry():
+    c = conn()
+    i = save(c, found_at=ts(30))
+    c.execute("UPDATE deals SET verify_status='ok', verified_at=? WHERE id=?", (ts(2), i))
+    cfg = {**CFG, "verify": {"web_max_age_hours": 24}}
+    fresh.revalidate(c, checker_with([]), cfg, NOW)
+    assert status(c, i)[0] == "active"

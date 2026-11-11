@@ -145,8 +145,11 @@ def revalidate(conn, checker: Checker, cfg: dict, now: datetime | None = None) -
             elif status == "higher":
                 reason = "subio"
             a = age_hours(d.get("found_at"), now)
-            if not reason and (a is None or a > fcfg["stale_hours"]):
-                reason = "sin_confirmar"
+            va = age_hours(d.get("verified_at"), now)
+            live_ok = (d.get("verify_status") == "ok" and va is not None
+                       and va <= cfg.get("verify", {}).get("web_max_age_hours", 24))
+            if not reason and not live_ok and (a is None or a > fcfg["stale_hours"]):
+                reason = "sin_confirmar"  # (si Google la verificó hace poco, manda Google)
         if reason:
             conn.execute(
                 "UPDATE deals SET status='expired', expired_at=?, expire_reason=? WHERE id=?",

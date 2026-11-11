@@ -66,11 +66,12 @@ deals:
   min_days: 7            # días de historial necesarios para usar la mediana
   history_days: 60
   # Sin historial (primeros días), deben cumplirse las dos:
-  #  1) bajo el tope por distancia: k * (km ida y vuelta) ^ exp  → SJO-MIA ≈ $218, SJO-MAD ≈ $598
+  #  1) bajo el tope por distancia: k * (km ida y vuelta) ^ exp  → SJO-MIA ≈ $262, SJO-MAD ≈ $717
+  #     (es solo la primera criba: el juez final es la verificación en vivo de Google)
   #  2) month_drop por debajo de la mediana de los otros meses de la misma ruta (0.10 = 10%)
   #     (si la ruta tiene precio en menos de min_months meses, se exige en cambio
   #      quedar bajo tope × few_months_factor; 1.0 = mismo tope)
-  cold_start: { k: 1.06, exp: 0.65, month_drop: 0.10, min_months: 3, few_months_factor: 1.0 }
+  cold_start: { k: 1.275, exp: 0.65, month_drop: 0.10, min_months: 3, few_months_factor: 1.0 }
   repost_days: 7         # no repetir una ruta antes de esto...
   repost_extra_drop: 0.10  # ...salvo que baje otro 10%
   show_days: 14          # días que una oferta sigue visible en la web
@@ -106,8 +107,8 @@ verify:
   web_max_age_hours: 24
 
 freshness:
-  max_age_hours: 72      # solo se publican precios vistos hace menos de esto
-  stale_hours: 96        # una oferta que no se reconfirma en este tiempo se da por terminada (debe ser > max_age_hours)
+  max_age_hours: 168     # candidatas con precio en caché de hasta 7 días (Google verifica en vivo antes de mostrar)
+  stale_hours: 192       # sin verificación en vivo, termina si no se reconfirma en este tiempo (debe ser > max_age_hours)
   price_tolerance: 0.10  # se considera el mismo precio si no subió más de 10%
   min_days_before_departure: 2   # termina la oferta si la salida está a menos de 2 días
   pause_seconds: 0.25

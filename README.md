@@ -31,8 +31,8 @@ Una tarifa se publica solo si cumple **todo** esto:
 | Ida y vuelta, directo o con 1 escala | máx. 1 escala | `search.max_transfers` |
 | Duración del viaje | mínimo 3 días entre ida y vuelta | `search.min_trip_days` |
 | Precio bajo lo normal (con ≥ 7 días de historial de la ruta) | ≥ 10% bajo la mediana | `deals.drop_pct`, `deals.min_days` |
-| Precio bajo lo normal (rutas sin historial aún) | bajo el tope por distancia (p. ej. SJO-MIA ≈ $218, SJO-MAD ≈ $598) **y**, si hay precios de ≥ 3 meses, 10% bajo los otros meses | `deals.cold_start` |
-| Precio reciente (mismo viaje visto hace poco) | < 72 h | `freshness.max_age_hours` |
+| Precio bajo lo normal (rutas sin historial aún) | bajo el tope por distancia (p. ej. SJO-MIA ≈ $262, SJO-MAD ≈ $717) **y**, si hay precios de ≥ 3 meses, 10% bajo los otros meses. Es solo la primera criba: el juez final es Google | `deals.cold_start` |
+| Candidata en caché (mismo viaje visto en Travelpayouts) | < 7 días | `freshness.max_age_hours` |
 | No repetida | misma ruta no antes de 7 días, salvo que baje otro 10% | `deals.repost_*` |
 
 ### Precios honestos y ofertas terminadas
@@ -41,7 +41,7 @@ cuándo. Por eso, antes de publicar se consulta `/v2/prices/latest` de la ruta, 
 y se busca el mismo viaje (mismas fechas). En la web y en Telegram se muestra **"Precio visto hace X"**.
 
 Cada corrida revisa las ofertas publicadas. Una oferta **termina** si el precio subió, si no se
-reconfirma en 96 h (`freshness.stale_hours`) o si la salida está a menos de 2 días. Al terminar:
+reconfirma en 8 días (`freshness.stale_hours`) y no fue verificada en vivo hace poco o si la salida está a menos de 2 días. Al terminar:
 sale de las listas, su página muestra "❌ Esta oferta terminó" (sin botón de reservar) y el bot
 **edita el post de Telegram** para indicarlo.
 
