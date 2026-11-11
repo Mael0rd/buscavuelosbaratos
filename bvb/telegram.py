@@ -191,6 +191,10 @@ def publish(conn, cfg: dict, now: datetime | None = None) -> dict:
     soc, site = cfg["social"], f"https://{cfg['site']['domain']}"
     max_age = cfg["freshness"]["max_age_hours"]
 
+    found = sorted(k for k in _vars() if k.startswith("TELEGRAM_CHANNEL_"))
+    print(f"[telegram] variables de canal por país encontradas: {found or 'ninguna'} "
+          f"(nombres esperados: TELEGRAM_CHANNEL_<PAÍS>, p. ej. {channel_var('mexico')})")
+
     targets = []
     if env("TELEGRAM_CHANNEL"):
         targets.append(("general", env("TELEGRAM_CHANNEL"), None, soc["main"], soc["timezone"]))
