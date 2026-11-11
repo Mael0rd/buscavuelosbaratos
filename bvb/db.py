@@ -38,7 +38,8 @@ CREATE INDEX IF NOT EXISTS idx_alert_log ON alert_log(sub_id, sent_at);
 CREATE TABLE IF NOT EXISTS telegram_posts (
     deal_id INTEGER, chat_id TEXT, message_id INTEGER,
     posted_at TEXT DEFAULT (datetime('now')),
-    edited INTEGER DEFAULT 0          -- 1 marcado como terminado, 2 no se pudo editar
+    edited INTEGER DEFAULT 0,         -- 1 marcado como terminado, 2 no se pudo editar
+    kind TEXT DEFAULT 'text'          -- text | photo
 );
 CREATE INDEX IF NOT EXISTS idx_tg_posts ON telegram_posts(chat_id, posted_at);
 """
@@ -57,6 +58,9 @@ MIGRATIONS = {
         "price_level": "TEXT",               # nivel de Google Flights: low | typical | high
         "typical_low": "REAL",
         "typical_high": "REAL",
+    },
+    "telegram_posts": {
+        "kind": "TEXT DEFAULT 'text'",       # text | photo (cómo se edita cuando la oferta termina)
     },
 }
 

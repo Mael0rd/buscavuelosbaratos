@@ -149,6 +149,10 @@ def tg(monkeypatch):
     monkeypatch.setenv("BVB_VARS", '{"TELEGRAM_CHANNEL_MEXICO": "@buscavuelosbaratos_mx"}')
     monkeypatch.setattr(telegram, "send", lambda text, markup, chat_id=None: sent.append((chat_id, text)) or len(sent))
     monkeypatch.setattr(telegram, "edit", lambda chat, mid, text, markup: edits.append((chat, mid, text)) or True)
+    monkeypatch.setattr(telegram, "send_photo",
+                        lambda photo, text, markup, chat: sent.append((chat, text)) or len(sent))
+    monkeypatch.setattr(telegram, "edit_photo",
+                        lambda chat, mid, photo, text, markup: edits.append((chat, mid, text)) or True)
     return sent, edits
 
 
@@ -211,3 +215,60 @@ def test_recent_live_verification_prevents_stale_expiry():
     cfg = {**CFG, "verify": {"web_max_age_hours": 24}}
     fresh.revalidate(c, checker_with([]), cfg, NOW)
     assert status(c, i)[0] == "active"
+
+
+# ---------- posts con imagen ----------
+def test_posts_go_out_as_photos_and_ended_image_replaces_them(tg, monkeypatch):
+    sent, edits = tg
+    photos, media = [], []
+    monkeypatch.setattr(telegram, "send_photo",
+                        lambda photo, text, markup, chat: photos.append((chat, photo[:3])) or 500 + len(photos))
+    monkeypatch.setattr(telegram, "edit_photo",
+                        lambda chat, mid, photo, text, markup: media.append((chat, mid, text)) or True)
+    c = conn()
+    i = save(c, found_at=ts(1))
+    telegram.publish(c, CFG, NOW)
+    assert photos and all(p == b"\xff\xd8\xff" for _, p in photos)   # JPEG generado en el momento
+    assert sent == []                                                  # nada salió como solo texto
+    kinds = {r[0] for r in c.execute("SELECT kind FROM telegram_posts")}
+    assert kinds == {"photo"}
+    c.execute("UPDATE deals SET status='expired', expire_reason='subio' WHERE id=?", (i,))
+    assert telegram.mark_expired_posts(c, CFG) == len(photos)
+    assert media and all("OFERTA TERMINADA" in t for _, _, t in media) and edits == []
+
+
+def test_photo_failure_falls_back_to_text(tg, monkeypatch):
+    sent, _ = tg
+    monkeypatch.setattr(telegram, "send_photo", lambda *a: None)
+    c = conn()
+    save(c, found_at=ts(1))
+    telegram.publish(c, CFG, NOW)
+    assert sent and {r[0] for r in c.execute("SELECT kind FROM telegram_posts")} == {"text"}
+
+
+def test_old_text_posts_are_still_edited_as_text(tg):
+    _, edits = tg
+    c = conn()
+    i = save(c)
+    c.execute("INSERT INTO telegram_posts (deal_id, chat_id, message_id) VALUES (?, '@x', 5)", (i,))
+    c.execute("UPDATE deals SET status='expired' WHERE id=?", (i,))
+    telegram.mark_expired_posts(c, CFG)
+    assert edits[0][:2] == ("@x", 5)
+
+
+def test_multipart_payload(monkeypatch):
+    calls = []
+
+    class R:
+        ok = True
+        def json(self): return {"result": {"message_id": 9}}
+
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "1:A")
+    monkeypatch.setattr(telegram.requests, "post", lambda url, **kw: calls.append((url, kw)) or R())
+    assert telegram.send_photo(b"img", "<b>hola</b>", {"inline_keyboard": []}, "@c") == 9
+    url, kw = calls[0]
+    assert url.endswith("/sendPhoto") and kw["files"]["photo"][1] == b"img"
+    assert kw["data"]["parse_mode"] == "HTML" and kw["data"]["reply_markup"] == '{"inline_keyboard": []}'
+    assert telegram.edit_photo("@c", 9, b"img", "fin", {"inline_keyboard": []})
+    assert calls[1][0].endswith("/editMessageMedia") and '"attach://photo"' in calls[1][1]["data"]["media"]
+    assert telegram._caption_len("<b>a&amp;b</b>") == 3

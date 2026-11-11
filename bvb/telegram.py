@@ -13,8 +13,10 @@ from .config import env
 from .copywriter import fmt_date, fmt_stops, savings_pct
 from .fresh import age_hours
 from .verify import priority
+from . import ogimage
 
 API = "https://api.telegram.org/bot{token}/{method}"
+CAPTION_MAX = 1024  # límite de Telegram para el texto de una foto
 
 
 def _when(iso: str) -> str:
@@ -120,6 +122,41 @@ def _call(method: str, payload: dict) -> dict | None:
         print(f"[telegram] {method} error {r.status_code}: {r.text[:200]}")
         return None
     return r.json().get("result")
+
+
+def _call_files(method: str, data: dict, photo: bytes) -> dict | None:
+    """Llamada con la imagen adjunta (multipart). Los campos con dict/list van como JSON."""
+    fields = {k: (json.dumps(v, ensure_ascii=False) if isinstance(v, (dict, list)) else str(v))
+              for k, v in data.items()}
+    r = requests.post(API.format(token=env("TELEGRAM_BOT_TOKEN"), method=method), data=fields,
+                      files={"photo": ("oferta.jpg", photo, "image/jpeg")}, timeout=40)
+    if not r.ok:
+        print(f"[telegram] {method} error {r.status_code}: {r.text[:200]}")
+        return None
+    return r.json().get("result")
+
+
+def _caption_len(text: str) -> int:
+    """Largo que cuenta Telegram (sin las etiquetas HTML)."""
+    import re
+    return len(html.unescape(re.sub(r"<[^>]+>", "", text)))
+
+
+def send_photo(photo: bytes, caption: str, markup: dict, chat_id: str):
+    res = _call_files("sendPhoto", {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML",
+                                    "reply_markup": markup}, photo)
+    return res.get("message_id") if isinstance(res, dict) else None
+
+
+def edit_photo(chat_id: str, message_id: int, photo: bytes, caption: str, markup: dict) -> bool:
+    media = {"type": "photo", "media": "attach://photo", "caption": caption, "parse_mode": "HTML"}
+    return _call_files("editMessageMedia", {"chat_id": chat_id, "message_id": message_id,
+                                            "media": media, "reply_markup": markup}, photo) is not None
+
+
+def edit_caption(chat_id: str, message_id: int, caption: str, markup: dict) -> bool:
+    return _call("editMessageCaption", {"chat_id": chat_id, "message_id": message_id, "caption": caption,
+                                        "parse_mode": "HTML", "reply_markup": markup}) is not None
 
 
 def send(text: str, markup: dict, chat_id: str | None = None):
@@ -261,11 +298,19 @@ def publish(conn, cfg: dict, now: datetime | None = None, verifier=None) -> dict
                 continue  # sin verificar (o rechazada): no se publica; las ya verificadas sí
         cname = cfg["countries"].get(d["country"], {}).get("name", "tu país")
         text, markup = build_message(d, site, cname, now)
+        # Imagen con el precio verificado de este momento (si falla o el texto es muy largo: solo texto)
+        cc = cfg["countries"].get(d["country"], {}).get("cc", "")
+        photo = ogimage.deal_image_bytes(d, cc) if _caption_len(text) <= CAPTION_MAX else None
         for chat in want:
-            mid = send(text, markup, chat_id=chat)
+            kind = "photo" if photo else "text"
+            mid = send_photo(photo, text, markup, chat) if photo else None
+            if photo and not mid:  # la foto falló: que al menos salga el texto
+                kind, mid = "text", send(text, markup, chat_id=chat)
+            elif not photo:
+                mid = send(text, markup, chat_id=chat)
             if mid:
-                conn.execute("INSERT INTO telegram_posts (deal_id, chat_id, message_id) VALUES (?,?,?)",
-                             (d["id"], chat, mid))
+                conn.execute("INSERT INTO telegram_posts (deal_id, chat_id, message_id, kind) VALUES (?,?,?,?)",
+                             (d["id"], chat, mid, kind))
                 stats[names[chat]] += 1
                 room[chat] -= 1
                 if room[chat] <= 0:
@@ -280,7 +325,7 @@ def mark_expired_posts(conn, cfg: dict) -> int:
         return 0
     site = f"https://{cfg['site']['domain']}"
     rows = conn.execute(
-        """SELECT p.rowid AS post_rowid, p.chat_id, p.message_id, d.*
+        """SELECT p.rowid AS post_rowid, p.chat_id, p.message_id, COALESCE(p.kind, 'text') AS post_kind, d.*
            FROM telegram_posts p JOIN deals d ON d.id = p.deal_id
            WHERE d.status='expired' AND p.edited=0""").fetchall()
     done = 0
@@ -288,7 +333,14 @@ def mark_expired_posts(conn, cfg: dict) -> int:
         d = dict(r)
         cname = cfg["countries"].get(d["country"], {}).get("name", "tu país")
         text, markup = build_expired_message(d, site, cname)
-        ok = edit(d["chat_id"], d["message_id"], text, markup)
+        if d["post_kind"] == "photo":
+            # Cambia también la imagen (gris, precio tachado, "OFERTA TERMINADA"); si no se puede, solo el texto
+            cc = cfg["countries"].get(d["country"], {}).get("cc", "")
+            img = ogimage.deal_image_bytes(d, cc, ended=True)
+            ok = (img is not None and edit_photo(d["chat_id"], d["message_id"], img, text, markup)) \
+                or edit_caption(d["chat_id"], d["message_id"], text, markup)
+        else:
+            ok = edit(d["chat_id"], d["message_id"], text, markup)
         conn.execute("UPDATE telegram_posts SET edited=? WHERE rowid=?", (1 if ok else 2, d["post_rowid"]))
         done += ok
     conn.commit()

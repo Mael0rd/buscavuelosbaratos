@@ -153,6 +153,7 @@ def tg(monkeypatch):
     monkeypatch.setenv("TELEGRAM_CHANNEL", "@general")
     monkeypatch.setenv("BVB_VARS", '{"TELEGRAM_CHANNEL_MEXICO": "@mx"}')
     monkeypatch.setattr(telegram, "send", lambda text, markup, chat_id=None: sent.append((chat_id, text)) or len(sent))
+    monkeypatch.setattr(telegram, "send_photo", lambda photo, text, markup, chat: sent.append((chat, text)) or len(sent))
     return sent
 
 

@@ -115,8 +115,15 @@ def save(img: Image.Image, path: Path):
 
 
 # ---------- imágenes ----------
-def deal_image(d: dict, cc: str, path: Path):
-    img = gradient(TONES[d.get("tone", 0) % len(TONES)])
+def deal_tone(d: dict) -> int:
+    return d["tone"] if d.get("tone") is not None else sum(map(ord, d.get("destination") or "")) % len(TONES)
+
+
+def deal_image(d: dict, cc: str, path: Path, ended: bool = False):
+    """Imagen de la oferta. ended=True: en gris, precio tachado y sello 'OFERTA TERMINADA'."""
+    img = gradient(TONES[deal_tone(d)])
+    if ended:
+        img = Image.blend(img, img.convert("L").convert("RGB"), 0.85)
     draw = ImageDraw.Draw(img, "RGBA")
     brand(draw)
 
@@ -144,9 +151,35 @@ def deal_image(d: dict, cc: str, path: Path):
     detail = f"{dates} · {fmt_stops(d.get('transfers'))}"
     draw.text((x, 500), ellipsize(draw, detail, font("Medium", 32), W - x - 64), font=font("Medium", 32), fill=SOFT)
 
-    if d.get("verify_status") == "ok":
+    if ended:
+        mid = (box[1] + box[3]) // 2
+        draw.line((box[0] + 18, mid + 6, box[2] - 18, mid - 6), fill=(190, 18, 60), width=8)
+        f = font("ExtraBold", 50)
+        tw = int(draw.textlength("OFERTA TERMINADA", font=f))
+        sw, sh = tw + 80, 112
+        stamp = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
+        sd = ImageDraw.Draw(stamp)
+        sd.rounded_rectangle((4, 4, sw - 5, sh - 5), radius=18, fill=(190, 18, 60, 240), outline=WHITE, width=5)
+        sd.text((40, 26), "OFERTA TERMINADA", font=f, fill=WHITE)
+        stamp = stamp.rotate(8, expand=True, resample=Image.BICUBIC)
+        img.paste(stamp, (W - stamp.width - 40, 40), stamp)
+    elif d.get("verify_status") == "ok":
         draw.text((64, 572), "✓ Precio verificado en Google Flights", font=font("Bold", 28), fill=(220, 255, 236))
     save(img, path)
+
+
+def deal_image_bytes(d: dict, cc: str, ended: bool = False) -> bytes | None:
+    """La imagen en memoria (para Telegram). None si no se pudo generar."""
+    import io
+    import tempfile
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "o.jpg"
+            deal_image(d, cc, p, ended=ended)
+            return p.read_bytes()
+    except Exception as e:  # noqa: BLE001 — sin imagen se publica como texto
+        print(f"[imagen] no se pudo generar: {e}")
+        return None
 
 
 def page_image(title: str, subtitle: str, path: Path, cc: str = "", tone: int = 1, kicker: str = ""):

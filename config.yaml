@@ -4,6 +4,7 @@ site:
   title: "Busca Vuelos Baratos"
   tagline: "Ofertas de vuelos desde Hispanoamérica, detectadas automáticamente"
   currency: usd
+  contact_email: contacto@buscavuelosbaratos.com
 
 # Países de salida (sección de la web) y sus ciudades de salida (códigos IATA de ciudad).
 # Solo se publican viajes internacionales: las rutas dentro del mismo país se descartan.
