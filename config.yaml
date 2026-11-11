@@ -84,8 +84,8 @@ social:
   timezone: America/Costa_Rica   # hora del canal general
 
 freshness:
-  max_age_hours: 6       # solo se publican precios vistos hace menos de esto
-  stale_hours: 24        # una oferta que no se reconfirma en este tiempo se da por terminada
+  max_age_hours: 72      # solo se publican precios vistos hace menos de esto
+  stale_hours: 96        # una oferta que no se reconfirma en este tiempo se da por terminada (debe ser > max_age_hours)
   price_tolerance: 0.10  # se considera el mismo precio si no subió más de 10%
   min_days_before_departure: 2   # termina la oferta si la salida está a menos de 2 días
   pause_seconds: 0.25
