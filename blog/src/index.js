@@ -1,9 +1,15 @@
-// Destinos que rotan, uno por historia. Códigos IATA de ciudad.
+// Destinos que rotan, uno por guía. Solo América. Códigos IATA de ciudad.
+// El blog solo muestra guías de destinos de esta lista: quitar uno oculta sus guías.
 const DESTINOS = [
-  ["MIA", "Miami"], ["CUN", "Cancún"], ["MAD", "Madrid"], ["NYC", "Nueva York"],
-  ["BOG", "Bogotá"], ["MEX", "Ciudad de México"], ["LIM", "Lima"], ["BCN", "Barcelona"],
-  ["PAR", "París"], ["ROM", "Roma"], ["LON", "Londres"], ["BUE", "Buenos Aires"],
+  ["MIA", "Miami"], ["CUN", "Cancún"], ["NYC", "Nueva York"], ["BOG", "Bogotá"],
+  ["MEX", "Ciudad de México"], ["LIM", "Lima"], ["BUE", "Buenos Aires"], ["ORL", "Orlando"],
+  ["SCL", "Santiago de Chile"], ["PTY", "Ciudad de Panamá"], ["PUJ", "Punta Cana"], ["CTG", "Cartagena"],
+  ["RIO", "Río de Janeiro"], ["SJO", "San José"],
 ];
+
+// Los vuelos solo pueden salir de países de América (códigos ISO de país).
+const AMERICA = new Set(("US CA MX GT BZ SV HN NI CR PA CU DO HT JM PR BS BB TT AW CW BQ SX KY TC VG VI " +
+  "LC AG DM GD KN VC GP MQ BM CO VE EC PE BO CL AR UY PY BR GY SR GF").split(" "));
 
 // Servicios de programas de Travelpayouts a los que estás unido. Cada historia los usa y
 // la API de enlaces convierte la url en tu enlace con comisión. {ciudad} = destino.
@@ -52,7 +58,8 @@ export default {
 };
 
 async function leerPosts(env) {
-  return (await env.POSTS.get("posts", "json")) ?? [];
+  const ciudades = new Set(DESTINOS.map(([, c]) => c));
+  return ((await env.POSTS.get("posts", "json")) ?? []).filter((p) => ciudades.has(p.ciudad));
 }
 
 async function publicarHistoria(env) {
@@ -74,18 +81,21 @@ async function publicarHistoria(env) {
 async function preciosHacia(iata, env) {
   const url = new URL("https://api.travelpayouts.com/aviasales/v3/prices_for_dates");
   url.search = new URLSearchParams({
-    destination: iata, currency: "usd", sorting: "price", limit: "2", token: env.TRAVELPAYOUTS_TOKEN,
+    // Se piden 15 para que, tras quitar los orígenes fuera de América, queden 2
+    // (cada origen es una consulta más y un Worker gratis tiene 50 por ejecución).
+    destination: iata, currency: "usd", sorting: "price", limit: "15", token: env.TRAVELPAYOUTS_TOKEN,
   });
   try {
     const res = await fetch(url);
     const body = await res.json();
     if (!res.ok || !body.success) throw new Error(JSON.stringify(body).slice(0, 200));
-    const nombres = await nombresCiudades([...new Set(body.data.map((v) => v.origin))]);
-    const directos = body.data.map((v) => enlaceAviasales(v.link, env));
+    const lugares = await nombresCiudades([...new Set(body.data.map((v) => v.origin))]);
+    const data = body.data.filter((v) => AMERICA.has(lugares[v.origin]?.pais)).slice(0, 2);
+    const directos = data.map((v) => enlaceAviasales(v.link, env));
     // tp.media con el proyecto (las ventas salen en el panel como del blog); si falla, el directo con marker.
     const afiliados = await afiliar(directos, env);
-    return body.data.map((v, i) => ({
-      origen: nombres[v.origin] ?? v.origin,
+    return data.map((v, i) => ({
+      origen: lugares[v.origin]?.nombre ?? v.origin,
       precio: v.price,
       salida: v.departure_at?.slice(0, 10),
       aerolinea: v.airline,
@@ -132,18 +142,18 @@ async function enlacesServicios(ciudad, env) {
   return servicios.flatMap((s, i) => (afiliados[i] ? [{ ...s, url: afiliados[i] }] : []));
 }
 
-// Código IATA -> nombre de ciudad en español. Si falla, se queda el código.
+// Código IATA -> { nombre en español, país ISO }. Un origen sin datos se descarta (no se sabe si es de América).
 async function nombresCiudades(codigos) {
   const pares = await Promise.all(codigos.map(async (c) => {
     try {
       const r = await fetch(`https://autocomplete.travelpayouts.com/places2?term=${c}&locale=es&types[]=city`);
       const lugar = (await r.json()).find((p) => p.code === c);
-      return [c, lugar?.name];
+      return [c, lugar && { nombre: lugar.name, pais: lugar.country_code }];
     } catch {
       return [c, undefined];
     }
   }));
-  return Object.fromEntries(pares.filter(([, n]) => n));
+  return Object.fromEntries(pares.filter(([, l]) => l));
 }
 
 function enlaceAviasales(path, env) {
