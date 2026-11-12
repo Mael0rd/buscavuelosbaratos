@@ -2,6 +2,8 @@
 
 Uso:  python -m bvb.main             (todo)
       python -m bvb.main --no-social (sin publicar en Telegram)
+      python -m bvb.main --build-only (solo arma la web con el historial: sin buscar,
+                                       verificar, enviar alertas ni publicar; para vistas previas)
 """
 import argparse
 from datetime import datetime, timezone
@@ -12,6 +14,11 @@ from .config import load_config
 from .copywriter import write_copy
 from .db import connect
 from .fetch import fetch_all
+
+
+def build_only() -> None:
+    cfg, ref, conn = load_config(), refdata.load(), connect()
+    print(f"Web generada con {site.build(conn, cfg, ref=ref)} ofertas activas (solo armado, sin publicar)")
 
 
 def run(no_social: bool = False) -> None:
@@ -80,7 +87,7 @@ def run(no_social: bool = False) -> None:
         print("[verificación] sin SERPAPI_KEY ni APIFY_TOKEN: la web y Telegram no mostrarán ofertas nuevas")
     print(f"Verificación para la web: {verifier.refresh_web()}")
 
-    n = site.build(conn, cfg)
+    n = site.build(conn, cfg, ref=ref)
     print(f"Web generada con {n} ofertas activas")
     print(f"Frescura: {checker.stats} · consultas: {checker.calls}")
 
@@ -101,4 +108,6 @@ def run(no_social: bool = False) -> None:
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--no-social", action="store_true")
-    run(p.parse_args().no_social)
+    p.add_argument("--build-only", action="store_true")
+    a = p.parse_args()
+    build_only() if a.build_only else run(a.no_social)

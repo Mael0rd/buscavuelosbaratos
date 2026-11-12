@@ -275,3 +275,19 @@ table.dests td:first-child a { color: var(--accent); font-weight: 600; }
 .info a:not(.cta):not(.alert-link) { color: var(--accent); font-weight: 600; }
 .foot-links { margin: .5rem 0; font-size: .9rem; }
 .foot-links a { color: var(--accent); }
+
+/* Servicios complementarios (eSIM, tours, autos): secundarios al botón del vuelo */
+.extras-grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.extra { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px;
+         padding: .9rem 1rem; background: var(--card); }
+.extra-t { margin: 0; font-weight: 700; line-height: 1.3; font-size: .95rem; }
+.extra-i { margin-right: .4rem; }
+.extra-d { margin: .35rem 0 .8rem; color: var(--muted); font-size: .87rem; flex: 1; }
+.extra-b { align-self: flex-start; border: 1.5px solid var(--accent); color: var(--accent); font-weight: 700;
+           font-size: .9rem; padding: .5rem .85rem; border-radius: 10px; }
+.extra-b:hover { background: var(--soft-bg); }
+.extra-by { margin-top: .35rem; color: var(--muted); font-size: .78rem; }
+.extras-note { margin: .75rem 0 0; }
+.deal .extras { background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0;
+                padding: 1.25rem 0 0; margin-top: 1.25rem; }
+.deal .extras h2 { font-size: 1.1rem; }

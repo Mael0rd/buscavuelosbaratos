@@ -141,6 +141,77 @@ alerts:
   max_emails_per_run: 80  # tope de correos por corrida
   mail_from: "Busca Vuelos Baratos <alertas@buscavuelosbaratos.com>"
 
+# Servicios complementarios al vuelo en /oferta/ y /vuelos/ (solo web, no en redes).
+# Hasta max_per_page bloques por página, en el orden de abajo (si un servicio no cubre el
+# destino, entra el siguiente: en Latinoamérica, sin tours, aparecen traslado y autos).
+# "variants" = marcas; si hay varias, cada destino recibe siempre la misma según "weight"
+# (prueba A/B: comparar en Travelpayouts → Informes, agrupando por SubID).
+# "urls" = candidatas en orden; se usa la primera que exista (se comprueba y se guarda
+# en caché). La última es la portada de la marca y siempre se acepta.
+# Variables: {country} {city} (español), {country_slug} {city_slug} {city_en} (inglés), {iata} {cc}.
+# SubID de cada enlace: <página>_<marca>, p. ej. oferta_yesim, ruta_klook.
+extras:
+  enabled: true
+  trs: 598846                  # ID del proyecto en Travelpayouts (el mismo del script Drive)
+  shorten: true                # enlaces cortos con el nombre de la marca (yesim.tp.st/...)
+  max_per_page: 3
+  max_url_checks_per_run: 150  # páginas de marcas que se comprueban por corrida (luego caché)
+  max_new_links_per_run: 300   # enlaces nuevos por corrida (API: 10 por consulta)
+  url_cache_days: 30
+  link_cache_days: 60
+  country_slugs: {}            # correcciones del nombre del país en las URLs, p. ej. { US: usa }
+  # Regiones (códigos ISO de país) para limitar cada marca a donde tiene buena oferta
+  regions:
+    asia: [AE, AF, AM, AZ, BD, BH, BN, BT, CN, GE, HK, ID, IL, IN, IQ, IR, JO, JP, KG, KH, KR, KW, KZ, LA,
+           LB, LK, MM, MN, MO, MV, MY, NP, OM, PH, PK, QA, SA, SG, TH, TJ, TL, TM, TR, TW, UZ, VN]
+    oceania: [AU, NZ, FJ, PF, NC, PG, WS, TO, VU, GU, CK]
+    europa: [AD, AL, AT, BA, BE, BG, CH, CY, CZ, DE, DK, EE, ES, FI, FO, FR, GB, GI, GR, HR, HU, IE, IS,
+             IT, LI, LT, LU, LV, MC, MD, ME, MK, MT, NL, NO, PL, PT, RO, RS, SE, SI, SK, SM, UA, VA, XK]
+    norteamerica: [US, CA]
+    latam: [MX, GT, BZ, SV, HN, NI, CR, PA, CU, DO, PR, HT, JM, BS, BB, TT, AW, CW, SX, BQ, KY, TC, VG,
+            VI, AG, LC, VC, GD, DM, KN, GP, MQ, CO, VE, EC, PE, BO, CL, AR, UY, PY, BR, GY, SR, GF]
+  services:
+    esim:
+      icon: "📶"
+      title: "Internet en {country} sin roaming"
+      text: "Con una eSIM tienes datos desde que aterrizas: la compras e instalas antes de viajar y no cambias tu chip."
+      button: "Ver planes de eSIM"
+      variants:
+        - { id: yesim, label: Yesim, weight: 60,
+            urls: ["https://yesim.app/es/country/{country_slug}/", "https://yesim.app/country/{country_slug}/", "https://yesim.app/"] }
+        - { id: saily, label: Saily, weight: 40,
+            urls: ["https://saily.com/es/esim-{country_slug}/", "https://saily.com/esim-{country_slug}/", "https://saily.com/"] }
+    tours:
+      icon: "🎟️"
+      title: "Qué hacer en {city}"
+      text: "Tours, entradas y excursiones para reservar antes de llegar."
+      button: "Ver actividades"
+      # Cada marca solo donde tiene buena oferta; en Latinoamérica y el Caribe no se muestra
+      # este bloque hasta activar Civitatis (programa directo: poner weight 1 y su aid).
+      variants:
+        - { id: klook, label: Klook, regions: [asia, oceania],
+            urls: ["https://www.klook.com/es/search/result/?query={city_en}", "https://www.klook.com/en-US/search/result/?query={city_en}", "https://www.klook.com/"] }
+        - { id: tiqets, label: Tiqets, regions: [europa, norteamerica],
+            urls: ["https://www.tiqets.com/es/search?q={city_en}", "https://www.tiqets.com/en/search?q={city_en}", "https://www.tiqets.com/es/"] }
+        - { id: civitatis, label: Civitatis, weight: 0, regions: [latam, europa], direct_param: "aid=PENDIENTE",
+            urls: ["https://www.civitatis.com/es/{city_slug_es}/", "https://www.civitatis.com/es/"] }
+    traslado:
+      icon: "🚕"
+      title: "Del aeropuerto al hotel en {city}"
+      text: "Traslado privado con precio fijo reservado antes de viajar: el conductor te espera con tu nombre."
+      button: "Ver precios"
+      variants:
+        - { id: kiwitaxi, label: Kiwitaxi,
+            urls: ["https://kiwitaxi.com/es/{country_slug}/to/{city_slug}/routes", "https://kiwitaxi.com/es/{country_slug}", "https://kiwitaxi.com/es"] }
+    autos:
+      icon: "🚗"
+      title: "Auto para moverte en {city}"
+      text: "Compara precios de alquiler de autos de muchas agencias en un solo lugar."
+      button: "Comparar autos"
+      variants:
+        - { id: economybookings, label: EconomyBookings,
+            urls: ["https://www.economybookings.com/es/", "https://www.economybookings.com/"] }
+
 # Nombre de cada ciudad de salida (para el bot y el formulario)
 origin_names:
   MEX: Ciudad de México

@@ -1,0 +1,19 @@
+{# Servicios complementarios al vuelo. Requiere: ex_code (destino), ex_city, ex_place ("oferta" | "ruta") #}
+{% set ex = (extras or {}).get(ex_code) or [] %}
+{% if ex %}
+<section class="panel extras" aria-labelledby="extras-{{ ex_code }}">
+  <h2 id="extras-{{ ex_code }}">Para tu viaje a {{ ex_city }}</h2>
+  <div class="extras-grid">
+    {% for b in ex %}
+    <div class="extra">
+      <p class="extra-t"><span class="extra-i" aria-hidden="true">{{ b.icon }}</span>{{ b.title }}</p>
+      <p class="extra-d">{{ b.text }}</p>
+      <a class="extra-b" href="{{ b.links[ex_place] }}" rel="sponsored nofollow noopener" target="_blank"
+         data-extra="{{ b.service }}_{{ b.brand }}">{{ b.button }}</a>
+      <span class="extra-by">con {{ b.label }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="muted small extras-note">Enlaces de socios: si reservas, podemos recibir una comisión sin costo extra para ti.</p>
+</section>
+{% endif %}

@@ -9,7 +9,7 @@ from datetime import date, datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
-from . import hubs, ogimage, routes, telegram, whatsapp
+from . import extras, hubs, ogimage, routes, telegram, whatsapp
 from .fetch import with_subid
 from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
@@ -62,7 +62,7 @@ def active_deals(conn, cfg: dict, status: str = "active") -> list[dict]:
     return out
 
 
-def build(conn, cfg: dict) -> int:
+def build(conn, cfg: dict, ref=None) -> int:
     env = Environment(loader=FileSystemLoader(TEMPLATES_DIR),
                       autoescape=select_autoescape(["html"]))
     env.filters["fecha"] = fmt_date
@@ -91,6 +91,9 @@ def build(conn, cfg: dict) -> int:
         d["route_slug"] = slug_of_route.get((d["origin"], d["destination"]))
     for c in countries:
         c["routes"] = [r for r in route_pages if r["country"] == c["id"]]
+
+    # Servicios complementarios (eSIM, tours, autos) por destino; requieren datos de referencia
+    extra = extras.prepare(conn, cfg, ref, sorted({x["destination"] for x in deals + route_pages})) if ref else {}
 
     # Páginas permanentes por ciudad de origen y por destino
     origins, dest_hubs = hubs.build(conn, cfg, deals, route_pages, dest_slug)
@@ -129,7 +132,7 @@ def build(conn, cfg: dict) -> int:
            "threads_url": (cfg.get("social", {}).get("threads") or {}).get("url", ""),
            "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
            "updated_iso": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-           "origins": origins, "og": "/og/inicio.jpg"}
+           "origins": origins, "og": "/og/inicio.jpg", "extras": extra}
     by_id = {c["id"]: c for c in countries}
 
     def write(path, template, **kw):

@@ -37,15 +37,29 @@ def _download(kind: str) -> list:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
 
 
+def _name_en(rec: dict) -> str:
+    tr = rec.get("name_translations") or {}
+    return tr.get("en") or rec.get("name") or rec.get("code", "")
+
+
 class Ref:
     def __init__(self, cities: list, countries: list, airlines: list):
         self.cities = {c["code"]: c for c in cities if c.get("code")}
         self.countries = {c["code"]: _name(c) for c in countries if c.get("code")}
+        self.countries_en = {c["code"]: _name_en(c) for c in countries if c.get("code")}
         self.airlines = {a["code"]: _name(a) for a in airlines if a.get("code")}
 
     def city_name(self, code: str) -> str:
         c = self.cities.get(code)
         return _name(c) if c else code
+
+    def city_name_en(self, code: str) -> str:
+        """Nombre en inglés (para buscar en sitios de marcas, p. ej. 'Mexico City')."""
+        c = self.cities.get(code)
+        return _name_en(c) if c else code
+
+    def country_name_en(self, cc: str) -> str:
+        return self.countries_en.get(cc, cc)
 
     def coords(self, code: str):
         c = (self.cities.get(code) or {}).get("coordinates") or {}

@@ -66,6 +66,9 @@
 </section>
 {% endif %}
 
+{% set ex_code, ex_city, ex_place = r.destination, r.dest_name, "ruta" %}
+{% include "_extras.html" %}
+
 {% set share_text = "✈️ Vuelos de " ~ r.origin_name ~ " a " ~ r.dest_name ~ ": precio típico $" ~ "%.0f"|format(r.typical) ~ ", historial y mes más barato" %}
 {% include "_share.html" %}
 

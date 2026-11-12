@@ -31,6 +31,8 @@
   {% if d.status != 'expired' %}
   {% set share_text = "✈️ " ~ d.origin_name ~ " → " ~ d.dest_name ~ " por $" ~ "%.0f"|format(d.price) ~ " ida y vuelta (" ~ d.departure_at|fecha ~ ((" – " ~ d.return_at|fecha) if d.return_at else "") ~ ")" ~ (". Precio verificado en Google Flights" if d.verify_status == 'ok' else "") %}
   {% include "_share.html" %}
+  {% set ex_code, ex_city, ex_place = d.destination, d.dest_name, "oferta" %}
+  {% include "_extras.html" %}
   {% endif %}
   {% if d.dest_slug in dest_pages %}<a class="alert-link" href="/destino/{{ d.dest_slug }}">✈ Más ofertas a {{ d.dest_name }}</a>{% endif %}
   {% if d.origin_slug %}<a class="alert-link" href="/desde/{{ d.origin_slug }}">🛫 Más vuelos baratos desde {{ d.origin_name }}</a>{% endif %}
