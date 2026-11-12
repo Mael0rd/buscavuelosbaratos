@@ -281,7 +281,25 @@ table.dests td:first-child a { color: var(--accent); font-weight: 600; }
 .extra { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px;
          padding: .9rem 1rem; background: var(--card); }
 .extra-t { margin: 0; font-weight: 700; line-height: 1.3; font-size: .95rem; }
-.extra-i { margin-right: .4rem; }
+/* Encabezado con la foto del destino */
+.extras-hero { position: relative; height: 120px; border-radius: 12px; overflow: hidden; margin-bottom: .9rem;
+               display: flex; align-items: flex-end; }
+.extras-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.extras-hero::after { content: ""; position: absolute; inset: 0;
+                      background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.6)); }
+.panel .extras-hero h2, .deal .extras .extras-hero h2 { position: relative; z-index: 1; margin: 0; padding: .8rem 1rem;
+                      color: #fff; font-size: 1.35rem; line-height: 1.15; text-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.extras-hero h2 small { display: block; font-size: .8rem; font-weight: 600; opacity: .9; letter-spacing: .02em; }
+.extra-ic { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;
+            border-radius: 10px; background: var(--soft-bg); color: var(--accent); margin-bottom: .55rem; }
+.extra-ic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8;
+                stroke-linecap: round; stroke-linejoin: round; }
+.ic-esim { background: #e0f2fe; color: #0369a1; }
+.ic-tours { background: #fce7f3; color: #be185d; }
+.ic-traslado { background: #fef9c3; color: #a16207; }
+.ic-autos { background: #dcfce7; color: #15803d; }
+:root[data-theme="dark"] .extra-ic { background: var(--chip-bg); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .extra-ic { background: var(--chip-bg); } }
 .extra-d { margin: .35rem 0 .8rem; color: var(--muted); font-size: .87rem; flex: 1; }
 .extra-b { align-self: flex-start; border: 1.5px solid var(--accent); color: var(--accent); font-weight: 700;
            font-size: .9rem; padding: .5rem .85rem; border-radius: 10px; }

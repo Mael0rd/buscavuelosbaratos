@@ -28,6 +28,14 @@ def card_image(url: str) -> tuple[str, str]:
     return f"{base}&w=400&h=190", f"{base}&w=800&h=380"
 
 
+def banner_image(url: str) -> tuple[str, str]:
+    """Foto ancha y baja para encabezados (~720x180 y el doble para retina)."""
+    if "images.unsplash.com" not in url:
+        return url, ""
+    base = url.split("?")[0] + "?auto=format&fit=crop&q=60"
+    return f"{base}&w=720&h=180", f"{base}&w=1440&h=360"
+
+
 def dest_slug(name: str, code: str) -> str:
     """'São Paulo', 'SAO' -> 'sao-paulo-sao' (el código evita choques como San José CR / EE. UU.)."""
     ascii_ = unicodedata.normalize("NFKD", name or "").encode("ascii", "ignore").decode()
@@ -69,6 +77,9 @@ def build(conn, cfg: dict, ref=None) -> int:
     env.filters["escalas"] = fmt_stops
     env.filters["hace"] = telegram.ago
     env.filters["subid"] = with_subid  # {{ link|subid("web_oferta") }}: SubID de Travelpayouts por fuente
+    photos = cfg.get("dest_images") or {}
+    env.globals["dest_banner"] = lambda code: (*banner_image(photos.get(code, "")),
+                                               sum(map(ord, code or "")) % 6)  # (foto, foto 2x, degradado)
     env.filters["faq_ld"] = lambda qa: {"@type": "Question", "name": qa[0],
                                         "acceptedAnswer": {"@type": "Answer", "text": qa[1]}}
 

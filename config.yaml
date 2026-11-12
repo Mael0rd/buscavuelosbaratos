@@ -175,7 +175,7 @@ extras:
       icon: "📶"
       title: "Internet en {country} sin roaming"
       text: "Con una eSIM tienes datos desde que aterrizas: la compras e instalas antes de viajar y no cambias tu chip."
-      button: "Ver planes de eSIM"
+      button: "Ver planes"
       variants:
         - { id: yesim, label: Yesim, weight: 60,
             urls: ["https://yesim.app/es/country/{country_slug}/", "https://yesim.app/country/{country_slug}/", "https://yesim.app/"] }

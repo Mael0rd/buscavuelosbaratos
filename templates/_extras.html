@@ -1,12 +1,27 @@
 {# Servicios complementarios al vuelo. Requiere: ex_code (destino), ex_city, ex_place ("oferta" | "ruta") #}
 {% set ex = (extras or {}).get(ex_code) or [] %}
 {% if ex %}
+{% set img, img2x, tone = dest_banner(ex_code) %}
 <section class="panel extras" aria-labelledby="extras-{{ ex_code }}">
-  <h2 id="extras-{{ ex_code }}">Para tu viaje a {{ ex_city }}</h2>
+  <div class="extras-hero tone-{{ tone }}">
+    {% if img %}<img src="{{ img }}"{% if img2x %} srcset="{{ img }} 1x, {{ img2x }} 2x"{% endif %} alt="" loading="lazy" decoding="async" width="720" height="180" onerror="this.remove()">{% endif %}
+    <h2 id="extras-{{ ex_code }}"><small>Todo listo para</small>{{ ex_city }}</h2>
+  </div>
   <div class="extras-grid">
     {% for b in ex %}
     <div class="extra">
-      <p class="extra-t"><span class="extra-i" aria-hidden="true">{{ b.icon }}</span>{{ b.title }}</p>
+      <span class="extra-ic ic-{{ b.service }}" aria-hidden="true">
+        {%- if b.service == "esim" -%}
+        <svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 17v-2M12 17v-4M15 17v-6"/></svg>
+        {%- elif b.service == "tours" -%}
+        <svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 0 0 4v4h16v-4a2 2 0 0 1 0-4V4H4z" transform="translate(0 2)"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg>
+        {%- elif b.service == "traslado" -%}
+        <svg viewBox="0 0 24 24"><path d="M5 16V11l2-5h10l2 5v5"/><path d="M3 16h18v3H3z"/><circle cx="7.5" cy="13.5" r=".8"/><circle cx="16.5" cy="13.5" r=".8"/><path d="M10 6V4h4v2"/></svg>
+        {%- elif b.service == "autos" -%}
+        <svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M17 12v3M20 12v2"/></svg>
+        {%- else -%}{{ b.icon }}{%- endif -%}
+      </span>
+      <p class="extra-t">{{ b.title }}</p>
       <p class="extra-d">{{ b.text }}</p>
       <a class="extra-b" href="{{ b.links[ex_place] }}" rel="sponsored nofollow noopener" target="_blank"
          data-extra="{{ b.service }}_{{ b.brand }}">{{ b.button }}</a>
