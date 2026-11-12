@@ -88,6 +88,12 @@ social:
   country: { per_run: 2, per_day: 10 }
   quiet_hours: [23, 6]           # no publicar de 11 p. m. a 6 a. m. (hora local del canal)
   timezone: America/Costa_Rica   # hora del canal general
+  # Canales regionales: un solo canal para varios países con pocas ofertas
+  # (variable TELEGRAM_CHANNEL_<REGIÓN>). Si un país tiene su propio canal, ese tiene prioridad.
+  regions:
+    centroamerica:
+      name: Centroamérica
+      countries: [costa-rica, panama, guatemala, el-salvador, honduras, nicaragua]
 
 verify:
   # Verificación en vivo (Google Flights) antes de publicar en Telegram.

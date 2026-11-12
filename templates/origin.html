@@ -22,7 +22,7 @@
 </section>
 
 {% set tg = channels.get(o.country) or channels.get('main') %}
-{% if tg %}<a class="tg-join" href="{{ tg }}" target="_blank" rel="noopener">📲 Recibe las ofertas {% if channels.get(o.country) %}desde {{ o.country_name }} {% endif %}en Telegram</a>{% endif %}
+{% if tg %}<a class="tg-join" href="{{ tg }}" target="_blank" rel="noopener">📲 Recibe las ofertas {% if channels.get(o.country) %}desde {{ channel_labels.get(o.country, o.country_name) }} {% endif %}en Telegram</a>{% endif %}
 
 {% if o.deals %}
 <h2 class="sec-title">✅ Ofertas verificadas ahora desde {{ o.name }}</h2>

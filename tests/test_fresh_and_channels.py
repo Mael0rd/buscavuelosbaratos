@@ -284,3 +284,32 @@ def test_failing_channel_is_not_retried_in_same_run(tg, monkeypatch):
     stats = telegram.publish(c, CFG, NOW)
     assert stats == {"general": "error al enviar", "mexico": "error al enviar"}
     assert len(calls) == 4  # foto + texto por canal, una sola vez
+
+
+# ---------- canal regional ----------
+REG = {**CFG,
+       "countries": {**CFG["countries"],
+                     "panama": {"name": "Panamá", "flag": "", "cc": "PA", "origins": ["PTY"]},
+                     "guatemala": {"name": "Guatemala", "flag": "", "cc": "GT", "origins": ["GUA"]}},
+       "social": {**CFG["social"], "regions": {"centroamerica": {
+           "name": "Centroamérica", "countries": ["costa-rica", "panama", "guatemala", "mexico"]}}}}
+
+
+def test_regional_channel_covers_countries_without_own_channel(tg, monkeypatch):
+    monkeypatch.setenv("BVB_VARS", '{"TELEGRAM_CHANNEL_MEXICO": "@mx", "TELEGRAM_CHANNEL_CENTROAMERICA": "@ca"}')
+    ch = telegram.country_channels(REG)
+    assert ch == {"costa-rica": "@ca", "panama": "@ca", "guatemala": "@ca", "mexico": "@mx"}  # propio > región
+    assert telegram.channel_labels(REG)["panama"] == "Centroamérica"
+    assert telegram.channel_labels(REG)["mexico"] == "México"
+    assert telegram.channel_links(REG)["costa-rica"] == "https://t.me/ca"
+
+
+def test_regional_channel_has_one_quota(tg, monkeypatch):
+    sent, _ = tg
+    monkeypatch.setenv("BVB_VARS", '{"TELEGRAM_CHANNEL_CENTROAMERICA": "@ca"}')
+    c = conn()
+    for i, (cid, o) in enumerate([("costa-rica", "SJO"), ("panama", "PTY"), ("guatemala", "GUA")]):
+        save(c, slug=f"r{i}", country=cid, origin=o, origin_name=o, score=0.4 + i / 10, found_at=ts(1))
+    stats = telegram.publish(c, REG, NOW)
+    assert stats["centroamerica"] == 2 and "costa-rica" not in stats  # per_run del canal = 2, una sola vez
+    assert [ch for ch, _ in sent].count("@ca") == 2

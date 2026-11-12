@@ -73,6 +73,7 @@ def build(conn, cfg: dict) -> int:
     deals = active_deals(conn, cfg)
     ended = active_deals(conn, cfg, status="expired")  # sus páginas siguen (con aviso), fuera de listas
     channels = telegram.channel_links(cfg)
+    channel_labels = telegram.channel_labels(cfg)
     countries = []
     for cid, c in cfg["countries"].items():
         countries.append({"id": cid, "name": c["name"], "flag": c["flag"], "cc": c["cc"], "origins": c["origins"],
@@ -120,7 +121,7 @@ def build(conn, cfg: dict) -> int:
                              for cid, c in cfg["countries"].items()},
            "alerts_api": cfg.get("alerts", {}).get("api_base", ""),
            "bot_username": telegram.bot_username(),
-           "channels": channels,
+           "channels": channels, "channel_labels": channel_labels,
            "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
            "updated_iso": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "origins": origins, "og": "/og/inicio.jpg"}

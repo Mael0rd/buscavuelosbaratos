@@ -201,10 +201,40 @@ def channel_var(cid: str) -> str:
 
 
 def country_channels(cfg: dict) -> dict:
-    """{id_país: chat} para los países con canal propio (variable TELEGRAM_CHANNEL_<PAÍS>)."""
+    """{id_país: chat}: canal propio del país (TELEGRAM_CHANNEL_<PAÍS>) o, si no tiene,
+    el de su región (TELEGRAM_CHANNEL_<REGIÓN>, p. ej. CENTROAMERICA)."""
     v = _vars()
-    return {cid: v[channel_var(cid)].strip() for cid in cfg["countries"]
-            if (v.get(channel_var(cid)) or "").strip()}
+    out = {}
+    for rid, r in (cfg.get("social", {}).get("regions") or {}).items():
+        chat = (v.get(channel_var(rid)) or "").strip()
+        if chat:
+            out.update({cid: chat for cid in r.get("countries", []) if cid in cfg["countries"]})
+    out.update({cid: v[channel_var(cid)].strip() for cid in cfg["countries"]
+                if (v.get(channel_var(cid)) or "").strip()})
+    return out
+
+
+def channel_labels(cfg: dict) -> dict:
+    """{id_país: nombre del canal que lo cubre}: el país o su región."""
+    labels = {}
+    regions = cfg.get("social", {}).get("regions") or {}
+    v = _vars()
+    for cid, chat in country_channels(cfg).items():
+        labels[cid] = cfg["countries"][cid]["name"]
+        if not (v.get(channel_var(cid)) or "").strip():
+            for r in regions.values():
+                if cid in r.get("countries", []):
+                    labels[cid] = r.get("name", labels[cid])
+    return labels
+
+
+def _channel_name(cfg: dict, chat: str, cid: str) -> str:
+    """Nombre para el registro/estadísticas: la región si el chat es regional, si no el país."""
+    v = _vars()
+    for rid in (cfg.get("social", {}).get("regions") or {}):
+        if (v.get(channel_var(rid)) or "").strip() == chat:
+            return rid
+    return cid
 
 
 def channel_links(cfg: dict) -> dict:
@@ -248,16 +278,20 @@ def publish(conn, cfg: dict, now: datetime | None = None, verifier=None) -> dict
     max_age = cfg["freshness"]["max_age_hours"]
 
     found = sorted(k for k in _vars() if k.startswith("TELEGRAM_CHANNEL_"))
-    print(f"[telegram] variables de canal por país encontradas: {found or 'ninguna'} "
-          f"(nombres esperados: TELEGRAM_CHANNEL_<PAÍS>, p. ej. {channel_var('mexico')})")
+    print(f"[telegram] variables de canal encontradas: {found or 'ninguna'} "
+          f"(nombres esperados: TELEGRAM_CHANNEL_<PAÍS o REGIÓN>, p. ej. {channel_var('mexico')})")
 
     general = env("TELEGRAM_CHANNEL")
     targets = []
     if general:
         targets.append(("general", general, soc["main"], soc["timezone"]))
     by_country = country_channels(cfg)
+    seen = set()
     for cid, chat in by_country.items():
-        targets.append((cid, chat, soc["country"], _country_tz(cfg, cid)))
+        if chat in seen:  # un canal regional cubre varios países: se cuenta una vez
+            continue
+        seen.add(chat)
+        targets.append((_channel_name(cfg, chat, cid), chat, soc["country"], _country_tz(cfg, cid)))
 
     stats, room, names = {}, {}, {}
     for name, chat, rules, tzname in targets:

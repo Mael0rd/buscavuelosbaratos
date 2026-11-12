@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from . import ogimage, telegram
 from .config import env, load_config
 from .db import connect
+from .fresh import age_hours
 from .site import active_deals
 
 
@@ -44,10 +45,16 @@ def main(country: str, target: str = "pais") -> None:
         raise SystemExit(1)
 
     cname = cfg["countries"][country]["name"]
-    deals = [d for d in active_deals(connect(), cfg) if d["country"] == country]
+    # Solo ofertas verificadas en las últimas horas: nunca publicar un precio sin confirmar
+    max_h = cfg["verify"].get("web_max_age_hours", 24)
+    deals = [d for d in active_deals(connect(), cfg) if d["country"] == country
+             and d.get("verify_status") == "ok" and (age_hours(d.get("verified_at")) or 1e9) <= max_h]
     if not deals:
-        text = (f"✅ Canal de {cname} conectado. Aquí publicaremos los vuelos baratos verificados "
-                f"desde {cname}.")
+        label = telegram.channel_labels(cfg).get(country, cname)
+        text = (f"👋 ¡Bienvenido al canal de vuelos baratos desde {label}!\n\n"
+                f"Aquí publicamos vuelos de ida y vuelta muy por debajo de su precio normal, "
+                f"verificados en Google Flights antes de publicarlos. Activa las notificaciones 🔔 "
+                f"para enterarte primero: las buenas ofertas duran poco.")
         ok = telegram.send(text, {"inline_keyboard": [[{"text": "Ver ofertas",
                                   "url": f"https://{cfg['site']['domain']}/pais/{country}"}]]}, chat_id=chat)
         print(text)
