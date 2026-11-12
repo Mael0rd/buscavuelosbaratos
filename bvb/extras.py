@@ -114,6 +114,7 @@ class Extras:
         self.offline = env("BVB_MOCK") == "1"
         self.checks_left = int(self.cfg.get("max_url_checks_per_run", 150))
         self.links_left = int(self.cfg.get("max_new_links_per_run", 300))
+        self.by_brand: dict = {}
         self.stats = {"verificadas": 0, "no_existen": 0, "enlaces_nuevos": 0, "sin_convertir": 0}
         conn.executescript(SCHEMA)
 
@@ -146,13 +147,17 @@ class Extras:
         self.conn.execute("INSERT OR REPLACE INTO extra_urls VALUES (?, ?, ?)", (url, ok, _iso(_now())))
         return ok != 0
 
-    def best_url(self, templates: list[str], info: dict) -> str:
+    def best_url(self, templates: list[str], info: dict, brand: str = "") -> str:
         for i, t in enumerate(templates):
             try:
                 url = t.format(**info)
             except (KeyError, IndexError):
                 continue
             if self.url_ok(url, last=i == len(templates) - 1):
+                # resumen por marca: página del destino (1.ª candidata), alternativa o portada
+                kind = "destino" if i == 0 else ("portada" if i == len(templates) - 1 else "alternativa")
+                b = self.by_brand.setdefault(brand, {"destino": 0, "alternativa": 0, "portada": 0})
+                b[kind] += 1
                 return url
         return ""
 
@@ -219,7 +224,7 @@ class Extras:
                     continue
                 cands = [v for v in s.get("variants") or [] if serves(v, info["cc"].upper(), regions)]
                 v = pick_variant(cands, f"{code}:{sid}")
-                url = v and self.best_url(v.get("urls") or [], info)
+                url = v and self.best_url(v.get("urls") or [], info, v["id"])
                 if not url:
                     continue
                 fmt = lambda t: (t or "").format(**info)  # noqa: E731
@@ -249,4 +254,5 @@ def prepare(conn, cfg: dict, ref, dests: list[str]) -> dict:
     if plan:
         n = sum(len(b) for b in plan.values())
         print(f"Complementos: {n} bloques en {len(plan)} destinos · {ex.stats}")
+        print(f"  URL por marca (destino / alternativa / portada): {ex.by_brand}")
     return plan
