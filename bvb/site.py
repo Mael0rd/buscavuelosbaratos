@@ -126,6 +126,7 @@ def build(conn, cfg: dict) -> int:
            "alerts_api": cfg.get("alerts", {}).get("api_base", ""),
            "bot_username": telegram.bot_username(),
            "channels": channels, "channel_labels": channel_labels, "wa_links": wa,
+           "threads_url": (cfg.get("social", {}).get("threads") or {}).get("url", ""),
            "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
            "updated_iso": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "origins": origins, "og": "/og/inicio.jpg"}
