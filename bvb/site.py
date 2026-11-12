@@ -173,6 +173,10 @@ def build(conn, cfg: dict) -> int:
         write(f"destino/{h['dest_slug']}.html", "destination.html", dest=h, deals=h["deals"], og=h["og"])
     for d in deals + ended:
         img = og(f"oferta-{d['slug']}", ogimage.deal_image, d, (by_id.get(d["country"]) or {}).get("cc", ""))
+        if d in deals:  # versión vertical para redes (Threads); no la usa la página
+            cc = (by_id.get(d["country"]) or {}).get("cc", "")
+            photo = ogimage.fetch_photo(ogimage.photo_url((cfg.get("dest_images") or {}).get(d["destination"], "")))
+            og(f"social-{d['slug']}", ogimage.social_image, d, cc, photo=photo)
         write(f"oferta/{d['slug']}.html", "deal.html", d=d, c=by_id.get(d["country"]), dest_pages=destinations, og=img)
     for r in route_pages:
         o = origin_by_code.get(r["origin"])

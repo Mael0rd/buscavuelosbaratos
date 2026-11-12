@@ -32,8 +32,11 @@ def test_publica_la_mejor_en_linea_y_verificada(posts):
     add(c, "mx", country="mexico", score=0.6)
     assert threads.publish(c, CFG, NOW, session=SESSION, poster=poster) == {"threads": 1}
     text, img, topic = out[0]
-    assert img == "https://buscavuelosbaratos.com/og/oferta-buena.jpg" and topic == "Vuelos baratos"
-    assert text.endswith("/oferta/buena?src=threads") and "$610" in text and len(text) <= 500
+    assert img == "https://buscavuelosbaratos.com/og/social-buena.jpg" and topic == "Vuelos baratos"
+    assert text.endswith("/oferta/buena?src=threads") and len(text) <= 500
+    assert text.startswith("🇨🇷 San José → Madrid por $610 ida y vuelta")
+    assert "Normalmente ronda $950: 35% menos" in text and "1–10 feb · 1 escala" in text
+    assert any(q in text for q in threads.QUESTIONS)
     threads.publish(c, CFG, NOW, session=SESSION, poster=poster)
     assert out[1][2] == "Vuelos baratos México"          # tema por país
     assert threads.publish(c, CFG, NOW, session=SESSION, poster=poster) == {"threads": 0}  # máximo diario
@@ -62,3 +65,16 @@ def test_token_del_secret_se_guarda_y_se_renueva(monkeypatch):
     assert tok == "NUEVO" and store["v"]["value"] == "NUEVO"
     monkeypatch.setattr(threads, "_me", lambda t: None)               # vencido
     assert threads.get_session(CFG, NOW) is None
+
+
+def test_imagen_vertical(tmp_path):
+    from PIL import Image
+    from bvb import ogimage
+    d = {"slug": "x", "destination": "MAD", "origin": "SJO", "origin_name": "San José", "dest_name": "Madrid",
+         "dest_country": "España", "price": 598.0, "baseline": 890.0, "transfers": 1, "verify_status": "ok",
+         "departure_at": "2027-02-28T10:00:00Z", "return_at": "2027-03-06T10:00:00Z"}
+    ogimage.social_image(d, "CR", tmp_path / "s.jpg")                   # sin foto: degradado
+    assert Image.open(tmp_path / "s.jpg").size == (1080, 1350)
+    assert ogimage.short_dates(d["departure_at"], d["return_at"]) == "28 feb – 6 mar"
+    assert ogimage.photo_url("https://images.unsplash.com/photo-1?auto=format&w=800").endswith("&w=1080&h=1350")
+    assert ogimage.fetch_photo("") is None

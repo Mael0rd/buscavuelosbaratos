@@ -18,7 +18,8 @@ import requests
 from . import telegram
 from .alerts import admin_token
 from .config import env
-from .copywriter import fmt_date, fmt_stops, savings_pct
+from .copywriter import fmt_stops, savings_pct
+from .ogimage import short_dates
 from .fresh import age_hours
 from .verify import priority
 
@@ -114,18 +115,23 @@ def refresh(token: str) -> str | None:
 
 
 # ---------- publicación ----------
+QUESTIONS = ["¿Con quién irías? 👇", "Etiqueta a quien te llevarías ✈️", "¿Te animas? 👀",
+             "Guárdalo antes de que suba 📌", "¿Quién se apunta? 🙋"]
+
+
 def build_text(d: dict, site_url: str, now: datetime | None = None) -> str:
-    """Texto corto (Threads permite 500 caracteres)."""
+    """Gancho primero (ruta y precio), luego el ahorro, los datos y una pregunta que invita
+    a responder (las respuestas son lo que más alcance da en Threads). Máx. 500 caracteres."""
     ahorro = savings_pct(d)
     price = d.get("live_price") or d["price"]
-    dest = d["dest_name"] + (f", {d['dest_country']}" if d.get("dest_country") else "")
-    head = f"🔥 {ahorro}% menos de lo normal" if ahorro >= 10 else "✈️ Vuelo en oferta"
-    lines = [f"{head}: {d['origin_name']} → {dest} por ${price:.0f} ida y vuelta {d.get('flag', '')}".strip(), ""]
-    fechas = fmt_date(d["departure_at"]) + (f" – {fmt_date(d['return_at'])}" if d.get("return_at") else "")
-    lines.append(f"🗓️ {fechas} · {fmt_stops(d['transfers'])}")
+    lines = [f"{d.get('flag', '')} {d['origin_name']} → {d['dest_name']} por ${price:.0f} ida y vuelta".strip()]
+    if ahorro >= 10 and d.get("baseline"):
+        lines.append(f"Normalmente ronda ${d['baseline']:.0f}: {ahorro}% menos 🔥")
+    extra = f"🗓️ {short_dates(d.get('departure_at', ''), d.get('return_at', ''))} · {fmt_stops(d['transfers'])}"
     if d.get("verified_at"):
-        lines.append(f"✅ Precio verificado {telegram.ago(d['verified_at'], now)}")
-    lines += ["", f"👉 {site_url}/oferta/{d['slug']}?src=threads"]
+        extra += f" · ✅ verificado {telegram.ago(d['verified_at'], now)}"
+    lines += [extra, "", QUESTIONS[sum(map(ord, d["slug"])) % len(QUESTIONS)],
+              f"👉 {site_url}/oferta/{d['slug']}?src=threads"]
     return "\n".join(lines)[:500]
 
 
@@ -204,9 +210,13 @@ def publish(conn, cfg: dict, now: datetime | None = None, verifier=None, session
             continue
         # La página y su imagen se suben al final de la corrida: solo se publican
         # las que ya están en línea (las nuevas salen en la corrida siguiente).
-        page, img = f"{site}/oferta/{d['slug']}", f"{site}/og/oferta-{d['slug']}.jpg"
-        if not (_online(page) and _online(img)):
+        page, img = f"{site}/oferta/{d['slug']}", f"{site}/og/social-{d['slug']}.jpg"
+        if not _online(page):
             continue
+        if not _online(img):  # imagen vertical aún no subida: la horizontal de la página
+            img = f"{site}/og/oferta-{d['slug']}.jpg"
+            if not _online(img):
+                continue
         topic = (tcfg.get("topics") or {}).get(d["country"]) or tcfg.get("topic", "Vuelos baratos")
         pid = poster(build_text(d, site, now), img, topic)
         if not pid:

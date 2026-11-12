@@ -215,3 +215,137 @@ def page_image(title: str, subtitle: str, path: Path, cc: str = "", tone: int = 
         y += 60
     pill(draw, 64, min(max(y + 28, 500), 545), "Ofertas verificadas · cada hora", font("Bold", 30), fill=WHITE, color=NAVY, pad_x=26, pad_y=14)
     save(img, path)
+
+
+# ---------- imagen vertical para redes (Threads / Instagram) ----------
+SW, SH = 1080, 1350  # 4:5: el formato que más pantalla ocupa en el feed del celular
+MONTHS_SHORT = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+_photo_cache: dict = {}
+
+
+def photo_url(url: str) -> str:
+    """Foto de Unsplash recortada a 1080x1350 (vacío si no hay foto)."""
+    if not url or "images.unsplash.com" not in url:
+        return ""
+    return url.split("?")[0] + f"?auto=format&fit=crop&q=75&w={SW}&h={SH}"
+
+
+def fetch_photo(url: str) -> Image.Image | None:
+    """Descarga la foto del destino (una vez por corrida). None si falla: se usa el degradado."""
+    if not url:
+        return None
+    if url not in _photo_cache:
+        import io
+        import requests
+        try:
+            r = requests.get(url, timeout=20)
+            r.raise_for_status()
+            _photo_cache[url] = Image.open(io.BytesIO(r.content)).convert("RGB")
+        except Exception as e:  # noqa: BLE001
+            print(f"[imagen] sin foto ({e.__class__.__name__}); se usa el degradado")
+            _photo_cache[url] = None
+    return _photo_cache[url]
+
+
+def short_dates(dep: str, ret: str = "") -> str:
+    """'3–17 feb', '28 feb – 6 mar'."""
+    def p(s):
+        return int(s[8:10]), int(s[5:7])
+    if not dep or len(dep) < 10:
+        return ""
+    d1, m1 = p(dep)
+    if not ret or len(ret) < 10:
+        return f"{d1} {MONTHS_SHORT[m1 - 1]}"
+    d2, m2 = p(ret)
+    if m1 == m2:
+        return f"{d1}–{d2} {MONTHS_SHORT[m1 - 1]}"
+    return f"{d1} {MONTHS_SHORT[m1 - 1]} – {d2} {MONTHS_SHORT[m2 - 1]}"
+
+
+def _cover(photo: Image.Image) -> Image.Image:
+    """Recorta la foto para llenar 1080x1350 sin deformarla."""
+    k = max(SW / photo.width, SH / photo.height)
+    p = photo.resize((int(photo.width * k) + 1, int(photo.height * k) + 1), Image.LANCZOS)
+    x, y = (p.width - SW) // 2, (p.height - SH) // 2
+    return p.crop((x, y, x + SW, y + SH))
+
+
+def _shade(img: Image.Image) -> Image.Image:
+    """Oscurece arriba (marca y origen) y sobre todo abajo (precio), dejando ver la foto al centro."""
+    ov = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    px = ov.load()
+    for y in range(SH):
+        t = y / SH
+        a = 160 * max(0.0, 1 - t / 0.28) + 245 * max(0.0, (t - 0.36) / 0.64) ** 0.75
+        a = int(min(240, a))
+        for x in range(0, SW, 1):
+            px[x, y] = (8, 12, 24, a)
+    return Image.alpha_composite(img.convert("RGBA"), ov)
+
+
+def social_image(d: dict, cc: str, path: Path, photo: Image.Image | None = None):
+    """Imagen vertical de la oferta: foto del destino, descuento, precio antes/ahora, fechas."""
+    from .copywriter import savings_pct
+    if photo is not None:
+        img = _shade(_cover(photo))
+    else:
+        base = gradient(TONES[deal_tone(d)]).resize((SW, SH), Image.BICUBIC)
+        img = _shade(base)
+    draw = ImageDraw.Draw(img, "RGBA")
+    M = 72
+    brand(draw, M, 64)
+
+    # Descuento: el gancho principal, arriba a la derecha
+    ahorro = savings_pct(d)
+    if ahorro >= 10:
+        f = font("ExtraBold", 64)
+        t = f"−{ahorro}%"
+        tw = draw.textlength(t, font=f)
+        box = (SW - M - tw - 56, 46, SW - M, 46 + 64 + 52)
+        draw.rounded_rectangle(box, radius=26, fill=ORANGE)
+        draw.text((box[0] + 28, box[1] + 22), t, font=f, fill=WHITE)
+
+    # Origen con bandera
+    y = 190
+    fw = paste_flag(img, cc, M, y + 6, h=46)
+    fo = font("Bold", 44)
+    origin = f"Desde {d['origin_name']} ({d['origin']})"
+    draw.text((M + (fw + 18 if fw else 0), y), ellipsize(draw, origin, fo, SW - 2 * M - fw - 18), font=fo, fill=WHITE)
+
+    # Bloque inferior (se arma de abajo hacia arriba para que nunca se salga)
+    price = d.get("live_price") or d["price"]
+    f_foot, f_ver, f_det = font("Bold", 32), font("Bold", 36), font("Medium", 44)
+    y_foot = SH - 64
+    draw.text((M, y_foot), "buscavuelosbaratos.com", font=f_foot, fill=(255, 255, 255, 190))
+    y = y_foot - 28
+    if d.get("verify_status") == "ok":
+        y -= 46
+        draw.text((M, y), "✓ Precio verificado en Google Flights", font=f_ver, fill=(170, 255, 205))
+    y -= 66
+    detail = f"{short_dates(d.get('departure_at', ''), d.get('return_at', ''))} · {fmt_stops(d.get('transfers'))}"
+    draw.text((M, y), detail, font=f_det, fill=WHITE)
+
+    f_price = font("ExtraBold", 104)
+    asc, desc = f_price.getmetrics()
+    pill_h = asc + desc + 32
+    y -= pill_h + 30
+    box = pill(draw, M, y, f"${price:.0f}", f_price, fill=WHITE, color=(194, 65, 12), pad_x=40, pad_y=16)
+    draw.text((box[2] + 28, (box[1] + box[3]) // 2 - 30), "ida y vuelta", font=font("Bold", 46), fill=WHITE)
+
+    if ahorro >= 10 and d.get("baseline"):
+        fa = font("Bold", 44)
+        y -= 72
+        antes = f"Normal: ${d['baseline']:.0f}"
+        draw.text((M, y), antes, font=fa, fill=(255, 255, 255, 200))
+        x0 = M + draw.textlength("Normal: ", font=fa)
+        x1 = M + draw.textlength(antes, font=fa)
+        draw.line((x0 - 4, y + 30, x1 + 4, y + 30), fill=(255, 120, 90), width=6)
+
+    dest = d["dest_name"]
+    if d.get("dest_country") and d["dest_country"] != dest:
+        y -= 80
+        draw.text((M, y), d["dest_country"], font=font("Medium", 46), fill=SOFT)
+    f_dest = fit(draw, dest, "ExtraBold", 150, SW - 2 * M, 72)
+    y -= int(f_dest.size * 1.12)
+    draw.text((M - 4, y), dest, font=f_dest, fill=WHITE)
+    save(img, path)
