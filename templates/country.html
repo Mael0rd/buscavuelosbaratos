@@ -1,11 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Vuelos baratos desde {{ c.name }} | {{ site.title }}{% endblock %}
-{% block description %}Ofertas de vuelos baratos saliendo desde {{ c.name }}, actualizadas varias veces al día.{% endblock %}
+{% block title %}Vuelos y {{ c.term }} baratos desde {{ c.name }} | {{ site.title }}{% endblock %}
+{% block description %}{{ c.seo_desc }}{% endblock %}
+{% block head %}
+  <script type="application/ld+json">{{ {
+    "@context": "https://schema.org",
+    "@graph": [
+      {"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://" ~ site.domain ~ "/"},
+        {"@type": "ListItem", "position": 2, "name": "Vuelos baratos desde " ~ c.name, "item": "https://" ~ site.domain ~ page_path}]},
+      {"@type": "FAQPage", "mainEntity": c.faq | map("faq_ld") | list}
+    ]} | tojson }}</script>
+{% endblock %}
 {% block content %}
 <a class="back" href="/">← Todos los países</a>
 <section class="hero">
   <h1><img class="flag" src="/static/flags/{{ c.cc|lower }}.png" alt="" width="20" height="15"> Vuelos baratos desde {{ c.name }}</h1>
-  <p>Ofertas de ida y vuelta saliendo desde {{ c.name }} que están muy por debajo de su precio habitual.</p>
+  <p>Ofertas de {{ c.term }} de ida y vuelta saliendo desde {{ c.name }} que están muy por debajo de su precio habitual.
+  {% if c.n_routes %}Revisamos cada hora los precios de <b>{{ c.n_routes }} rutas internacionales</b> a {{ c.n_dests }} destinos{% if c.cities|length > 1 %} desde {% for o in c.cities %}{{ o.name }}{% if not loop.last %}{% if loop.revindex == 2 %} y {% else %}, {% endif %}{% endif %}{% endfor %}{% endif %}, y solo publicamos las que Google Flights confirma como precio bajo.{% endif %}</p>
 </section>
 
 {% include "_chips.html" %}
@@ -23,9 +34,29 @@
 {% else %}
 <p class="empty">Ahora mismo no hay ofertas destacadas desde {{ c.name }}. Volvemos a revisar en unas horas.</p>
 {% endif %}
+{% if c.top_dests %}
+<section class="panel cheapest">
+  <h2>Destinos más baratos desde {{ c.name }}</h2>
+  <p class="muted small">Precio típico de un vuelo ida y vuelta en los últimos días (USD), según los {{ c.term }} que revisamos cada hora.</p>
+  <table class="months">
+    <thead><tr><th>Destino</th><th>Sale de</th><th>Precio típico</th></tr></thead>
+    <tbody>{% for r in c.top_dests %}<tr{% if loop.first %} class="best"{% endif %}>
+      <td><a href="/vuelos/{{ r.slug }}">{{ r.dest_name }}</a>{% if r.dest_country %} <span class="muted small">{{ r.dest_country }}</span>{% endif %}</td>
+      <td>{{ r.origin_name }}</td><td>${{ "%.0f"|format(r.typical) }}</td></tr>{% endfor %}</tbody>
+  </table>
+</section>
+{% endif %}
+
+{% if c.best_month %}
+<section class="panel">
+  <h2>¿Cuándo es más barato volar desde {{ c.name }}?</h2>
+  <p><b>{{ c.best_month.label|capitalize }}</b> es el mes de salida más barato en {{ c.best_month.n }} de las {{ c.best_month.total }} rutas internacionales que seguimos desde {{ c.name }}. Revisa el historial de cada ruta para ver su propio mes más barato.</p>
+</section>
+{% endif %}
+
 {% if c.cities %}
 <section class="related">
-  <h2>Vuelos baratos por ciudad de salida</h2>
+  <h2>Vuelos baratos por ciudad de salida en {{ c.name }}</h2>
   <ul>{% for o in c.cities %}<li><a href="/desde/{{ o.slug }}">Desde {{ o.name }} ({{ o.code }}){% if o.cheapest %} <span>desde ${{ "%.0f"|format(o.cheapest.last_price) }}</span>{% endif %}</a></li>{% endfor %}</ul>
 </section>
 {% endif %}
@@ -33,6 +64,13 @@
 <section class="related">
   <h2>Rutas desde {{ c.name }}: precios e historial</h2>
   <ul>{% for r in c.routes %}<li><a href="/vuelos/{{ r.slug }}">{{ r.origin_name }} → {{ r.dest_name }} <span>típico ${{ "%.0f"|format(r.typical) }}</span></a></li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+{% if c.faq %}
+<section class="panel faq">
+  <h2>Preguntas frecuentes sobre vuelos baratos desde {{ c.name }}</h2>
+  {% for q, a in c.faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
 </section>
 {% endif %}
 {% endblock %}

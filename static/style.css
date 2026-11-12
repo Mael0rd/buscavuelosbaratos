@@ -309,3 +309,7 @@ table.dests td:first-child a { color: var(--accent); font-weight: 600; }
 .deal .extras { background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0;
                 padding: 1.25rem 0 0; margin-top: 1.25rem; }
 .deal .extras h2 { font-size: 1.1rem; }
+
+/* Página de país: tabla de destinos más baratos */
+.cheapest td:nth-child(2), .cheapest td:nth-child(3) { white-space: nowrap; }
+.cheapest td a { color: inherit; font-weight: 600; }

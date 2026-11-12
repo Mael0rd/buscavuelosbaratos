@@ -9,7 +9,7 @@ from datetime import date, datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
-from . import extras, hubs, ogimage, routes, telegram, whatsapp
+from . import countrypage, extras, hubs, ogimage, routes, telegram, whatsapp
 from .fetch import with_subid
 from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
@@ -91,6 +91,7 @@ def build(conn, cfg: dict, ref=None) -> int:
     countries = []
     for cid, c in cfg["countries"].items():
         countries.append({"id": cid, "name": c["name"], "flag": c["flag"], "cc": c["cc"], "origins": c["origins"],
+                          "term": c.get("term"),
                           "deals": [d for d in deals if d["country"] == cid]})
 
     # Páginas permanentes por ruta (SEO)
@@ -111,6 +112,7 @@ def build(conn, cfg: dict, ref=None) -> int:
     origin_by_code = {o["code"]: o for o in origins}
     for c in countries:
         c["cities"] = [o for o in origins if o["country"] == c["id"]]
+        countrypage.summarize(c)  # destinos más baratos, mes más barato, preguntas frecuentes
     for d in deals + ended:
         o = origin_by_code.get(d["origin"])
         d["origin_slug"] = o["slug"] if o else None

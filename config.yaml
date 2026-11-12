@@ -7,28 +7,29 @@ site:
   contact_email: contacto@buscavuelosbaratos.com
 
 # Países de salida (sección de la web) y sus ciudades de salida (códigos IATA de ciudad).
+# term: cómo se buscan los boletos en ese país (pasajes, tiquetes, boletos de avión...), para el SEO.
 # Solo se publican viajes internacionales: las rutas dentro del mismo país se descartan.
 # El orden aquí es el orden en que aparecen en la web.
 countries:
-  mexico:          { name: "México",               cc: MX, flag: "🇲🇽", origins: [MEX, CUN, GDL, MTY, TIJ] }
-  guatemala:       { name: "Guatemala",            cc: GT, flag: "🇬🇹", origins: [GUA] }
-  el-salvador:     { name: "El Salvador",          cc: SV, flag: "🇸🇻", origins: [SAL] }
-  honduras:        { name: "Honduras",             cc: HN, flag: "🇭🇳", origins: [SAP, TGU] }
-  nicaragua:       { name: "Nicaragua",            cc: NI, flag: "🇳🇮", origins: [MGA] }
-  costa-rica:      { name: "Costa Rica",           cc: CR, flag: "🇨🇷", origins: [SJO, LIR] }
-  panama:          { name: "Panamá",               cc: PA, flag: "🇵🇦", origins: [PTY] }
-  cuba:            { name: "Cuba",                 cc: CU, flag: "🇨🇺", origins: [HAV] }
-  dominicana:      { name: "República Dominicana", cc: DO, flag: "🇩🇴", origins: [SDQ, PUJ, STI] }
-  puerto-rico:     { name: "Puerto Rico",          cc: PR, flag: "🇵🇷", origins: [SJU] }
-  colombia:        { name: "Colombia",             cc: CO, flag: "🇨🇴", origins: [BOG, MDE, CLO, CTG] }
-  venezuela:       { name: "Venezuela",            cc: VE, flag: "🇻🇪", origins: [CCS] }
-  ecuador:         { name: "Ecuador",              cc: EC, flag: "🇪🇨", origins: [UIO, GYE] }
-  peru:            { name: "Perú",                 cc: PE, flag: "🇵🇪", origins: [LIM] }
-  bolivia:         { name: "Bolivia",              cc: BO, flag: "🇧🇴", origins: [VVI, LPB] }
-  chile:           { name: "Chile",                cc: CL, flag: "🇨🇱", origins: [SCL] }
-  argentina:       { name: "Argentina",            cc: AR, flag: "🇦🇷", origins: [BUE, COR] }
-  uruguay:         { name: "Uruguay",              cc: UY, flag: "🇺🇾", origins: [MVD] }
-  paraguay:        { name: "Paraguay",             cc: PY, flag: "🇵🇾", origins: [ASU] }
+  mexico:          { name: "México",               cc: MX, flag: "🇲🇽", origins: [MEX, CUN, GDL, MTY, TIJ], term: "boletos de avión" }
+  guatemala:       { name: "Guatemala",            cc: GT, flag: "🇬🇹", origins: [GUA], term: "boletos aéreos" }
+  el-salvador:     { name: "El Salvador",          cc: SV, flag: "🇸🇻", origins: [SAL], term: "boletos aéreos" }
+  honduras:        { name: "Honduras",             cc: HN, flag: "🇭🇳", origins: [SAP, TGU], term: "boletos aéreos" }
+  nicaragua:       { name: "Nicaragua",            cc: NI, flag: "🇳🇮", origins: [MGA], term: "boletos aéreos" }
+  costa-rica:      { name: "Costa Rica",           cc: CR, flag: "🇨🇷", origins: [SJO, LIR], term: "tiquetes aéreos" }
+  panama:          { name: "Panamá",               cc: PA, flag: "🇵🇦", origins: [PTY], term: "boletos aéreos" }
+  cuba:            { name: "Cuba",                 cc: CU, flag: "🇨🇺", origins: [HAV], term: "pasajes" }
+  dominicana:      { name: "República Dominicana", cc: DO, flag: "🇩🇴", origins: [SDQ, PUJ, STI], term: "boletos aéreos" }
+  puerto-rico:     { name: "Puerto Rico",          cc: PR, flag: "🇵🇷", origins: [SJU], term: "pasajes aéreos" }
+  colombia:        { name: "Colombia",             cc: CO, flag: "🇨🇴", origins: [BOG, MDE, CLO, CTG], term: "tiquetes aéreos" }
+  venezuela:       { name: "Venezuela",            cc: VE, flag: "🇻🇪", origins: [CCS], term: "boletos aéreos" }
+  ecuador:         { name: "Ecuador",              cc: EC, flag: "🇪🇨", origins: [UIO, GYE], term: "boletos aéreos" }
+  peru:            { name: "Perú",                 cc: PE, flag: "🇵🇪", origins: [LIM], term: "pasajes aéreos" }
+  bolivia:         { name: "Bolivia",              cc: BO, flag: "🇧🇴", origins: [VVI, LPB], term: "pasajes aéreos" }
+  chile:           { name: "Chile",                cc: CL, flag: "🇨🇱", origins: [SCL], term: "pasajes" }
+  argentina:       { name: "Argentina",            cc: AR, flag: "🇦🇷", origins: [BUE, COR], term: "pasajes" }
+  uruguay:         { name: "Uruguay",              cc: UY, flag: "🇺🇾", origins: [MVD], term: "pasajes" }
+  paraguay:        { name: "Paraguay",             cc: PY, flag: "🇵🇾", origins: [ASU], term: "pasajes" }
 
 # Zonas horarias de cada país (para poner primero las ofertas del país del visitante).
 # Una zona que termina en '/' cubre todas las que empiezan así.
