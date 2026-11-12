@@ -50,6 +50,11 @@
                document.querySelector(".chips").insertAdjacentElement("beforebegin", tg); }
     tg.href = info.tg; tg.textContent = "📲 Recibe las ofertas desde " + info.name + " en Telegram";
   }
+  if (info.wa) {
+    var wa = document.createElement("a"); wa.className = "wa-join"; wa.target = "_blank"; wa.rel = "noopener";
+    wa.href = info.wa; wa.textContent = "🟢 Sigue nuestro canal de WhatsApp";
+    document.querySelector(".chips").insertAdjacentElement("beforebegin", wa);
+  }
   var chips = document.querySelector(".chips");
   var chip = chips && chips.querySelector('a[href="/pais/' + id + '"]');
   if (chip) { chips.insertBefore(chip, chips.firstChild); chip.classList.add("mine-chip"); chip.insertAdjacentText("afterbegin", "📍 "); }

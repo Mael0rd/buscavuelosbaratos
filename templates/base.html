@@ -64,6 +64,22 @@
   </footer>
   {% include "_popup.html" %}
   <script>
+  // ?src=wa_centroamerica (enlaces que compartimos en WhatsApp u otras redes): el botón de reserva
+  // usa ese SubID de Travelpayouts para medir las ventas de cada fuente. Se recuerda durante la visita.
+  (function () {
+    var src = null;
+    try {
+      var m = location.search.match(/[?&]src=([A-Za-z0-9_]{1,40})/);
+      if (m) sessionStorage.setItem("bvb_src", m[1]);
+      src = sessionStorage.getItem("bvb_src");
+    } catch (e) {}
+    if (!src) return;
+    var links = document.querySelectorAll('a[rel~="sponsored"]');
+    for (var i = 0; i < links.length; i++)
+      links[i].href = links[i].href.replace(/([?&]marker=)(\d+)(\.[A-Za-z0-9_]*)?/, "$1$2." + src);
+  })();
+  </script>
+  <script>
   // Fechas en la zona horaria de cada visitante (el HTML trae la hora UTC como respaldo)
   (function () {
     var els = document.querySelectorAll("time[data-local-time]");

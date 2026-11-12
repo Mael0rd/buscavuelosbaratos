@@ -9,7 +9,7 @@ from datetime import date, datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
-from . import hubs, ogimage, routes, telegram
+from . import hubs, ogimage, routes, telegram, whatsapp
 from .fetch import with_subid
 from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
@@ -76,6 +76,7 @@ def build(conn, cfg: dict) -> int:
     ended = active_deals(conn, cfg, status="expired")  # sus páginas siguen (con aviso), fuera de listas
     channels = telegram.channel_links(cfg)
     channel_labels = telegram.channel_labels(cfg)
+    wa = whatsapp.wa_links(cfg)  # {país: canal de WhatsApp de su región}
     countries = []
     for cid, c in cfg["countries"].items():
         countries.append({"id": cid, "name": c["name"], "flag": c["flag"], "cc": c["cc"], "origins": c["origins"],
@@ -120,11 +121,11 @@ def build(conn, cfg: dict) -> int:
            "origin_names": cfg.get("origin_names", {}),
            "geo_countries": {cid: {"cc": c["cc"], "tz": cfg.get("timezones", {}).get(cid, []),
                                    "name": c["name"], "flag": c["flag"], "origins": c["origins"],
-                                   "tg": channels.get(cid, "")}
+                                   "tg": channels.get(cid, ""), "wa": (wa.get(cid) or {}).get("url", "")}
                              for cid, c in cfg["countries"].items()},
            "alerts_api": cfg.get("alerts", {}).get("api_base", ""),
            "bot_username": telegram.bot_username(),
-           "channels": channels, "channel_labels": channel_labels,
+           "channels": channels, "channel_labels": channel_labels, "wa_links": wa,
            "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
            "updated_iso": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "origins": origins, "og": "/og/inicio.jpg"}

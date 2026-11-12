@@ -97,6 +97,9 @@ social:
       name: Centroamérica
       aliases: [ca]              # también vale TELEGRAM_CHANNEL_CA
       countries: [costa-rica, panama, guatemala, el-salvador, honduras, nicaragua]
+      # Canal de WhatsApp (semiautomático: el bot le manda cada oferta lista al administrador,
+      # variable WHATSAPP_RELAY_CHAT = su ID de chat de Telegram, y él la pega en el canal)
+      whatsapp: { url: "https://whatsapp.com/channel/0029Vb8nUFML2AU7LFDB4441", per_run: 1, per_day: 3 }
 
 verify:
   # Verificación en vivo (Google Flights) antes de publicar en Telegram.

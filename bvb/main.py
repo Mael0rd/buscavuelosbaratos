@@ -7,7 +7,7 @@ import argparse
 from datetime import datetime, timezone
 
 from . import deals as dl
-from . import alerts, fresh, refdata, routes, site, telegram, verify
+from . import alerts, fresh, refdata, routes, site, telegram, verify, whatsapp
 from .config import load_config
 from .copywriter import write_copy
 from .db import connect
@@ -89,6 +89,9 @@ def run(no_social: bool = False) -> None:
         if edited:
             print(f"Posts marcados como terminados en Telegram: {edited}")
         print(f"Publicadas en Telegram: {telegram.publish(conn, cfg, verifier=verifier)}")
+        wa = whatsapp.relay(conn, cfg, verifier=verifier)
+        if wa:
+            print(f"Listas para WhatsApp (enviadas al administrador): {wa}")
     print(verifier.summary())
 
 

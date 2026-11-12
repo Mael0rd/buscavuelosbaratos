@@ -132,7 +132,9 @@ h2 .flag { width: 26px; height: 19px; vertical-align: -1px; }
 /* Unirse al canal de Telegram */
 .tg-join { display: inline-block; margin: 0 0 1rem; background: #229ED9; color: #fff; font-weight: 700;
            padding: .55rem 1rem; border-radius: 999px; font-size: .95rem; }
-.tg-join:hover { filter: brightness(1.07); }
+.tg-join:hover, .wa-join:hover { filter: brightness(1.07); }
+.wa-join { display: inline-block; margin: 0 0 1rem; background: #25D366; color: #fff; font-weight: 700;
+           padding: .55rem 1rem; border-radius: 999px; font-size: .95rem; }
 .deal.is-ended .price { color: var(--muted); text-decoration: line-through; }
 .deal.is-ended .badge { display: none; }
 .seen.ok { color: var(--good); font-weight: 600; }
