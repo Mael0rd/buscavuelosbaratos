@@ -112,8 +112,9 @@ class Extras:
         self.http = session or requests.Session()
         self.token, self.marker = env("TRAVELPAYOUTS_TOKEN"), env("TRAVELPAYOUTS_MARKER")
         self.offline = env("BVB_MOCK") == "1"
-        self.checks_left = int(self.cfg.get("max_url_checks_per_run", 150))
-        self.links_left = int(self.cfg.get("max_new_links_per_run", 300))
+        # topes por corrida (la vista previa no guarda caché: los sube con variables de entorno)
+        self.checks_left = int(env("BVB_EXTRAS_CHECKS") or self.cfg.get("max_url_checks_per_run", 150))
+        self.links_left = int(env("BVB_EXTRAS_LINKS") or self.cfg.get("max_new_links_per_run", 300))
         self.by_brand: dict = {}
         self.stats = {"verificadas": 0, "no_existen": 0, "enlaces_nuevos": 0, "sin_convertir": 0}
         conn.executescript(SCHEMA)

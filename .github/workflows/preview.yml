@@ -42,6 +42,8 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}   # solo para leer el nombre del bot
           TELEGRAM_CHANNEL: ${{ vars.TELEGRAM_CHANNEL }}
           BVB_VARS: ${{ toJSON(vars) }}
+          BVB_EXTRAS_CHECKS: "2000"   # sin caché entre corridas: comprobar y convertir todo de una vez
+          BVB_EXTRAS_LINKS: "2000"
         run: python -m bvb.main --build-only
 
       - uses: actions/setup-node@v4
