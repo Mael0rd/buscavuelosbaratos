@@ -8,6 +8,7 @@ import requests
 from . import deals as dl
 from . import telegram
 from .config import env
+from .fetch import with_subid
 from .copywriter import fmt_stops, savings_pct
 
 
@@ -49,7 +50,7 @@ def telegram_alert(d: dict, cfg: dict) -> tuple[str, dict]:
         lines.insert(1, f"🔥 {ahorro}% menos de lo normal")
     lines.append("Para ver o quitar tus alertas: /misalertas")
     markup = {"inline_keyboard": [
-        [{"text": "🎟️ Reservar ahora", "url": d["link"] or site}],
+        [{"text": "🎟️ Reservar ahora", "url": with_subid(d["link"], "alerta_tg") or site}],
         [{"text": f"🔎 Más ofertas desde {country}", "url": f"{site}/pais/{d['country']}"}],
     ]}
     return "\n".join(lines), markup
@@ -74,7 +75,7 @@ def email_alert(d: dict, cfg: dict, unsub_url: str) -> tuple[str, str]:
     <span style="font-size:14px;color:#5c6577;font-weight:500">USD ida y vuelta</span></p>
   {f'<p style="color:#2a7f62;font-weight:600;margin:6px 0">{ahorro}% menos de lo normal (~${d["baseline"]:.0f})</p>' if ahorro >= 10 else ''}
   <p>🗓️ Ida: {e(fechas)}<br>🔁 {detalle}</p>
-  <p style="margin:24px 0"><a href="{e(d['link'] or site)}" style="background:#e85d04;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Ver vuelo y precio actual</a></p>
+  <p style="margin:24px 0"><a href="{e(with_subid(d['link'], 'alerta_email') or site)}" style="background:#e85d04;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Ver vuelo y precio actual</a></p>
   <p style="color:#5c6577;font-size:13px">Precio encontrado recientemente; puede cambiar en cualquier momento.
     Algunos enlaces son de afiliado: si compras, recibimos una comisión sin costo extra para ti.</p>
   <p style="color:#5c6577;font-size:13px"><a href="{site}/pais/{d['country']}" style="color:#5c6577">Más ofertas desde tu país</a>

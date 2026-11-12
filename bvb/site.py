@@ -10,6 +10,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
 from . import hubs, ogimage, routes, telegram
+from .fetch import with_subid
 from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
 
@@ -67,6 +68,7 @@ def build(conn, cfg: dict) -> int:
     env.filters["fecha"] = fmt_date
     env.filters["escalas"] = fmt_stops
     env.filters["hace"] = telegram.ago
+    env.filters["subid"] = with_subid  # {{ link|subid("web_oferta") }}: SubID de Travelpayouts por fuente
     env.filters["faq_ld"] = lambda qa: {"@type": "Question", "name": qa[0],
                                         "acceptedAnswer": {"@type": "Answer", "text": qa[1]}}
 

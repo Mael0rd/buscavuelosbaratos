@@ -40,7 +40,7 @@
   <h2>Ahora no hay una oferta verificada en esta ruta</h2>
   <p>Crea una alerta y te avisamos por correo o Telegram cuando el precio baje de verdad.</p>
   <a class="cta" href="/alertas?o={{ r.origin|urlencode }}&d={{ r.destination|urlencode }}&dn={{ r.dest_name|urlencode }}">🔔 Avísame cuando baje</a>
-  {% if r.last_link %}<a class="alert-link" href="{{ r.last_link }}" rel="sponsored nofollow noopener" target="_blank">Ver precios actuales →</a>{% endif %}
+  {% if r.last_link %}<a class="alert-link" href="{{ r.last_link|subid('web_ruta') }}" rel="sponsored nofollow noopener" target="_blank">Ver precios actuales →</a>{% endif %}
 </section>
 {% endif %}
 

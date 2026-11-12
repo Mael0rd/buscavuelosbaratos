@@ -5,6 +5,7 @@ devuelve el boleto más barato hacia cada destino (precios encontrados por
 usuarios de Aviasales en las últimas ~48 h). Una consulta por origen y mes.
 """
 import json
+import re
 import time
 from datetime import date
 
@@ -35,6 +36,20 @@ def affiliate_link(relative_link: str, marker: str) -> str:
     if marker:
         url += ("&" if "?" in url else "?") + f"marker={marker}"
     return url
+
+
+_MARKER_RE = re.compile(r"([?&]marker=)(\d+)(?:\.[A-Za-z0-9_]*)?")
+
+
+def with_subid(url: str, subid: str) -> str:
+    """Agrega (o reemplaza) el SubID de Travelpayouts: marker=803749 → marker=803749.tg_mexico.
+
+    Así las estadísticas de Travelpayouts separan clics y ventas por canal.
+    Solo se permiten letras latinas, números y "_" (lo demás se cambia por "_")."""
+    if not url or not subid:
+        return url or ""
+    clean = re.sub(r"[^A-Za-z0-9_]", "_", subid)
+    return _MARKER_RE.sub(lambda m: f"{m.group(1)}{m.group(2)}.{clean}", url, count=1)
 
 
 def fetch_origin_month(origin: str, month: str, cfg: dict) -> list[dict]:

@@ -11,6 +11,7 @@ import requests
 
 from .config import env
 from .copywriter import fmt_date, fmt_stops, savings_pct
+from .fetch import with_subid
 from .fresh import age_hours
 from .verify import priority
 from . import ogimage
@@ -54,7 +55,7 @@ def verified_lines(row: dict, now: datetime | None = None) -> list[str]:
 
 
 def build_message(row: dict, site_url: str, country_name: str,
-                  now: datetime | None = None) -> tuple[str, dict]:
+                  now: datetime | None = None, subid: str = "") -> tuple[str, dict]:
     e = html.escape
     ahorro = savings_pct(row)
     header = (f"🔥 <b>{ahorro}% MENOS DE LO NORMAL</b>" if ahorro >= 10
@@ -82,7 +83,7 @@ def build_message(row: dict, site_url: str, country_name: str,
     share_text = (f"✈️ {row['origin_name']} → {row['dest_name']} por ${row['price']:.0f} "
                   f"ida y vuelta. Mira la oferta: {deal_url}")
     markup = {"inline_keyboard": [
-        [{"text": "🎟️ Ver precio actual y reservar", "url": row["link"] or deal_url}],
+        [{"text": "🎟️ Ver precio actual y reservar", "url": with_subid(row["link"], subid) or deal_url}],
         [{"text": "📲 Compartir en WhatsApp", "url": "https://wa.me/?text=" + quote(share_text)}],
         [{"text": f"🔎 Más ofertas desde {country_name}",
           "url": f"{site_url}/pais/{row['country']}"}],
@@ -357,6 +358,8 @@ def publish(conn, cfg: dict, now: datetime | None = None, verifier=None) -> dict
         cc = cfg["countries"].get(d["country"], {}).get("cc", "")
         photo = ogimage.deal_image_bytes(d, cc) if _caption_len(text) <= CAPTION_MAX else None
         for chat in want:
+            # Mismo texto; el botón de reserva lleva el SubID del canal (tg_general, tg_mexico...)
+            markup = build_message(d, site, cname, now, subid=f"tg_{names[chat]}")[1]
             kind = "photo" if photo else "text"
             mid = send_photo(photo, text, markup, chat) if photo else None
             if photo and not mid:  # la foto falló: que al menos salga el texto

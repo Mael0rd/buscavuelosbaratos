@@ -26,7 +26,7 @@
   <p class="seen ok" data-ts="{{ d.verified_at }}">✅ Precio verificado {{ d.verified_at|hace }} en Google Flights{% if d.price_level == 'low' %} · Google lo marca como <b>precio bajo</b>{% if d.typical_low and d.typical_high %} (normal: ${{ "%.0f"|format(d.typical_low) }}–${{ "%.0f"|format(d.typical_high) }}){% endif %}{% endif %}</p>
   {% elif d.found_at and d.status != 'expired' %}<p class="seen" data-ts="{{ d.found_at }}">🕒 Precio visto {{ d.found_at|hace }} · los precios cambian rápido</p>{% endif %}
   {% if d.status != 'expired' %}
-  <a class="cta" href="{{ d.link }}" rel="sponsored nofollow noopener" target="_blank">Ver vuelo y precio actual</a>
+  <a class="cta" href="{{ d.link|subid('web_oferta_' ~ d.country) }}" rel="sponsored nofollow noopener" target="_blank">Ver vuelo y precio actual</a>
   {% endif %}
   {% if d.status != 'expired' %}
   {% set share_text = "✈️ " ~ d.origin_name ~ " → " ~ d.dest_name ~ " por $" ~ "%.0f"|format(d.price) ~ " ida y vuelta (" ~ d.departure_at|fecha ~ ((" – " ~ d.return_at|fecha) if d.return_at else "") ~ ")" ~ (". Precio verificado en Google Flights" if d.verify_status == 'ok' else "") %}
