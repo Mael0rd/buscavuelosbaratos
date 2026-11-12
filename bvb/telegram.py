@@ -218,12 +218,21 @@ def country_channels(cfg: dict) -> dict:
     v = _vars()
     out = {}
     for rid, r in (cfg.get("social", {}).get("regions") or {}).items():
-        chat = (v.get(channel_var(rid)) or "").strip()
+        chat = region_chat(v, rid, r)
         if chat:
             out.update({cid: chat for cid in r.get("countries", []) if cid in cfg["countries"]})
     out.update({cid: v[channel_var(cid)].strip() for cid in cfg["countries"]
                 if (v.get(channel_var(cid)) or "").strip()})
     return out
+
+
+def region_chat(v: dict, rid: str, region: dict) -> str:
+    """Canal de una región: TELEGRAM_CHANNEL_<REGIÓN> o uno de sus alias (p. ej. _CA)."""
+    for name in [rid] + list(region.get("aliases") or []):
+        chat = (v.get(channel_var(name)) or "").strip()
+        if chat:
+            return chat
+    return ""
 
 
 def channel_labels(cfg: dict) -> dict:
@@ -243,8 +252,8 @@ def channel_labels(cfg: dict) -> dict:
 def _channel_name(cfg: dict, chat: str, cid: str) -> str:
     """Nombre para el registro/estadísticas: la región si el chat es regional, si no el país."""
     v = _vars()
-    for rid in (cfg.get("social", {}).get("regions") or {}):
-        if (v.get(channel_var(rid)) or "").strip() == chat:
+    for rid, r in (cfg.get("social", {}).get("regions") or {}).items():
+        if region_chat(v, rid, r) == chat:
             return rid
     return cid
 

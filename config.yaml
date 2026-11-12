@@ -93,6 +93,7 @@ social:
   regions:
     centroamerica:
       name: Centroamérica
+      aliases: [ca]              # también vale TELEGRAM_CHANNEL_CA
       countries: [costa-rica, panama, guatemala, el-salvador, honduras, nicaragua]
 
 verify:

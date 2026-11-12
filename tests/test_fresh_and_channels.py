@@ -320,3 +320,10 @@ def test_channel_values_are_normalized():
     assert n("buscavuelosbaratos_cl") == "@buscavuelosbaratos_cl"
     assert n(" @x ") == "@x" and n("https://t.me/x/") == "@x" and n("t.me/x") == "@x"
     assert n("-1001234") == "-1001234" and n("") == ""
+
+
+def test_region_alias_variable(tg, monkeypatch):
+    reg = {**REG, "social": {**REG["social"], "regions": {"centroamerica": {
+        "name": "Centroamérica", "aliases": ["ca"], "countries": ["costa-rica", "panama"]}}}}
+    monkeypatch.setenv("BVB_VARS", '{"TELEGRAM_CHANNEL_CA": "buscavuelosbaratos_ca"}')
+    assert telegram.country_channels(reg) == {"costa-rica": "@buscavuelosbaratos_ca", "panama": "@buscavuelosbaratos_ca"}
