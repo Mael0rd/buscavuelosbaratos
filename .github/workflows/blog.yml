@@ -52,6 +52,16 @@ jobs:
           echo "KV: $ID"
           test -n "$ID"
           sed -i "s/__KV_ID__/$ID/" wrangler.toml
+          echo "KV_ID=$ID" >> "$GITHUB_ENV"
+
+      - name: Primeras guías (solo si el blog está vacío)
+        run: |
+          npx wrangler kv key get posts --namespace-id "$KV_ID" --remote > actual.json 2>/dev/null || true
+          if node -e 'const p=JSON.parse(require("fs").readFileSync("actual.json","utf8")); process.exit(Array.isArray(p) && p.length ? 0 : 1)' 2>/dev/null; then
+            echo "El blog ya tiene guías: no se toca."
+          else
+            npx wrangler kv key put posts --path seed-posts.json --namespace-id "$KV_ID" --remote
+          fi
 
       - name: Publicar blog
         run: npx wrangler deploy
