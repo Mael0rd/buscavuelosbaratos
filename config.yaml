@@ -89,6 +89,9 @@ social:
   main:    { per_run: 1, per_day: 10 }
   country: { per_run: 2, per_day: 10 }
   quiet_hours: [23, 6]           # no publicar de 11 p. m. a 6 a. m. (hora local del canal)
+  # Cuenta de Threads (API oficial, gratis; secret THREADS_TOKEN). Un tema por publicación:
+  # "topic" para todas o "topics" por país (p. ej. costa-rica: "Vuelos baratos Costa Rica").
+  threads: { enabled: true, per_run: 1, per_day: 8, topic: "Vuelos baratos" }
   timezone: America/Costa_Rica   # hora del canal general
   # Canales regionales: un solo canal para varios países con pocas ofertas
   # (variable TELEGRAM_CHANNEL_<REGIÓN>). Si un país tiene su propio canal, ese tiene prioridad.

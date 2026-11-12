@@ -144,4 +144,15 @@ assert.equal(sent.length, 1);
 assert.match(sent[0].url, /api\.github\.com\/repos\/Mael0rd\/buscavuelosbaratos\/actions\/workflows\/run\.yml\/dispatches$/);
 assert.deepEqual(sent[0].body, { ref: "main" });
 
+// Almacén privado (token de Threads)
+const adm = { Authorization: `Bearer ${await adminToken(env)}`, "Content-Type": "application/json" };
+assert.equal((await call("/api/kv/threads_token")).status, 403);
+assert.equal((await call("/api/kv/threads_token", { headers: adm })).status, 404);
+r = await call("/api/kv/threads_token", { method: "PUT", headers: adm, body: JSON.stringify({ value: "TH1" }) });
+assert.ok((await r.json()).ok);
+await call("/api/kv/threads_token", { method: "PUT", headers: adm, body: JSON.stringify({ value: "TH2" }) });
+assert.equal((await (await call("/api/kv/threads_token", { headers: adm })).json()).value, "TH2");
+assert.equal((await call("/api/kv/threads_token", { method: "PUT", headers: { Authorization: "Bearer x" },
+  body: JSON.stringify({ value: "hack" }) })).status, 403);
+
 console.log("Worker: todas las pruebas pasaron ✔");

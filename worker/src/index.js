@@ -410,6 +410,24 @@ export default {
       return json(results);
     }
 
+    // Almacén privado del buscador (token de Threads, etc.): solo con la clave de administrador
+    const kv = p.match(/^\/api\/kv\/([a-z0-9_]{1,40})$/);
+    if (kv) {
+      if (req.headers.get("Authorization") !== `Bearer ${await adminToken(env)}`)
+        return json({ error: "forbidden" }, 403);
+      if (req.method === "PUT") {
+        const { value } = await req.json().catch(() => ({}));
+        if (typeof value !== "string" || !value || value.length > 4000) return json({ error: "bad value" }, 400);
+        await env.DB.prepare(
+          "INSERT INTO kv (key, value, updated_at) VALUES (?, ?, datetime('now')) " +
+          "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at"
+        ).bind(kv[1], value).run();
+        return json({ ok: true });
+      }
+      const row = await env.DB.prepare("SELECT value, updated_at FROM kv WHERE key=?").bind(kv[1]).first();
+      return row ? json(row) : json({ error: "not found" }, 404);
+    }
+
     if (p === "/") return json({ ok: true, service: "alertas buscavuelosbaratos" });
     return json({ error: "not found" }, 404);
   },

@@ -21,3 +21,11 @@ CREATE TABLE IF NOT EXISTS bot_state (
   origin TEXT,
   updated_at TEXT DEFAULT (datetime('now'))
 );
+
+-- Valores privados que el buscador necesita guardar entre corridas (p. ej. el token
+-- de Threads, que se renueva cada pocas semanas). Solo con la clave de administrador.
+CREATE TABLE IF NOT EXISTS kv (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TEXT DEFAULT (datetime('now'))
+);
