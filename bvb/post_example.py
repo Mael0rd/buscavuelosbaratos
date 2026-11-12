@@ -38,9 +38,13 @@ def main(country: str, target: str = "pais") -> None:
         raise SystemExit(f"País desconocido: {country}. Opciones: {', '.join(cfg['countries'])}")
     if not env("TELEGRAM_BOT_TOKEN"):
         raise SystemExit("Falta TELEGRAM_BOT_TOKEN.")
-    chat = telegram.country_channels(cfg).get(country) if target == "pais" else env("TELEGRAM_CHANNEL")
+    found = sorted(k for k in telegram._vars() if k.startswith("TELEGRAM_CHANNEL_"))
+    print(f"Variables de canal encontradas: {found or 'ninguna'}")
+    chat = telegram.country_channels(cfg).get(country) if target == "pais" else telegram.normalize_chat(env("TELEGRAM_CHANNEL"))
     if not chat:
-        raise SystemExit(f"No hay canal configurado ({telegram.channel_var(country) if target == 'pais' else 'TELEGRAM_CHANNEL'}).")
+        regs = [rid for rid, r in (cfg["social"].get("regions") or {}).items() if country in r["countries"]]
+        names = [telegram.channel_var(country)] + [telegram.channel_var(r) for r in regs]
+        raise SystemExit(f"No hay canal configurado (se busca {' o '.join(names) if target == 'pais' else 'TELEGRAM_CHANNEL'}).")
     if not diagnose(chat):
         raise SystemExit(1)
 

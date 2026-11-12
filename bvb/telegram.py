@@ -162,7 +162,7 @@ def edit_caption(chat_id: str, message_id: int, caption: str, markup: dict) -> b
 def send(text: str, markup: dict, chat_id: str | None = None):
     """Envía al canal general (por defecto) o a otro chat. Devuelve message_id o None."""
     res = _call("sendMessage", {
-        "chat_id": chat_id or env("TELEGRAM_CHANNEL"), "text": text, "parse_mode": "HTML",
+        "chat_id": chat_id or normalize_chat(env("TELEGRAM_CHANNEL")), "text": text, "parse_mode": "HTML",
         "reply_markup": markup, "link_preview_options": {"is_disabled": True}})
     return res.get("message_id") if isinstance(res, dict) else None
 
@@ -193,7 +193,19 @@ def _vars() -> dict:
     except ValueError:
         pass
     out.update({k: v for k, v in os.environ.items() if k.startswith("TELEGRAM_CHANNEL")})
-    return out
+    return {k: (normalize_chat(v) if k.startswith("TELEGRAM_CHANNEL") and isinstance(v, str) else v)
+            for k, v in out.items()}
+
+
+def normalize_chat(value: str) -> str:
+    """Acepta '@canal', 'canal', 't.me/canal' o 'https://t.me/canal' (y IDs numéricos -100…)."""
+    v = (value or "").strip()
+    for pre in ("https://", "http://"):
+        v = v.removeprefix(pre)
+    v = v.removeprefix("t.me/").removeprefix("telegram.me/").strip("/")
+    if not v or v.startswith("@") or v.lstrip("-").isdigit():
+        return v
+    return "@" + v
 
 
 def channel_var(cid: str) -> str:
@@ -241,7 +253,7 @@ def channel_links(cfg: dict) -> dict:
     """Enlaces t.me públicos: {'main': url, '<país>': url}."""
     def link(chat):
         return f"https://t.me/{chat.lstrip('@')}" if chat and chat.startswith("@") else ""
-    out = {"main": link(_vars().get("TELEGRAM_CHANNEL", "") or env("TELEGRAM_CHANNEL"))}
+    out = {"main": link(_vars().get("TELEGRAM_CHANNEL", "") or normalize_chat(env("TELEGRAM_CHANNEL")))}
     out.update({cid: link(chat) for cid, chat in country_channels(cfg).items()})
     return {k: v for k, v in out.items() if v}
 
@@ -281,7 +293,7 @@ def publish(conn, cfg: dict, now: datetime | None = None, verifier=None) -> dict
     print(f"[telegram] variables de canal encontradas: {found or 'ninguna'} "
           f"(nombres esperados: TELEGRAM_CHANNEL_<PAÍS o REGIÓN>, p. ej. {channel_var('mexico')})")
 
-    general = env("TELEGRAM_CHANNEL")
+    general = normalize_chat(env("TELEGRAM_CHANNEL"))
     targets = []
     if general:
         targets.append(("general", general, soc["main"], soc["timezone"]))

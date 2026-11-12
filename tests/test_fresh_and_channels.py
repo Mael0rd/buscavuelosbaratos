@@ -313,3 +313,10 @@ def test_regional_channel_has_one_quota(tg, monkeypatch):
     stats = telegram.publish(c, REG, NOW)
     assert stats["centroamerica"] == 2 and "costa-rica" not in stats  # per_run del canal = 2, una sola vez
     assert [ch for ch, _ in sent].count("@ca") == 2
+
+
+def test_channel_values_are_normalized():
+    n = telegram.normalize_chat
+    assert n("buscavuelosbaratos_cl") == "@buscavuelosbaratos_cl"
+    assert n(" @x ") == "@x" and n("https://t.me/x/") == "@x" and n("t.me/x") == "@x"
+    assert n("-1001234") == "-1001234" and n("") == ""
