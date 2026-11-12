@@ -27,6 +27,13 @@ on:
           - argentina
           - uruguay
           - paraguay
+      canal:
+        description: "Dónde publicar"
+        type: choice
+        default: pais
+        options:
+          - pais
+          - general
 
 permissions:
   contents: read
@@ -53,4 +60,5 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL: ${{ vars.TELEGRAM_CHANNEL }}
-        run: python -m bvb.post_example "${{ inputs.pais }}"
+          BVB_VARS: ${{ toJSON(vars) }}
+        run: python -m bvb.post_example "${{ inputs.pais }}" "${{ inputs.canal }}"
