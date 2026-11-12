@@ -18,7 +18,8 @@
   <meta name="theme-color" content="#14213d">
   {% if page_path %}{% set canonical = "https://" ~ site.domain ~ page_path %}
   <link rel="canonical" href="{{ canonical }}">
-  <meta property="og:url" content="{{ canonical }}">{% else %}
+  <meta property="og:url" content="{{ canonical }}">{% if noindex %}
+  <meta name="robots" content="noindex, follow">{% endif %}{% else %}
   <meta name="robots" content="noindex">{% endif %}
   <meta property="og:site_name" content="{{ site.title }}">
   <meta property="og:locale" content="es_419">
@@ -31,14 +32,18 @@
   <meta name="twitter:card" content="summary_large_image">
   {% block head %}{% endblock %}
   {% include "_geo.html" %}
-  <!-- Travelpayouts Drive -->
-  <script nowprocket data-noptimize="1" data-cfasync="false" data-wpfc-render="false" seraph-accel-crit="1" data-no-defer="1" data-cmp-ab="2">
+  <!-- Travelpayouts Drive: se carga cuando la página ya terminó de pintarse (no frena la carga ni los Core Web Vitals) -->
+  <script>
     (function () {
-        var script = document.createElement("script");
-        script.async = 1;
-        script.setAttribute("data-cmp-ab","2");
-        script.src = 'https://emrldtp.cc/NTk4ODQ2.js?t=598846';
-        document.head.appendChild(script);
+      function drive() {
+        var s = document.createElement("script");
+        s.async = 1;
+        s.setAttribute("data-cmp-ab", "2");
+        s.src = "https://emrldtp.cc/NTk4ODQ2.js?t=598846";
+        document.head.appendChild(s);
+      }
+      function later() { ("requestIdleCallback" in window) ? requestIdleCallback(drive, { timeout: 3000 }) : setTimeout(drive, 1500); }
+      if (document.readyState === "complete") later(); else window.addEventListener("load", later);
     })();
   </script>
 </head>

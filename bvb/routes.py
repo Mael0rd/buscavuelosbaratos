@@ -88,7 +88,8 @@ def _month_prices(t: dict):
 
 
 # ---------- páginas ----------
-def build_pages(conn, cfg: dict, active: list[dict], ended: list[dict], min_days: int) -> list[dict]:
+def build_pages(conn, cfg: dict, active: list[dict], ended: list[dict], min_days: int,
+                index_min_days: int = 14, index_min_months: int = 2) -> list[dict]:
     """Rutas con suficientes datos para tener página propia, con sus estadísticas."""
     conn.executescript(SCHEMA)
     country_of = {code: cid for cid, c in cfg["countries"].items() for code in c["origins"]}
@@ -120,6 +121,10 @@ def build_pages(conn, cfg: dict, active: list[dict], ended: list[dict], min_days
             cheapest_month=(month_label(cheapest[0]), cheapest[1]) if cheapest else None,
             airlines=json.loads(r["airlines"] or "[]"), deal=deal_by_route.get(key),
             chart=sparkline(points),
+            # Google solo indexa la página cuando ya tiene datos propios suficientes
+            # (evita cientos de páginas casi iguales = "contenido a escala" de poco valor).
+            indexable=len(points) >= index_min_days and len(months) >= index_min_months,
+            lastmod=points[-1][0],
         )
         pages.append(r)
 

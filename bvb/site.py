@@ -83,7 +83,8 @@ def build(conn, cfg: dict) -> int:
 
     # Páginas permanentes por ruta (SEO)
     seo = cfg.get("seo", {})
-    route_pages = routes.build_pages(conn, cfg, deals, ended, seo.get("route_min_days", 3))
+    route_pages = routes.build_pages(conn, cfg, deals, ended, seo.get("route_min_days", 3),
+                                     seo.get("index_min_days", 14), seo.get("index_min_months", 2))
     slug_of_route = {(r["origin"], r["destination"]): r["slug"] for r in route_pages}
     for d in deals + ended:
         d["route_slug"] = slug_of_route.get((d["origin"], d["destination"]))
@@ -177,6 +178,7 @@ def build(conn, cfg: dict) -> int:
         r["origin_slug"] = o["slug"] if o else None
         r["dest_slug"] = dh["dest_slug"] if dh else None
         write(f"vuelos/{r['slug']}.html", "route.html", r=r, c=by_id.get(r["country"]), faqs=routes.faq(r),
+              noindex=not r["indexable"],
               og=(r["deal"] and f"/og/oferta-{r['deal']['slug']}.jpg") or (dh or {}).get("og") or (o or {}).get("og", ctx["og"]))
     for page, title in INFO_PAGES.items():
         write(f"{page}.html", f"{page}.html", title=title)
@@ -198,16 +200,21 @@ def build(conn, cfg: dict) -> int:
         redirects.append(f"/oferta/{x['slug']}.html {target} 301")
     (SITE_DIR / "_redirects").write_text("\n".join(redirects[:1900]) + ("\n" if redirects else ""))
 
+    # Sitemap: solo páginas permanentes e indexables. Las /oferta/ duran horas o días
+    # (gastarían rastreo); Google las descubre igual por los enlaces internos.
     base = f"https://{cfg['site']['domain']}"
-    urls = ([f"{base}/", f"{base}/alertas"] + [f"{base}/{p}" for p in INFO_PAGES]
-            + [f"{base}/pais/{c['id']}" for c in countries]
-            + [f"{base}/desde/{o['slug']}" for o in origins]
-            + [f"{base}/destino/{s}" for s in destinations]
-            + [f"{base}/vuelos/{r['slug']}" for r in route_pages]
-            + [f"{base}/oferta/{d['slug']}" for d in deals])
+    today = date.today().isoformat()
+    urls = ([(f"{base}/", today), (f"{base}/alertas", None)] + [(f"{base}/{p}", None) for p in INFO_PAGES]
+            + [(f"{base}/pais/{c['id']}", today) for c in countries]
+            + [(f"{base}/desde/{o['slug']}", today) for o in origins]
+            + [(f"{base}/destino/{s}", today) for s in destinations]
+            + [(f"{base}/vuelos/{r['slug']}", r["lastmod"]) for r in route_pages if r["indexable"]])
     (SITE_DIR / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        + "".join(f"  <url><loc>{u}</loc></url>\n" for u in urls) + "</urlset>\n")
+        + "".join(f"  <url><loc>{u}</loc>" + (f"<lastmod>{m}</lastmod>" if m else "") + "</url>\n"
+                  for u, m in urls) + "</urlset>\n")
+    n_idx = sum(r["indexable"] for r in route_pages)
+    print(f"[web] rutas: {len(route_pages)} páginas, {n_idx} indexables, {len(route_pages) - n_idx} con noindex")
     (SITE_DIR / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n")
     return len(deals)

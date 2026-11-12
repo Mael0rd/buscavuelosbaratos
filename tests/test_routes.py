@@ -56,3 +56,13 @@ def test_direct_flag_is_sticky():
     routes.update(c, {("SJO", "MIA"): t(250, "MIA", transfers=0)}, REF, "2026-11-10")
     routes.update(c, {("SJO", "MIA"): t(260, "MIA", transfers=1)}, REF, "2026-11-11")
     assert c.execute("SELECT direct_seen FROM routes").fetchone()[0] == 1
+
+
+def test_indexable_only_with_enough_history():
+    c = conn()
+    routes.update(c, {("SJO", "MAD"): t(620), ("SJO", "MIA"): t(250, "MIA", 0)}, REF, "2026-11-11")
+    history(c, "MAD", [700] * 14)                     # 14 días y 3 meses con precio: se indexa
+    history(c, "MIA", [260, 255, 250, 270])            # 4 días: página propia, pero noindex
+    by = {p["destination"]: p for p in routes.build_pages(c, CFG, [], [], min_days=3)}
+    assert by["MAD"]["indexable"] and not by["MIA"]["indexable"]
+    assert by["MAD"]["lastmod"] == by["MAD"]["points"][-1][0]

@@ -79,6 +79,8 @@ deals:
 
 seo:
   route_min_days: 3      # días de historial para que una ruta tenga página propia (/vuelos/...)
+  index_min_days: 14     # ...y para que Google la indexe (antes: noindex, follow; fuera del sitemap)
+  index_min_months: 2    # ...además de precios en al menos 2 meses de salida
   redirect_days: 90      # ofertas terminadas: redirigir su URL a la página de la ruta durante 90 días
 
 social:
