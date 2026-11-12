@@ -93,6 +93,8 @@ social:
   # "topic" para todas o "topics" por país (p. ej. costa-rica: "Vuelos baratos Costa Rica").
   threads: { enabled: true, per_run: 1, per_day: 8, topic: "Vuelos baratos",
              url: "https://www.threads.com/@buscavuelosbaratos" }
+  # Otros perfiles oficiales (Instagram, Facebook, etc.): salen en el sameAs de la portada.
+  profiles: []
   timezone: America/Costa_Rica   # hora del canal general
   # Canales regionales: un solo canal para varios países con pocas ofertas
   # (variable TELEGRAM_CHANNEL_<REGIÓN>). Si un país tiene su propio canal, ese tiene prioridad.

@@ -24,6 +24,7 @@
 {% set tg = channels.get(o.country) or channels.get('main') %}
 {% if tg %}<a class="tg-join" href="{{ tg }}" target="_blank" rel="noopener">📲 Recibe las ofertas {% if channels.get(o.country) %}desde {{ channel_labels.get(o.country, o.country_name) }} {% endif %}en Telegram</a>{% endif %}
 {% set wa = wa_links.get(o.country) %}{% if wa %}<a class="wa-join" href="{{ wa.url }}" target="_blank" rel="noopener">🟢 Sigue el canal de WhatsApp de {{ wa.name }}</a>{% endif %}
+{% if threads_url %}<a class="th-join" href="{{ threads_url }}" target="_blank" rel="noopener">@ Síguenos en Threads</a>{% endif %}
 
 {% if o.deals %}
 <h2 class="sec-title">✅ Ofertas verificadas ahora desde {{ o.name }}</h2>

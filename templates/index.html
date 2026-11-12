@@ -1,4 +1,16 @@
 {% extends "base.html" %}
+{% block head %}
+  <script type="application/ld+json">{{ {
+    "@context": "https://schema.org",
+    "@graph": [
+      {"@type": "Organization", "@id": "https://" ~ site.domain ~ "/#org", "name": site.title,
+       "url": "https://" ~ site.domain ~ "/", "logo": "https://" ~ site.domain ~ "/static/icon-512.png",
+       "email": site.contact_email, "sameAs": same_as},
+      {"@type": "WebSite", "@id": "https://" ~ site.domain ~ "/#web", "name": site.title,
+       "url": "https://" ~ site.domain ~ "/", "inLanguage": "es", "publisher": {"@id": "https://" ~ site.domain ~ "/#org"}}
+    ]
+  }|tojson }}</script>
+{% endblock %}
 {% block content %}
 <section class="hero">
   <h1>Vuelos baratos desde Latinoamérica</h1>
@@ -6,6 +18,8 @@
 </section>
 
 {% if channels.get('main') %}<a class="tg-join" id="tg-join" href="{{ channels['main'] }}" target="_blank" rel="noopener">📲 Recibe las ofertas en Telegram</a>{% endif %}
+
+{% if threads_url %}<a class="th-join" href="{{ threads_url }}" target="_blank" rel="noopener">@ Síguenos en Threads</a>{% endif %}
 
 {% include "_chips.html" %}
 

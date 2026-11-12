@@ -13,6 +13,7 @@
 {% set tg = channels.get(c.id) or channels.get('main') %}
 {% if tg %}<a class="tg-join" href="{{ tg }}" target="_blank" rel="noopener">📲 Recibe las ofertas {% if channels.get(c.id) %}desde {{ channel_labels.get(c.id, c.name) }} {% endif %}en Telegram</a>{% endif %}
 {% set wa = wa_links.get(c.id) %}{% if wa %}<a class="wa-join" href="{{ wa.url }}" target="_blank" rel="noopener">🟢 Sigue el canal de WhatsApp de {{ wa.name }}</a>{% endif %}
+{% if threads_url %}<a class="th-join" href="{{ threads_url }}" target="_blank" rel="noopener">@ Síguenos en Threads</a>{% endif %}
 
 <p class="muted small">¿Buscas una ruta en particular? <a href="/alertas" style="color:var(--accent);font-weight:600">Crea una alerta</a> y te avisamos cuando baje.</p>
 
