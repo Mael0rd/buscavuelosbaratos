@@ -78,4 +78,9 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           npx --yes wrangler@4 pages project create buscavuelosbaratos --production-branch=main 2>&1 | tail -3 || true
-          npx --yes wrangler@4 pages deploy site --project-name=buscavuelosbaratos --branch=main --commit-dirty=true
+          # Cloudflare a veces responde con errores internos pasajeros: hasta 3 intentos
+          for i in 1 2 3; do
+            npx --yes wrangler@4 pages deploy site --project-name=buscavuelosbaratos --branch=main --commit-dirty=true && exit 0
+            echo "Intento $i falló; reintento en $((i * 30)) s"; sleep $((i * 30))
+          done
+          exit 1
