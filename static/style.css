@@ -317,3 +317,9 @@ table.dests td:first-child a { color: var(--accent); font-weight: 600; }
 /* Portada: cómo funciona */
 .how ol { margin: .5rem 0 0; padding-left: 1.2rem; }
 .how li { margin: .45rem 0; }
+
+/* Guía de reclamos por vuelo retrasado */
+.claim-cta { border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; margin: 1.25rem 0; background: var(--soft-bg); }
+.claim-cta p { margin: 0 0 .25rem; }
+.claim table { width: 100%; }
+.claim .faq details { margin: .5rem 0; }

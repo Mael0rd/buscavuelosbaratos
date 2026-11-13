@@ -257,3 +257,14 @@ def prepare(conn, cfg: dict, ref, dests: list[str]) -> dict:
         print(f"Complementos: {n} bloques en {len(plan)} destinos · {ex.stats}")
         print(f"  URL por marca (destino / alternativa / portada): {ex.by_brand}")
     return plan
+
+
+def claim_link(conn, cfg: dict, ref) -> str:
+    """Enlace de afiliado del servicio de reclamos (Compensair) para la guía de vuelos retrasados."""
+    c = (cfg.get("extras") or {}).get("claim") or {}
+    if not c.get("urls"):
+        return ""
+    ex = Extras(conn, cfg, ref)
+    url = ex.best_url(c["urls"], {}, c.get("id", "claim"))
+    sub = c.get("sub_id", "guia_reclamo")
+    return ex.convert([(url, sub)]).get((url, sub), url) if url else ""

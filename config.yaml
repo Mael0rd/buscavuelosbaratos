@@ -171,6 +171,9 @@ extras:
     norteamerica: [US, CA]
     latam: [MX, GT, BZ, SV, HN, NI, CR, PA, CU, DO, PR, HT, JM, BS, BB, TT, AW, CW, SX, BQ, KY, TC, VG,
             VI, AG, LC, VC, GD, DM, KN, GP, MQ, CO, VE, EC, PE, BO, CL, AR, UY, PY, BR, GY, SR, GF]
+  # Guía /reclamar-vuelo-retrasado: botón al servicio de reclamos (SubID guia_compensair)
+  claim: { id: compensair, sub_id: guia_compensair,
+           urls: ["https://www.compensair.com/es/", "https://www.compensair.com/"] }
   services:
     esim:
       icon: "📶"

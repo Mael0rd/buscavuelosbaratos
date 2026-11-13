@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% set faq = [
+  ("¿Cuánto me pagan si mi vuelo se retrasa?",
+   "Depende de la ley que cubra tu vuelo. En vuelos que salen de Europa (o llegan a Europa en aerolínea europea) son 250, 400 o 600 euros por pasajero si llegas con 3 horas o más de retraso, según la distancia. En México, con más de 4 horas de retraso atribuible a la aerolínea, te deben devolver el boleto o reubicarte y pagarte una indemnización no menor al 25% del precio."),
+  ("¿Un vuelo de Latinoamérica a Europa da derecho a compensación?",
+   "Si sale de Europa, sí, con cualquier aerolínea. Si va de Latinoamérica hacia Europa, solo cuando lo opera una aerolínea europea (por ejemplo Iberia o Air Europa). En los vuelos de más de 3.500 km, como casi todos los transatlánticos, la compensación es de 600 euros."),
+  ("¿Qué pasa si la aerolínea dice que fue por mal clima?",
+   "Las causas extraordinarias que la aerolínea no podía evitar, como el mal clima o una huelga ajena, la liberan de pagar la compensación, pero no de darte asistencia, reembolso o un vuelo alternativo. Las fallas técnicas o de organización de la aerolínea, en general, no cuentan como extraordinarias."),
+  ("¿En Estados Unidos me pagan por un retraso?",
+   "No hay una compensación fija por retraso, pero si la aerolínea cancela el vuelo o lo cambia más de 3 horas (vuelos nacionales) o 6 horas (internacionales) y no aceptas la alternativa, tiene que devolverte el dinero automáticamente."),
+  ("¿Cuánto tiempo tengo para reclamar?",
+   "Depende del país donde se presente el reclamo: en España, por ejemplo, son 5 años. Lo mejor es reclamar cuanto antes y guardar todos los comprobantes del viaje."),
+] %}
+{% block title %}Vuelo retrasado o cancelado: cuánto te pagan y cómo reclamar | {{ site.title }}{% endblock %}
+{% block description %}Si tu vuelo se retrasó o lo cancelaron, puedes tener derecho a hasta 600 € (Europa) o al reembolso más un 25% (México). Qué te corresponde según tu vuelo y cómo reclamar paso a paso.{% endblock %}
+{% block head %}
+  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": faq | map("faq_ld") | list} | tojson }}</script>
+{% endblock %}
+{% block content %}
+<article class="info claim">
+  <h1>Vuelo retrasado o cancelado: cuánto te pueden pagar y cómo reclamar</h1>
+  <p class="lead">Un retraso largo o una cancelación no solo te arruina el día: según la ruta y la aerolínea, la ley puede obligarla a <b>pagarte una compensación</b>, además de devolverte el dinero o darte otro vuelo. Aquí te explicamos qué te corresponde en los casos más comunes para quien vuela desde Latinoamérica.</p>
+
+  {% if claim_link %}
+  <div class="claim-cta">
+    <p><b>¿Quieres saber rápido si tu vuelo califica?</b> Compensair revisa tu caso gratis y, si aplica, hace el reclamo a la aerolínea por ti. Cobran una comisión solo si consiguen el pago: revisa sus condiciones antes de aceptar.</p>
+    <a class="cta" href="{{ claim_link }}" rel="sponsored nofollow noopener" target="_blank">Revisar mi vuelo con Compensair</a>
+  </div>
+  {% endif %}
+
+  <h2>Vuelos desde o hacia Europa: hasta 600 €</h2>
+  <p>La ley más fuerte es el <b>Reglamento europeo 261/2004</b>. Te protege si tu vuelo <b>sale de un aeropuerto de la Unión Europea</b> (con cualquier aerolínea) o si <b>llega a la Unión Europea en una aerolínea europea</b>. Tu nacionalidad no importa.</p>
+  <ul>
+    <li><b>Madrid → Bogotá</b> con cualquier aerolínea: cubierto.</li>
+    <li><b>Bogotá → Madrid con Iberia o Air Europa</b> (aerolíneas europeas): cubierto.</li>
+    <li><b>Bogotá → Madrid con una aerolínea no europea</b>: no lo cubre esta ley (revisa la de tu país).</li>
+  </ul>
+  <p>Si llegas a tu destino final con <b>3 horas o más de retraso</b>, o te cancelan el vuelo con menos de 14 días de aviso, la compensación por pasajero es:</p>
+  <table class="months">
+    <thead><tr><th>Distancia del vuelo</th><th>Compensación</th></tr></thead>
+    <tbody>
+      <tr><td>Hasta 1.500 km</td><td>250 €</td></tr>
+      <tr><td>Entre 1.500 y 3.500 km (o más de 1.500 km dentro de la UE)</td><td>400 €</td></tr>
+      <tr class="best"><td>Más de 3.500 km (casi todos los vuelos entre Europa y América)</td><td>600 €</td></tr>
+    </tbody>
+  </table>
+  <p class="muted small">El monto no depende de lo que pagaste por el boleto. Puede reducirse a la mitad si la aerolínea te reubica y llegas con poco retraso. No se paga si la causa fue extraordinaria y no se podía evitar (mal clima, huelga ajena, cierre del espacio aéreo).</p>
+
+  <h2>Vuelos en México: reembolso más 25%</h2>
+  <p>En México, la Ley de Aviación Civil y la Ley Federal de Protección al Consumidor obligan a la aerolínea a responder cuando el retraso o la cancelación es <b>culpa suya</b> (fallas técnicas, errores operativos, sobreventa):</p>
+  <ul>
+    <li><b>Más de 2 y menos de 4 horas:</b> alimentos y bebidas, y un descuento no menor al <b>7,5%</b> del precio del boleto.</li>
+    <li><b>Más de 4 horas o cancelación:</b> eliges entre el reembolso del boleto más una indemnización no menor al <b>25%</b>; viajar en el siguiente vuelo con alimentos, hospedaje y traslados; o viajar en otra fecha más la indemnización del 25%.</li>
+  </ul>
+  <p>Si la aerolínea no cumple, puedes quejarte ante la Profeco.</p>
+
+  <h2>Vuelos en Estados Unidos: reembolso automático</h2>
+  <p>En EE. UU. no hay una compensación fija por retraso. Pero si la aerolínea <b>cancela tu vuelo</b> o lo cambia <b>más de 3 horas</b> (vuelo nacional) o <b>más de 6 horas</b> (vuelo internacional) y no aceptas la alternativa, debe <b>devolverte el dinero</b> a tu forma de pago original, sin que tengas que pelearlo. También te devuelven el cargo de la maleta si llega muy tarde.</p>
+
+  <h2>Canadá, Brasil y otros países</h2>
+  <p><b>Canadá</b> tiene su propio reglamento con compensaciones de 125 a 1.000 dólares canadienses según el retraso y el tamaño de la aerolínea. En <b>Brasil</b> la ley prioriza la asistencia y el reembolso; la compensación fija por retraso es la excepción. En el resto de Latinoamérica dependes de la ley de consumo y de aviación de cada país: reclama primero a la aerolínea y, si no responde, a la autoridad de protección al consumidor.</p>
+
+  <h2>Qué hacer en el aeropuerto</h2>
+  <ol>
+    <li><b>Guarda todo:</b> pase de abordar, confirmación de la reserva y correos o mensajes de la aerolínea.</li>
+    <li><b>Pide por escrito la causa</b> del retraso o la cancelación.</li>
+    <li><b>Toma foto de la pantalla</b> de salidas con el retraso y anota la hora real de llegada.</li>
+    <li><b>Guarda los recibos</b> de comida, hotel o transporte que pagues por tu cuenta.</li>
+    <li><b>No firmes renuncias</b> ni aceptes vales en lugar del reembolso si no te convienen.</li>
+  </ol>
+
+  <h2>Preguntas frecuentes</h2>
+  <div class="faq">
+  {% for q, a in faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
+  </div>
+
+  {% if claim_link %}
+  <p><a class="cta" href="{{ claim_link }}" rel="sponsored nofollow noopener" target="_blank">Revisar si mi vuelo tiene compensación</a></p>
+  {% endif %}
+
+  <p class="muted small">Información general, actualizada en noviembre de 2026. No somos abogados: las leyes cambian y cada caso depende de los detalles del vuelo. Fuentes oficiales:
+    <a href="https://europa.eu/youreurope/citizens/travel/passenger-rights/air/index_es.htm" rel="noopener" target="_blank">Tu Europa (UE)</a> ·
+    <a href="https://www.gob.mx/profeco" rel="noopener" target="_blank">Profeco (México)</a> ·
+    <a href="https://www.transportation.gov/airconsumer" rel="noopener" target="_blank">Departamento de Transporte (EE. UU.)</a>.
+    Enlace de socio: si usas Compensair desde aquí, podemos recibir una comisión sin costo extra para ti.</p>
+</article>
+{% endblock %}

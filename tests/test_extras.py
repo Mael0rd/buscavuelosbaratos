@@ -174,3 +174,15 @@ def test_direct_program_skips_api(monkeypatch):
     b = plan["MEX"][0]
     assert b["url"] == "https://www.civitatis.com/es/ciudad-de-mexico/?aid=123"
     assert b["links"]["oferta"] == b["url"] and http.posts == []
+
+
+def test_claim_link(monkeypatch):
+    cfg = dict(CFG)
+    cfg["extras"] = dict(CFG["extras"], claim={"id": "compensair", "sub_id": "guia_compensair",
+                                                "urls": ["https://c.com/es/", "https://c.com/"]})
+    monkeypatch.setenv("TRAVELPAYOUTS_TOKEN", "tok")
+    monkeypatch.setenv("TRAVELPAYOUTS_MARKER", "803749")
+    monkeypatch.delenv("BVB_MOCK", raising=False)
+    monkeypatch.setattr(extras.requests, "Session", FakeHTTP)
+    assert extras.claim_link(conn(), cfg, REF) == "https://tp.st/guia_compensair"
+    assert extras.claim_link(conn(), {"extras": {}}, REF) == ""

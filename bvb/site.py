@@ -17,7 +17,8 @@ from .copywriter import fmt_date, fmt_stops, savings_pct
 PER_COUNTRY_HOME = 6
 INFO_PAGES = {"como-verificamos": "Cómo verificamos los precios",
               "quienes-somos": "Quiénes somos",
-              "privacidad": "Política de privacidad"}
+              "privacidad": "Política de privacidad",
+              "reclamar-vuelo-retrasado": "Vuelo retrasado o cancelado: cuánto te pueden pagar y cómo reclamar"}
 
 
 def card_image(url: str) -> tuple[str, str]:
@@ -106,6 +107,7 @@ def build(conn, cfg: dict, ref=None) -> int:
 
     # Servicios complementarios (eSIM, tours, autos) por destino; requieren datos de referencia
     extra = extras.prepare(conn, cfg, ref, sorted({x["destination"] for x in deals + route_pages})) if ref else {}
+    claim_link = extras.claim_link(conn, cfg, ref) if ref else ""
 
     # Páginas permanentes por ciudad de origen y por destino
     origins, dest_hubs = hubs.build(conn, cfg, deals, route_pages, dest_slug)
@@ -146,7 +148,7 @@ def build(conn, cfg: dict, ref=None) -> int:
            "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
            "updated_iso": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "origins": origins, "og": "/og/inicio.jpg", "extras": extra,
-           "home_faq": countrypage.home_faq(countries, deals)}
+           "home_faq": countrypage.home_faq(countries, deals), "claim_link": claim_link}
     by_id = {c["id"]: c for c in countries}
 
     def write(path, template, **kw):
