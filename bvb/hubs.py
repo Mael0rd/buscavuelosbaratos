@@ -181,8 +181,8 @@ def dest_faq(d: dict) -> list[tuple[str, str]]:
         out.append((f"¿Desde qué ciudades hay vuelos directos a {n}?",
                     "Vimos vuelos directos a " + n + " desde: " + ", ".join(d["direct_from"]) + "."))
     out.append((f"¿Cuándo hay ofertas de vuelos a {n}?",
-                f"Las ofertas aparecen y desaparecen en horas. Revisamos los precios cada hora y publicamos solo "
-                f"los que verificamos en Google Flights. Crea una alerta gratis y te avisamos cuando baje."))
+                "Las ofertas aparecen y desaparecen en horas. Revisamos los precios cada hora y publicamos solo "
+                "los que verificamos en Google Flights. Crea una alerta gratis y te avisamos cuando baje."))
     return out
 
 

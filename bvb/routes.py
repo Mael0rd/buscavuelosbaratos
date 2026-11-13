@@ -165,7 +165,7 @@ def faq(r: dict) -> list[tuple[str, str]]:
                     f"Según nuestras búsquedas más recientes, el mes de salida más barato es "
                     f"{r['cheapest_month'][0]}, desde ${r['cheapest_month'][1]:.0f} USD ida y vuelta."))
     out.append((f"¿Hay vuelos directos de {o} a {d}?",
-                f"Sí, hemos encontrado vuelos directos en esta ruta." if r["direct_seen"]
+                "Sí, hemos encontrado vuelos directos en esta ruta." if r["direct_seen"]
                 else "En nuestras búsquedas recientes los vuelos más baratos tienen al menos una escala."))
     if r["airlines"]:
         out.append((f"¿Qué aerolíneas vuelan de {o} a {d}?",

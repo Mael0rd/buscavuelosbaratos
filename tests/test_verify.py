@@ -222,7 +222,7 @@ def test_web_shows_only_recently_verified():
     assert not verify.web_visible({**ok, "verify_status": "rechazada"}, CFG, NOW)
 
 
-def test_refresh_web_reverifies_old_ones_first():
+def test_refresh_web_alternates_new_and_reverify():
     c = conn()
     save(c, slug="nueva", score=0.5)
     save(c, slug="vieja", score=0.9, verify_status="ok", verified_at=iso(NOW - timedelta(hours=13)))
@@ -237,7 +237,36 @@ def test_refresh_web_reverifies_old_ones_first():
     orig = v._verify
     v._verify = lambda d: order.append(d["slug"]) or orig(d)
     assert v.refresh_web() == {"reverificadas": 1, "nuevas": 1}
-    assert order == ["vieja", "nueva"]          # 'reciente' (2 h) no gasta verificación
+    assert order == ["nueva", "vieja"]          # 'reciente' (2 h) no gasta verificación
+
+
+def test_reverify_does_not_starve_new_ones():
+    """Con cupo para una sola verificación, se verifica la nueva (no una de las 6 viejas)."""
+    c = conn()
+    for i in range(6):
+        save(c, slug=f"vieja{i}", score=0.9, verify_status="ok", verified_at=iso(NOW - timedelta(hours=13)))
+    save(c, slug="nueva", score=0.5)
+    v = verify.Verifier(c, CFG, NOW, providers=[Fake("serpapi", 250, ANS_OK)])
+    calls = []
+    orig = v._verify
+    v._verify = lambda d: calls.append(d["slug"]) or orig(d)
+    v.budget = lambda: {"allowed_now": 1 if not calls else 0}
+    assert v.refresh_web() == {"reverificadas": 0, "nuevas": 1} and calls == ["nueva"]
+
+
+def test_daily_cap_is_enforced_after_spending_today():
+    """13 de nov.: 243 gastadas antes de hoy + 81 hoy de 1250 → cupo de hoy ≈ 56: ya no queda."""
+    c = conn()
+    now = datetime(2026, 11, 13, 13, 0, tzinfo=timezone.utc)
+    v = verify.Verifier(c, CFG, now, providers=[Fake("serpapi", 250), Fake("apify", 1000)])
+    rows = [("2026-11-12T15:00:00Z", "serpapi", 1, "ok", None, None)] * 243 \
+         + [("2026-11-13T09:00:00Z", "apify", 1, "ok", None, None)] * 81
+    c.executemany("INSERT INTO verify_log VALUES (?,?,?,?,?,?)", rows)
+    b = v.budget()
+    assert round(b["daily"]) == 56 and b["used_today"] == 81 and b["allowed_now"] == 0
+    # al día siguiente sí hay cupo de nuevo (≈ 926 / 17 días ≈ 54)
+    v.now = datetime(2026, 11, 14, 13, 0, tzinfo=timezone.utc)
+    assert round(v.budget()["daily"]) == 54 and v.budget()["allowed_now"] == 4
 
 
 def test_reverification_that_finds_higher_price_ends_the_deal():

@@ -14,7 +14,7 @@ para todos los canales (se guarda en la oferta por `cache_hours`).
 """
 import math
 from calendar import monthrange
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import requests
 
@@ -229,14 +229,18 @@ class Verifier:
         used = self.used_month()
         remaining = max(0, monthly - used)
         days_left = monthrange(self.now.year, self.now.month)[1] - self.now.day + 1
-        daily = remaining / days_left if days_left else 0
         used_today = self._count("substr(ts,1,10)=?", (self.now.strftime("%Y-%m-%d"),))
         used_hour = self._count("substr(ts,1,13)=?", (self.now.strftime("%Y-%m-%dT%H"),))
+        # Cupo de HOY = lo que quedaba al empezar el día ÷ días que faltan (incluido hoy).
+        # (Antes se sumaba lo gastado hoy DESPUÉS de dividir, y el tope diario nunca se
+        # alcanzaba: cada verificación bajaba el cupo solo 1/días_restantes. Así se
+        # agotaron las 250 de SerpApi el 13 de noviembre.)
+        daily = (remaining + used_today) / days_left if days_left else 0
         q = self.cfg["social"]["quiet_hours"]
         active = 24 - ((q[1] - q[0]) % 24) if q[0] != q[1] else 24
-        hour_cap = max(1, math.ceil((daily + used_today) / active))
-        allowed = max(0, min(hour_cap - used_hour, math.floor(daily + used_today) - used_today, remaining))
-        return {"monthly": monthly, "used_month": used, "daily": round(daily + used_today, 1),
+        hour_cap = max(1, math.ceil(daily / active))
+        allowed = max(0, min(hour_cap - used_hour, math.floor(daily) - used_today, remaining))
+        return {"monthly": monthly, "used_month": used, "daily": round(daily, 1),
                 "used_today": used_today, "allowed_now": allowed}
 
     def _log(self, provider, deal_id, result, price=None, level=None):
@@ -311,8 +315,8 @@ class Verifier:
 
     def refresh_web(self) -> dict:
         """Verifica, dentro del presupuesto de esta hora, lo que muestra la web:
-        primero re-verifica las ofertas ya verificadas hace > web_reverify_hours
-        (para no mantener precios falsos), luego verifica las candidatas nuevas."""
+        alterna candidatas nuevas y re-verificaciones de las ya verificadas hace más de
+        web_reverify_hours (para no mantener precios falsos)."""
         out = {"reverificadas": 0, "nuevas": 0}
         if not self.providers:
             return out
@@ -329,14 +333,22 @@ class Verifier:
                and (age_hours(d.get("found_at"), self.now) is not None)
                and age_hours(d.get("found_at"), self.now) <= self.cfg["freshness"]["max_age_hours"]]
         key = lambda d: priority(d, self.cfg, self.now)
-        for kind, group in (("reverificadas", sorted(stale, key=key)), ("nuevas", sorted(new, key=key))):
-            for d in group:
-                if self.budget()["allowed_now"] <= 0:
-                    return out
-                res = self._verify(d)
-                if res == "sin_presupuesto":
-                    return out
-                out[kind] += 1
+        # Se alternan nueva / re-verificación (empezando por una nueva): si solo se
+        # re-verificara primero, con el cupo por hora las nuevas nunca se verificarían
+        # y no se publicaría nada nuevo en ningún canal.
+        queue, new, stale = [], sorted(new, key=key), sorted(stale, key=key)
+        while new or stale:
+            if new:
+                queue.append(("nuevas", new.pop(0)))
+            if stale:
+                queue.append(("reverificadas", stale.pop(0)))
+        for kind, d in queue:
+            if self.budget()["allowed_now"] <= 0:
+                return out
+            res = self._verify(d)
+            if res == "sin_presupuesto":
+                return out
+            out[kind] += 1
         return out
 
     def summary(self) -> str:

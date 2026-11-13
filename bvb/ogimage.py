@@ -170,7 +170,6 @@ def deal_image(d: dict, cc: str, path: Path, ended: bool = False):
 
 def deal_image_bytes(d: dict, cc: str, ended: bool = False) -> bytes | None:
     """La imagen en memoria (para Telegram). None si no se pudo generar."""
-    import io
     import tempfile
     try:
         with tempfile.TemporaryDirectory() as tmp:

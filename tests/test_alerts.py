@@ -2,7 +2,6 @@ import sqlite3
 
 from bvb import alerts
 from bvb.db import SCHEMA
-from bvb.refdata import Ref
 from tests.test_deals import CFG as DEALS_CFG, REF, TODAY, OTHER_MONTHS, best, t
 
 CFG = {**DEALS_CFG,
