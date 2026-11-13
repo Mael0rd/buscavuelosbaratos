@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{# p = página de una ciudad (opcional). Sin p: la herramienta general. #}
+{% block title %}{% if p %}¿A dónde viajar desde {{ p.name }} con poco dinero? {{ p.n }} destinos desde ${{ p.cheapest.p if p.cheapest else "" }} | {{ site.title }}{% else %}¿A dónde puedo volar con mi presupuesto? Explorador de vuelos baratos | {{ site.title }}{% endif %}{% endblock %}
+{% block description %}{% if p %}Descubre a dónde volar desde {{ p.name }} según tu presupuesto: {{ p.under300 }} destinos internacionales por menos de $300 y {{ p.under500 }} por menos de $500 ida y vuelta, con el mes más barato de cada uno.{% else %}Elige tu ciudad y cuánto quieres gastar: te mostramos todos los destinos internacionales que caben en tu presupuesto, con el mes más barato y fotos. Gratis, desde 33 ciudades de Latinoamérica.{% endif %}{% endblock %}
+{% block head %}
+  {% if p and p.faq %}<script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": p.faq | map("faq_ld") | list} | tojson }}</script>{% endif %}
+{% endblock %}
+{% block content %}
+<a class="back" href="/">← Inicio</a>
+
+<section class="xp-hero">
+  <p class="xp-kicker">Explorador de vuelos baratos</p>
+  <h1>{% if p %}¿A dónde viajar desde {{ p.name }}<br>con <span class="xp-amount" data-amount>$400</span>?{% else %}¿A dónde puedo volar<br>con <span class="xp-amount" data-amount>$400</span>?{% endif %}</h1>
+  <p class="xp-lead">Elige desde dónde sales y cuánto quieres gastar en el boleto de ida y vuelta.</p>
+
+  <form class="xp-form" id="xp-form" onsubmit="return false">
+    <label class="xp-field">Salgo desde
+      <select id="xp-origin" aria-label="Ciudad de salida">
+        {% for c in countries %}<optgroup label="{{ c.name }}">
+          {% for code in c.origins %}<option value="{{ code }}"{% if p and p.code == code %} selected{% endif %}>{{ origin_names.get(code, code) }} ({{ code }})</option>{% endfor %}
+        </optgroup>{% endfor %}
+      </select>
+    </label>
+    <label class="xp-field xp-budget">Presupuesto: <b data-amount>$400</b>
+      <input type="range" id="xp-budget" min="150" max="1500" step="25" value="400" aria-label="Presupuesto en dólares">
+      <span class="xp-scale"><span>$150</span><span>$1.500</span></span>
+    </label>
+    <label class="xp-field">¿Cuándo?
+      <select id="xp-month" aria-label="Mes de salida">
+        <option value="">Cualquier mes (el más barato)</option>
+        {% for m, label in months %}<option value="{{ m }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+  </form>
+
+  <div class="xp-chips" id="xp-regions" role="group" aria-label="Región">
+    <button type="button" class="on" data-r="">🌎 Todo</button>
+    {% for rid, rname in regions.items() %}<button type="button" data-r="{{ rid }}">{{ rname }}</button>{% endfor %}
+    <label class="xp-direct"><input type="checkbox" id="xp-direct"> Solo con vuelo directo</label>
+  </div>
+</section>
+
+<div class="xp-bar">
+  <p class="xp-count" id="xp-count" aria-live="polite">Cargando destinos…</p>
+  <div class="xp-actions">
+    <select id="xp-sort" aria-label="Ordenar">
+      <option value="p">Más barato primero</option>
+      <option value="km">Más lejos por menos</option>
+      <option value="deal">Ofertas verificadas primero</option>
+    </select>
+    <button type="button" class="xp-btn" id="xp-surprise">🎲 Sorpréndeme</button>
+    <button type="button" class="xp-btn" id="xp-share">🔗 Compartir</button>
+  </div>
+</div>
+
+<ul class="grid xp-grid" id="xp-grid"></ul>
+<p class="xp-more" id="xp-more" hidden></p>
+
+<noscript>
+  <p class="empty">Activa JavaScript para usar el explorador. Mientras tanto, mira los destinos por ciudad abajo.</p>
+</noscript>
+
+{% if p and p.tiers %}
+<section class="panel xp-tiers">
+  <h2>Destinos desde {{ p.name }} por presupuesto</h2>
+  <p class="muted small">Precio más bajo ida y vuelta que vimos en la última semana (USD). Son precios de referencia y pueden cambiar; los marcados con ✅ son ofertas verificadas ahora.</p>
+  {% for t in p.tiers %}
+  <h3>{{ t.label }} <span class="muted">· {{ t["items"]|length }} destino{{ "s" if t["items"]|length != 1 }}</span></h3>
+  <ul class="xp-list">
+    {% for x in t["items"] %}<li>
+      {% if x.cc %}<img class="flag" src="/static/flags/{{ x.cc }}.png" alt="" width="20" height="15" loading="lazy">{% endif %}
+      <a href="{% if x.rs %}/vuelos/{{ x.rs }}{% else %}/destino/{{ x.ds }}{% endif %}">{{ x.n }}</a>
+      <b>${{ x.p }}</b>{% if x.deal %} <a class="xp-ok" href="/oferta/{{ x.deal.s }}">✅ ${{ x.deal.p }}</a>{% endif %}
+      {% if x.dir %}<span class="stops direct">directo</span>{% endif %}
+    </li>{% endfor %}
+  </ul>
+  {% endfor %}
+</section>
+{% endif %}
+
+<section class="panel xp-cities">
+  <h2>Explora por ciudad de salida</h2>
+  <div class="xp-city-links">
+    {% for o in xp_pages %}{% if o.n %}<a href="/a-donde-volar/desde-{{ o.slug }}"{% if p and p.code == o.code %} class="on"{% endif %}><img class="flag" src="/static/flags/{{ o.cc|lower }}.png" alt="" width="20" height="15" loading="lazy"> {{ o.name }} <small>{{ o.n }}</small></a>{% endif %}{% endfor %}
+  </div>
+</section>
+
+{% if p and p.faq %}
+<section class="panel faq">
+  <h2>Preguntas frecuentes</h2>
+  {% for q, a in p.faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
+</section>
+{% endif %}
+
+<p class="muted small">Los precios son los más bajos que vimos en búsquedas recientes y pueden cambiar en cualquier momento. Antes de comprar, revisa el precio final en el sitio de reserva. ¿No ves tu destino? <a class="small-link" href="/alertas">Crea una alerta</a> y te avisamos cuando baje.</p>
+
+<script>
+(function () {
+  var MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  var REGIONS = {{ regions|tojson }};
+  var DEFAULT_ORIGIN = {{ (p.code if p else "")|tojson }};
+  var $ = function (id) { return document.getElementById(id); };
+  var origin = $("xp-origin"), budget = $("xp-budget"), month = $("xp-month"), direct = $("xp-direct"),
+      sort = $("xp-sort"), grid = $("xp-grid"), count = $("xp-count"), more = $("xp-more");
+  var region = "", DATA = [], shown = [];
+
+  // Estado inicial: URL (?o=SJO&b=400&m=2027-01&r=europa&dir=1) > ciudad de la página > país del visitante
+  var q = new URLSearchParams(location.search);
+  if (q.get("o")) origin.value = q.get("o");
+  else if (!DEFAULT_ORIGIN && window.bvbDetectarPais) {
+    var pais = window.bvbDetectarPais();
+    if (pais && window.BVB_PAISES[pais]) origin.value = window.BVB_PAISES[pais].origins[0];
+  }
+  if (q.get("b")) budget.value = q.get("b");
+  if (q.get("m")) month.value = q.get("m");
+  if (q.get("dir") === "1") direct.checked = true;
+  if (q.get("r")) region = q.get("r");
+  var chips = document.querySelectorAll("#xp-regions button");
+  for (var i = 0; i < chips.length; i++) {
+    chips[i].classList.toggle("on", chips[i].dataset.r === region);
+    chips[i].addEventListener("click", function (e) {
+      region = e.currentTarget.dataset.r;
+      for (var j = 0; j < chips.length; j++) chips[j].classList.toggle("on", chips[j] === e.currentTarget);
+      render();
+    });
+  }
+
+  function num(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+  function money(n) { return "$" + num(n); }
+  function mlabel(ym) { var p = ym.split("-"); return MONTHS[+p[1] - 1] + " " + p[0].slice(2); }
+  function priceOf(x) { return month.value ? x.m[month.value] : x.p; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]; }); }
+
+  function card(x) {
+    var p = priceOf(x), tone = 0;
+    for (var k = 0; k < x.d.length; k++) tone += x.d.charCodeAt(k);
+    var href = x.rs ? "/vuelos/" + x.rs : "/destino/" + x.ds;
+    var bm = !month.value && x.bm ? "<span>📅 Mejor mes: <b>" + mlabel(x.bm) + "</b></span>" : "";
+    return '<li class="card xp-card" data-d="' + x.d + '"><a href="' + href + '">' +
+      '<div class="card-img tone-' + (tone % 6) + '">' +
+        (x.img ? '<img src="' + x.img + '" alt="" loading="lazy" decoding="async" width="400" height="190" onerror="this.remove()">' : "") +
+        '<span class="card-city" aria-hidden="true">' + esc(x.n) + '</span>' +
+        (x.c ? '<span class="card-ctry">' + (x.cc ? '<img class="flag" src="/static/flags/' + x.cc + '.png" alt="" width="16" height="12"> ' : "") + esc(x.c) + '</span>' : "") +
+        '<span class="card-pill">' + money(p) + '</span>' +
+      '</div><div class="card-body">' +
+        '<h3 class="route">' + esc(x.n) + (x.c ? '<span class="ctry">, ' + esc(x.c) + '</span>' : "") + '</h3>' +
+        '<div class="price">' + money(p) + ' <small>ida y vuelta</small></div>' +
+        '<div class="xp-meta">' + bm + (x.dir ? '<span class="stops direct">hay directos</span>' : "") +
+          (x.km ? '<span>✈️ ' + num(x.km) + ' km</span>' : "") + '</div>' +
+        (x.deal ? '<div class="badge">✅ Oferta verificada: ' + money(x.deal.p) + '</div>' : "") +
+      '</div></a></li>';
+  }
+
+  function render() {
+    var b = +budget.value, o = origin.value;
+    var amount = document.querySelectorAll("[data-amount]");
+    for (var i = 0; i < amount.length; i++) amount[i].textContent = money(b);
+    budget.style.setProperty("--fill", ((b - budget.min) / (budget.max - budget.min) * 100) + "%");
+    var base = DATA.filter(function (x) {
+      return x.o === o && priceOf(x) && (!region || x.r === region) && (!direct.checked || x.dir);
+    });
+    shown = base.filter(function (x) { return priceOf(x) <= b; });
+    var s = sort.value;
+    shown.sort(function (a, c) {
+      if (s === "km") return c.km / priceOf(c) - a.km / priceOf(a);
+      if (s === "deal") return (c.deal ? 1 : 0) - (a.deal ? 1 : 0) || priceOf(a) - priceOf(c);
+      return priceOf(a) - priceOf(c);
+    });
+    var city = origin.options[origin.selectedIndex].text.replace(/ \(.*/, "");
+    count.innerHTML = shown.length
+      ? "Con <b>" + money(b) + "</b> desde " + esc(city) + " llegas a <b>" + shown.length + " destino" + (shown.length === 1 ? "" : "s") + "</b>"
+      : "Con " + money(b) + " no encontramos destinos desde " + esc(city) + (region ? " en " + REGIONS[region] : "") + ".";
+    grid.innerHTML = shown.map(card).join("");
+    // Siguiente escalón: cuánto más hace falta para ver más destinos
+    var next = base.filter(function (x) { return priceOf(x) > b; }).sort(function (a, c) { return priceOf(a) - priceOf(c); });
+    if (next.length) {
+      var step = Math.ceil(priceOf(next[Math.min(2, next.length - 1)]) / 25) * 25;
+      var gain = next.filter(function (x) { return priceOf(x) <= step; }).length;
+      more.innerHTML = "💡 Con <b>" + money(step) + "</b> sumarías " + gain + " destino" + (gain === 1 ? "" : "s") +
+        " más, como " + next.slice(0, 3).map(function (x) { return esc(x.n); }).join(", ") +
+        '. <button type="button" class="xp-link" data-to="' + step + '">Subir a ' + money(step) + "</button>";
+      more.hidden = false;
+    } else { more.hidden = true; }
+    var u = new URLSearchParams({o: o, b: b});
+    if (month.value) u.set("m", month.value);
+    if (region) u.set("r", region);
+    if (direct.checked) u.set("dir", "1");
+    history.replaceState(null, "", location.pathname + "?" + u.toString());
+  }
+
+  more.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-to]");
+    if (t) { budget.value = t.dataset.to; render(); }
+  });
+  [origin, month, direct, sort].forEach(function (el) { el.addEventListener("change", render); });
+  budget.addEventListener("input", render);
+
+  $("xp-surprise").addEventListener("click", function () {
+    if (!shown.length) return;
+    var x = shown[Math.floor(Math.random() * shown.length)];
+    var el = grid.querySelector('[data-d="' + x.d + '"]');
+    var old = grid.querySelector(".xp-pick");
+    if (old) old.classList.remove("xp-pick");
+    el.classList.add("xp-pick");
+    el.scrollIntoView({behavior: "smooth", block: "center"});
+  });
+  $("xp-share").addEventListener("click", function (e) {
+    var url = location.href, b = e.currentTarget, txt = count.textContent + " ✈️";
+    if (navigator.share) { navigator.share({title: document.title, text: txt, url: url}).catch(function () {}); return; }
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () {
+      var old = b.textContent; b.textContent = "✓ Enlace copiado"; setTimeout(function () { b.textContent = old; }, 2000);
+    });
+  });
+
+  fetch("/data/explorar.json?v={{ xp_version }}").then(function (r) { return r.json(); }).then(function (d) {
+    DATA = d; render();
+  }).catch(function () { count.textContent = "No se pudieron cargar los destinos. Intenta recargar la página."; });
+})();
+</script>
+{% endblock %}

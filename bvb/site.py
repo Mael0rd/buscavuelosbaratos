@@ -1,6 +1,7 @@
 """Genera la web estática en ./site: portada con secciones por país,
 una página por país, una por destino y una por oferta."""
 import hashlib
+import json
 import re
 import shutil
 import unicodedata
@@ -9,7 +10,7 @@ from datetime import date, datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
-from . import countrypage, extras, fx, hubs, ogimage, routes, telegram, whatsapp
+from . import countrypage, explorer, extras, fx, geo, hubs, ogimage, routes, telegram, whatsapp
 from .fetch import with_subid
 from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
@@ -216,6 +217,27 @@ def build(conn, cfg: dict, ref=None) -> int:
         write(f"vuelos/{r['slug']}.html", "route.html", r=r, c=by_id.get(r["country"]), faqs=routes.faq(r),
               noindex=not r["indexable"],
               og=(r["deal"] and f"/og/oferta-{r['deal']['slug']}.jpg") or (dh or {}).get("og") or (o or {}).get("og", ctx["og"]))
+    # Explorador por presupuesto: herramienta general + una página por ciudad de salida
+    xp_rows = explorer.items(conn, cfg, origins, route_pages, deals, dest_slug,
+                             lambda code: card_image(photos.get(code, ""))[0])
+    xp_pages = explorer.origin_pages(xp_rows, origins)
+    explorer.write_json(xp_rows, SITE_DIR / "data" / "explorar.json")
+    xp_ctx = {"regions": geo.REGIONS, "months": explorer.month_options(xp_rows), "xp_pages": xp_pages,
+              "xp_version": hashlib.sha1(json.dumps(xp_rows).encode()).hexdigest()[:8]}
+    write("a-donde-volar.html", "explorer.html", **xp_ctx,
+          og=og("a-donde-volar", ogimage.page_image, "¿A dónde puedes volar con $300?",
+                "Elige tu ciudad y tu presupuesto: todos los destinos que caben", tone=2,
+                kicker="Explorador de vuelos baratos"))
+    (SITE_DIR / "a-donde-volar").mkdir(exist_ok=True)
+    for xp in xp_pages:
+        if not xp["n"]:
+            continue
+        img = og(f"xp-{xp['slug']}", ogimage.page_image, f"¿A dónde viajar desde {xp['name']}?",
+                 f"{xp['under500']} destinos por menos de $500 ida y vuelta · desde ${xp['cheapest']['p']}",
+                 cc=xp["cc"], tone=sum(map(ord, xp["code"])) % 6, kicker="Explorador por presupuesto")
+        write(f"a-donde-volar/desde-{xp['slug']}.html", "explorer.html", p=xp, noindex=not xp["indexable"],
+              og=img, **xp_ctx)
+
     for page, title in INFO_PAGES.items():
         write(f"{page}.html", f"{page}.html", title=title)
     write("404.html", "404.html", page_path=None)
@@ -244,6 +266,8 @@ def build(conn, cfg: dict, ref=None) -> int:
             + [(f"{base}/pais/{c['id']}", today) for c in countries]
             + [(f"{base}/desde/{o['slug']}", today) for o in origins]
             + [(f"{base}/destino/{s}", today) for s in destinations]
+            + [(f"{base}/a-donde-volar", today)]
+            + [(f"{base}/a-donde-volar/desde-{x['slug']}", today) for x in xp_pages if x["n"] and x["indexable"]]
             + [(f"{base}/vuelos/{r['slug']}", r["lastmod"]) for r in route_pages if r["indexable"]])
     (SITE_DIR / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
