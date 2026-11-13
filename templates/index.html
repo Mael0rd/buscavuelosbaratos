@@ -4,8 +4,17 @@
 {% block title %}Vuelos baratos desde Latinoamérica: ofertas verificadas cada hora | {{ site.title }}{% endblock %}
 {% block description %}{% if total %}{{ total }} ofertas de vuelos baratos verificadas ahora desde {{ active|length }} países de Latinoamérica: {% for d in all_deals[:3] %}{{ d.origin_name }}–{{ d.dest_name }} ${{ "%.0f"|format(d.price) }}{{ ", " if not loop.last }}{% endfor %}. {% endif %}Pasajes, tiquetes y boletos de avión muy por debajo de su precio normal, confirmados en Google Flights.{% endblock %}
 {% block head %}
-  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",
-    "mainEntity": home_faq | map("faq_ld") | list} | tojson }}</script>
+  <script type="application/ld+json">{{ {
+    "@context": "https://schema.org",
+    "@graph": [
+      {"@type": "Organization", "@id": "https://" ~ site.domain ~ "/#org", "name": site.title,
+       "url": "https://" ~ site.domain ~ "/", "logo": "https://" ~ site.domain ~ "/static/icon-512.png",
+       "email": site.contact_email, "sameAs": same_as},
+      {"@type": "WebSite", "@id": "https://" ~ site.domain ~ "/#web", "name": site.title,
+       "url": "https://" ~ site.domain ~ "/", "inLanguage": "es", "publisher": {"@id": "https://" ~ site.domain ~ "/#org"}},
+      {"@type": "FAQPage", "mainEntity": home_faq | map("faq_ld") | list}
+    ]
+  }|tojson }}</script>
 {% endblock %}
 {% block content %}
 <section class="hero">
@@ -14,6 +23,8 @@
 </section>
 
 {% if channels.get('main') %}<a class="tg-join" id="tg-join" href="{{ channels['main'] }}" target="_blank" rel="noopener">📲 Recibe las ofertas en Telegram</a>{% endif %}
+
+{% if threads_url %}<a class="th-join" href="{{ threads_url }}" target="_blank" rel="noopener">@ Síguenos en Threads</a>{% endif %}
 
 {% include "_chips.html" %}
 

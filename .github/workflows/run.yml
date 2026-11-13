@@ -51,6 +51,7 @@ jobs:
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
           BVB_VARS: ${{ toJSON(vars) }}   # canales por país: TELEGRAM_CHANNEL_<PAÍS>
         run: python -m bvb.main
 

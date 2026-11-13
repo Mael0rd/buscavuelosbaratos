@@ -94,6 +94,13 @@ social:
   # "topic" para todas o "topics" por país (p. ej. costa-rica: "Vuelos baratos Costa Rica").
   threads: { enabled: true, per_run: 1, per_day: 8, topic: "Vuelos baratos",
              url: "https://www.threads.com/@buscavuelosbaratos" }
+  # Instagram (API oficial con inicio de sesión de Instagram, gratis; secret INSTAGRAM_TOKEN).
+  # Publicaciones del feed con la imagen 4:5; pocas al día y separadas (min_gap_hours).
+  instagram: { enabled: true, per_run: 1, per_day: 3, min_gap_hours: 3, username: buscavuelosbaratos,
+               url: "https://www.instagram.com/buscavuelosbaratos/",
+               hashtags: ["#VuelosBaratos", "#OfertasDeVuelos", "#Viajes", "#Viajeros"] }
+  # Otros perfiles oficiales (Facebook, etc.): salen en el sameAs de la portada.
+  profiles: []
   timezone: America/Costa_Rica   # hora del canal general
   # Canales regionales: un solo canal para varios países con pocas ofertas
   # (variable TELEGRAM_CHANNEL_<REGIÓN>). Si un país tiene su propio canal, ese tiene prioridad.

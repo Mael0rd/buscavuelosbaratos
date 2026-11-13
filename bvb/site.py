@@ -133,6 +133,13 @@ def build(conn, cfg: dict, ref=None) -> int:
         if (STATIC_DIR / "favicon.ico").exists():  # los navegadores lo piden en la raíz
             shutil.copy(STATIC_DIR / "favicon.ico", SITE_DIR / "favicon.ico")
 
+    # Perfiles oficiales de la marca (sameAs en los datos estructurados de la portada):
+    # Threads, canal general de Telegram, canales de WhatsApp y los de social.profiles.
+    social = cfg.get("social", {})
+    same_as = [(social.get(k) or {}).get("url", "") for k in ("instagram", "threads")] + [channels.get("main", "")]
+    same_as += [w["url"] for w in wa.values() if w.get("url")] + list(social.get("profiles") or [])
+    same_as = [u for u in dict.fromkeys(same_as) if u.startswith("http")]
+
     css = STATIC_DIR / "style.css"
     asset_v = hashlib.sha1(css.read_bytes()).hexdigest()[:8] if css.exists() else "1"
     ctx = {"site": cfg["site"], "asset_v": asset_v, "countries": countries, "total": len(deals),
@@ -146,6 +153,7 @@ def build(conn, cfg: dict, ref=None) -> int:
            "bot_username": telegram.bot_username(),
            "channels": channels, "channel_labels": channel_labels, "wa_links": wa,
            "threads_url": (cfg.get("social", {}).get("threads") or {}).get("url", ""),
+           "same_as": same_as,
            "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
            "updated_iso": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "origins": origins, "og": "/og/inicio.jpg", "extras": extra,
