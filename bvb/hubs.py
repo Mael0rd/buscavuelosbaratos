@@ -16,6 +16,16 @@ RECENT_DAYS = 7          # rutas vistas en la última semana
 MAX_DESTS = 40           # destinos listados por ciudad de origen
 MIN_ORIGINS_DEST = 3     # un destino sin ofertas ni historial necesita ≥3 ciudades para tener página
 
+# Destinos que alguna vez tuvieron página: no se borran nunca (una URL que desaparece da 404
+# y le resta confianza al sitio ante Google). Sin datos recientes, la página queda con el
+# último precio conocido y la invitación a crear una alerta.
+DEST_SCHEMA = """
+CREATE TABLE IF NOT EXISTS dest_pages (
+    destination TEXT PRIMARY KEY, dest_name TEXT, dest_country TEXT, slug TEXT,
+    low REAL, first_seen TEXT, last_seen TEXT
+);
+"""
+
 
 def origin_slug(name: str, code: str) -> str:
     return f"{slugify(name)}-{code.lower()}"
@@ -91,8 +101,46 @@ def build(conn, cfg: dict, deals: list[dict], route_pages: list[dict], dest_slug
               "tone": sum(map(ord, code)) % 6}
         dd["faq"] = dest_faq(dd)
         dests.append(dd)
-    dests.sort(key=lambda x: (-len(x["deals"]), -len(x["origins"])))
+    dests += _keep_known(conn, dests, by_dest, origin_by_code, page_of)
+    dests.sort(key=lambda x: (x.get("stale", False), -len(x["deals"]), -len(x["origins"])))
     return origins, dests
+
+
+def _keep_known(conn, dests: list[dict], by_dest: dict, origin_by_code: dict, page_of: dict) -> list[dict]:
+    """Registra los destinos con página y devuelve los que ya no cumplen el mínimo, para no borrarlos."""
+    conn.executescript(DEST_SCHEMA)
+    today = date.today().isoformat()
+    known = {r["destination"]: dict(r) for r in conn.execute("SELECT * FROM dest_pages")}
+    for d in dests:
+        k = known.get(d["destination"])
+        if k and k["slug"]:
+            d["dest_slug"] = k["slug"]  # la URL no cambia aunque cambie el nombre
+        conn.execute(
+            "INSERT INTO dest_pages VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(destination) DO UPDATE SET "
+            "dest_name = excluded.dest_name, dest_country = excluded.dest_country, low = excluded.low, "
+            "last_seen = excluded.last_seen",
+            (d["destination"], d["dest_name"], d["dest_country"], d["dest_slug"], d["low"], today, today))
+    conn.commit()
+    current = {d["destination"] for d in dests}
+    kept = []
+    for code, k in known.items():
+        if code in current:
+            continue
+        rs = sorted(by_dest.get(code, []), key=lambda r: r["last_price"])
+        origins_list = []
+        for r in rs:
+            o = origin_by_code.get(r["origin"])
+            origins_list.append({**r, "route_slug": page_of.get((r["origin"], code)),
+                                 "cc": o["cc"] if o else "", "country_name": o["country_name"] if o else "",
+                                 "origin_slug": o["slug"] if o else ""})
+        dd = {"destination": code, "dest_name": k["dest_name"], "dest_country": k["dest_country"] or "",
+              "dest_slug": k["slug"], "deals": [], "origins": origins_list,
+              "low": rs[0]["last_price"] if rs else k["low"], "cheapest": origins_list[0] if origins_list else None,
+              "direct_from": [r["origin_name"] for r in rs if r["direct_seen"]][:12],
+              "tone": sum(map(ord, code)) % 6, "stale": not rs, "last_seen": k["last_seen"]}
+        dd["faq"] = dest_faq(dd)
+        kept.append(dd)
+    return kept
 
 
 def origin_faq(o: dict) -> list[tuple[str, str]]:

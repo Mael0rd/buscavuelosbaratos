@@ -189,7 +189,8 @@ def build(conn, cfg: dict, ref=None) -> int:
     for h in dest_hubs:
         destinations[h["dest_slug"]] = h
         h["og"] = og(f"destino-{h['dest_slug']}", ogimage.page_image, f"Vuelos baratos a {h['dest_name']}",
-                     f"Desde ${h['low']:.0f} ida y vuelta" + (f" · {h['dest_country']}" if h["dest_country"] else ""),
+                     ("Ofertas de ida y vuelta verificadas" if h.get("stale") else f"Desde ${h['low']:.0f} ida y vuelta")
+                     + (f" · {h['dest_country']}" if h["dest_country"] else ""),
                      tone=h["tone"])
         write(f"destino/{h['dest_slug']}.html", "destination.html", dest=h, deals=h["deals"], og=h["og"])
     for d in deals + ended:

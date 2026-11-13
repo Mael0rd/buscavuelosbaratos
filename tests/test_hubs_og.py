@@ -57,3 +57,17 @@ def test_og_images(tmp_path):
     from PIL import Image
     for f in ("a.jpg", "b.jpg"):
         assert Image.open(tmp_path / f).size == (1200, 630)
+
+
+def test_dest_pages_never_disappear():
+    conn = db([("SJO", "MAD", "Madrid", 700, 0), ("MEX", "MAD", "Madrid", 650, 1), ("LIR", "MAD", "Madrid", 720, 0)])
+    deal = {"origin": "SJO", "destination": "MIA", "dest_name": "Miami", "dest_country": "EE. UU.", "price": 180}
+    hubs.build(conn, CFG, [deal], [], dest_slug)
+    # Al día siguiente: Miami ya no tiene oferta y Madrid se ve desde una sola ciudad
+    conn.execute("DELETE FROM routes WHERE origin IN ('MEX', 'LIR')")
+    _, dests = hubs.build(conn, CFG, [], [], dest_slug)
+    by = {d["destination"]: d for d in dests}
+    assert set(by) == {"MAD", "MIA"}                      # las dos páginas siguen existiendo
+    assert by["MIA"]["stale"] and by["MIA"]["dest_slug"] == "miami-mia" and by["MIA"]["low"] == 180
+    assert not by["MAD"]["stale"] and by["MAD"]["low"] == 700 and len(by["MAD"]["origins"]) == 1
+    assert dests[-1]["destination"] == "MIA"              # las que no tienen datos van al final

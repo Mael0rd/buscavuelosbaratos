@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Vuelos baratos a {{ dest.dest_name }} desde ${{ "%.0f"|format(dest.low) }} | {{ site.title }}{% endblock %}
+{% block title %}Vuelos baratos a {{ dest.dest_name }}{% if not dest.stale %} desde ${{ "%.0f"|format(dest.low) }}{% endif %} | {{ site.title }}{% endblock %}
 {% block description %}Vuelos baratos de ida y vuelta a {{ dest.dest_name }}{% if dest.dest_country %}, {{ dest.dest_country }}{% endif %}, desde {{ dest.origins|length or "varias" }} ciudades de Latinoamérica. Ofertas verificadas en Google Flights y alertas gratis.{% endblock %}
 {% block head %}
   <script type="application/ld+json">{{ {
@@ -43,7 +43,7 @@
 </section>
 {% endif %}
 
-{% set share_text = "✈️ Vuelos baratos a " ~ dest.dest_name ~ " desde $" ~ "%.0f"|format(dest.low) ~ " ida y vuelta" %}
+{% set share_text = "✈️ Vuelos baratos a " ~ dest.dest_name ~ ("" if dest.stale else " desde $" ~ "%.0f"|format(dest.low) ~ " ida y vuelta") %}
 {% include "_share.html" %}
 
 <section class="panel faq">
