@@ -117,7 +117,7 @@ def build(conn, cfg: dict) -> int:
     # Perfiles oficiales de la marca (sameAs en los datos estructurados de la portada):
     # Threads, canal general de Telegram, canales de WhatsApp y los de social.profiles.
     social = cfg.get("social", {})
-    same_as = [(social.get(k) or {}).get("url", "") for k in ("instagram", "threads")] + [channels.get("main", "")]
+    same_as = [(social.get(k) or {}).get("url", "") for k in ("facebook", "instagram", "threads")] + [channels.get("main", "")]
     same_as += [w["url"] for w in wa.values() if w.get("url")] + list(social.get("profiles") or [])
     same_as = [u for u in dict.fromkeys(same_as) if u.startswith("http")]
 

@@ -98,7 +98,10 @@ social:
   instagram: { enabled: true, per_run: 1, per_day: 3, min_gap_hours: 3, username: buscavuelosbaratos,
                url: "https://www.instagram.com/buscavuelosbaratos/",
                hashtags: ["#VuelosBaratos", "#OfertasDeVuelos", "#Viajes", "#Viajeros"] }
-  # Otros perfiles oficiales (Facebook, etc.): salen en el sameAs de la portada.
+  # Página de Facebook (secret META_SYSTEM_TOKEN, usuario del sistema; el enlace del texto sí se toca).
+  # "url": dirección pública de la página, para el sameAs de la portada (llenar cuando exista).
+  facebook: { enabled: true, per_run: 1, per_day: 4, min_gap_hours: 2, page: buscavuelosbaratos, url: "" }
+  # Otros perfiles oficiales: salen en el sameAs de la portada.
   profiles: []
   timezone: America/Costa_Rica   # hora del canal general
   # Canales regionales: un solo canal para varios países con pocas ofertas

@@ -1,9 +1,11 @@
 """Cuenta de Instagram con publicación automática por la API oficial (gratis).
 
-Usa la "API de Instagram con inicio de sesión de Instagram" (graph.instagram.com):
-no hace falta página de Facebook, pero la cuenta tiene que ser profesional
-(empresa o creador). Permisos: instagram_business_basic e
-instagram_business_content_publish.
+Dos formas de conectarse (se usa la primera que funcione):
+1. Token de usuario del sistema (secret META_SYSTEM_TOKEN, ver bvb/meta.py): no vence;
+   publica por graph.facebook.com en el Instagram conectado a la página de Facebook.
+2. Token de Instagram (secret INSTAGRAM_TOKEN, "API de Instagram con inicio de sesión
+   de Instagram", graph.instagram.com): vence a los 60 días y se renueva solo.
+La cuenta tiene que ser profesional (empresa o creador).
 
 Cada publicación es una imagen del feed: la vertical 4:5 de la oferta (la misma de
 Threads) con un texto que lleva gancho, datos, hashtags y "enlace en la bio".
@@ -11,9 +13,8 @@ En Instagram los enlaces del texto no se pueden tocar, por eso el texto manda al
 enlace del perfil (la portada muestra primero las ofertas del país del visitante)
 y deja escrita la dirección corta de la oferta por si alguien la copia.
 
-Token: el primero va en el secret INSTAGRAM_TOKEN (token largo, 60 días). Cada
-semana se renueva solo y el nuevo se guarda en el almacén privado del servidor de
-alertas (/api/kv/instagram_token). Si vence, basta con poner uno nuevo en el secret.
+Con INSTAGRAM_TOKEN: cada semana se renueva solo y el nuevo se guarda en el almacén
+privado del servidor de alertas (/api/kv/instagram_token).
 """
 import re
 import time
@@ -22,7 +23,7 @@ from datetime import datetime, timezone
 
 import requests
 
-from . import telegram
+from . import meta, telegram
 from .alerts import admin_token
 from .config import env
 from .copywriter import fmt_stops, savings_pct
@@ -68,7 +69,7 @@ def _me(token: str) -> dict | None:
         j = r.json() if r.ok else {}
         if not (j.get("user_id") or j.get("id")):
             return None
-        return {"id": str(j.get("user_id") or j["id"]), "username": j.get("username", "")}
+        return {"id": str(j.get("user_id") or j["id"]), "username": j.get("username", ""), "graph": GRAPH}
     except Exception:
         return None
 
@@ -83,7 +84,13 @@ def refresh(token: str) -> str | None:
 
 
 def get_session(cfg: dict, now: datetime) -> tuple[str, dict] | None:
-    """(token, perfil) válidos. Prueba el guardado y luego el del secret; renueva si toca."""
+    """(token, perfil) válidos. Primero el usuario del sistema (META_SYSTEM_TOKEN); si no,
+    el token de Instagram guardado y luego el del secret, renovándolo si toca."""
+    ms = meta.session(cfg.get("social", {}).get("instagram", {}).get("username", ""))
+    if ms and ms.get("ig_id"):
+        return ms["token"], {"id": ms["ig_id"], "username": ms.get("ig_username", ""), "graph": meta.GRAPH}
+    if ms:
+        print("[instagram] ⚠ la página no tiene un Instagram conectado (o falta asignarlo al usuario del sistema)")
     stored = _kv_get(cfg)
     candidates = []
     if stored and stored.get("value"):
@@ -149,9 +156,9 @@ def build_caption(d: dict, cfg: dict, now: datetime | None = None) -> str:
 
 
 # ---------- publicación ----------
-def _post(uid: str, token: str, caption: str, image_url: str) -> str | None:
+def _post(uid: str, token: str, caption: str, image_url: str, graph: str = GRAPH) -> str | None:
     """Crea el contenedor con la imagen, espera a que Meta la procese y lo publica."""
-    r = requests.post(f"{GRAPH}/{uid}/media", timeout=30,
+    r = requests.post(f"{graph}/{uid}/media", timeout=30,
                       data={"image_url": image_url, "caption": caption, "access_token": token})
     if not r.ok:
         print(f"[instagram] ⚠ no se pudo crear la publicación: {r.text[:200]}")
@@ -159,14 +166,14 @@ def _post(uid: str, token: str, caption: str, image_url: str) -> str | None:
     cid = r.json()["id"]
     for _ in range(12):  # hasta ~60 s
         time.sleep(5)
-        st = requests.get(f"{GRAPH}/{cid}", params={"fields": "status_code,status", "access_token": token},
+        st = requests.get(f"{graph}/{cid}", params={"fields": "status_code,status", "access_token": token},
                           timeout=15).json()
         if st.get("status_code") == "FINISHED":
             break
         if st.get("status_code") in ("ERROR", "EXPIRED"):
             print(f"[instagram] ⚠ Meta rechazó la imagen: {st.get('status')}")
             return None
-    r = requests.post(f"{GRAPH}/{uid}/media_publish", timeout=30,
+    r = requests.post(f"{graph}/{uid}/media_publish", timeout=30,
                       data={"creation_id": cid, "access_token": token})
     if not r.ok:
         print(f"[instagram] ⚠ no se pudo publicar: {r.text[:200]}")
@@ -194,11 +201,11 @@ def publish(conn, cfg: dict, now: datetime | None = None, verifier=None, session
         return {"instagram": 0}
     session = session or get_session(cfg, now)
     if not session:
-        if not env("INSTAGRAM_TOKEN"):
-            print("[instagram] falta el secret INSTAGRAM_TOKEN; se omite")
+        if not env("INSTAGRAM_TOKEN") and not env("META_SYSTEM_TOKEN"):
+            print("[instagram] falta el secret META_SYSTEM_TOKEN (o INSTAGRAM_TOKEN); se omite")
         return {}
     token, me = session
-    poster = poster or (lambda caption, img: _post(me["id"], token, caption, img))
+    poster = poster or (lambda caption, img: _post(me["id"], token, caption, img, me.get("graph", GRAPH)))
     site = f"https://{cfg['site']['domain']}"
     max_age = cfg["freshness"]["max_age_hours"]
     rows = [dict(x) for x in conn.execute(

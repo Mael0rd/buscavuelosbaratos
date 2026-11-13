@@ -7,7 +7,7 @@ import argparse
 from datetime import datetime, timezone
 
 from . import deals as dl
-from . import alerts, fresh, instagram, refdata, routes, site, telegram, threads, verify, whatsapp
+from . import alerts, facebook, fresh, instagram, refdata, routes, site, telegram, threads, verify, whatsapp
 from .config import load_config
 from .copywriter import write_copy
 from .db import connect
@@ -95,6 +95,9 @@ def run(no_social: bool = False) -> None:
         ig = instagram.publish(conn, cfg, verifier=verifier)
         if ig:
             print(f"Publicadas en Instagram: {ig}")
+        fb = facebook.publish(conn, cfg, verifier=verifier)
+        if fb:
+            print(f"Publicadas en Facebook: {fb}")
         wa = whatsapp.relay(conn, cfg, verifier=verifier)
         if wa:
             print(f"Listas para WhatsApp (enviadas al administrador): {wa}")
