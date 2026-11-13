@@ -32,7 +32,7 @@ def month_long(ym: str) -> str:
 
 
 def items(conn, cfg: dict, origins: list[dict], route_pages: list[dict], deals: list[dict],
-          dest_slug, photo_of) -> list[dict]:
+          dest_slug, photo_of, dest_pages: set | None = None) -> list[dict]:
     """Una fila por ruta vista en la última semana, lista para el JSON y las plantillas."""
     since = (date.today() - timedelta(days=RECENT_DAYS)).isoformat()
     origin_by_code = {o["code"]: o for o in origins}
@@ -57,7 +57,8 @@ def items(conn, cfg: dict, origins: list[dict], route_pages: list[dict], deals: 
             "m": {k: round(v) for k, v in sorted(months.items())},
             "bm": best[0] if best else None, "dir": 1 if r["direct_seen"] else 0,
             "rs": page_of.get((r["origin"], r["destination"])),
-            "ds": dest_slug(r["dest_name"], r["destination"]),
+            "ds": (lambda sl: sl if dest_pages is None or sl in dest_pages else None)(
+                dest_slug(r["dest_name"], r["destination"])),
             "img": photo_of(r["destination"]),
             "deal": {"s": deal["slug"], "p": round(deal["price"])} if deal else None,
         })

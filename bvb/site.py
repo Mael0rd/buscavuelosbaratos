@@ -213,7 +213,7 @@ def build(conn, cfg: dict, ref=None) -> int:
         write(f"oferta/{d['slug']}.html", "deal.html", d=d, c=by_id.get(d["country"]), dest_pages=destinations, og=img)
     # Datos del explorador y de visas (las páginas de ruta enlazan a "¿Necesitas visa?")
     xp_rows = explorer.items(conn, cfg, origins, route_pages, deals, dest_slug,
-                             lambda code: card_image(photos.get(code, ""))[0])
+                             lambda code: card_image(photos.get(code, ""))[0], set(destinations))
     vi_passports, vi_pairs, vi_date = visas.build(cfg, xp_rows, origins)
     visa_of = {(v["pp"]["id"], v["dest"]): v for v in vi_pairs}
     visa_by_route = {(r["o"], r["d"]): visa_of.get((origin_country.get(r["o"]), r["cc"].upper()))

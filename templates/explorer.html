@@ -70,7 +70,7 @@
   <ul class="xp-list">
     {% for x in t["items"] %}<li>
       {% if x.cc %}<img class="flag" src="/static/flags/{{ x.cc }}.png" alt="" width="20" height="15" loading="lazy">{% endif %}
-      <a href="{% if x.rs %}/vuelos/{{ x.rs }}{% else %}/destino/{{ x.ds }}{% endif %}">{{ x.n }}</a>
+      <a href="{% if x.rs %}/vuelos/{{ x.rs }}{% elif x.ds %}/destino/{{ x.ds }}{% else %}/alertas?o={{ x.o|urlencode }}&d={{ x.d|urlencode }}&dn={{ x.n|urlencode }}{% endif %}">{{ x.n }}</a>
       <b>${{ x.p }}</b>{% if x.deal %} <a class="xp-ok" href="/oferta/{{ x.deal.s }}">✅ ${{ x.deal.p }}</a>{% endif %}
       {% if x.dir %}<span class="stops direct">directo</span>{% endif %}
     </li>{% endfor %}
@@ -135,7 +135,8 @@
   function card(x) {
     var p = priceOf(x), tone = 0;
     for (var k = 0; k < x.d.length; k++) tone += x.d.charCodeAt(k);
-    var href = x.rs ? "/vuelos/" + x.rs : "/destino/" + x.ds;
+    var href = x.rs ? "/vuelos/" + x.rs : x.ds ? "/destino/" + x.ds
+      : "/alertas?o=" + x.o + "&d=" + x.d + "&dn=" + encodeURIComponent(x.n);
     var bm = !month.value && x.bm ? "<span>📅 Mejor mes: <b>" + mlabel(x.bm) + "</b></span>" : "";
     return '<li class="card xp-card" data-d="' + x.d + '"><a href="' + href + '">' +
       '<div class="card-img tone-' + (tone % 6) + '">' +

@@ -172,7 +172,8 @@ def build(cfg: dict, xp_rows: list[dict], origins: list[dict], year: int, today:
             b["ideas"] = _ideas(b, rows_by_origin, mine, marker, f"feriados_{cid}", photo_of)
         long_free = [b for b in brks if b["long"]]
         tips = [b for b in brks if b["tip"]]
-        best = max(tips, key=lambda b: (b["tip"]["n"], b["tip"]["n"] / b["tip"]["k"]), default=None)
+        same_year = [b for b in tips if all(d.year == year for d in b["tip"]["work"])] or tips
+        best = max(same_year, key=lambda b: (b["tip"]["n"], b["tip"]["n"] / b["tip"]["k"]), default=None)
         total_vac = sum(b["tip"]["k"] for b in tips)
         total_rest = sum(b["trip_n"] for b in brks)
         cal = calendar(hol, brks, year)

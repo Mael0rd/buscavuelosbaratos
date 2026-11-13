@@ -34,7 +34,7 @@
 
 <h2 class="sec-title">✈️ Vuelos baratos de {{ p.name }} a {{ x.dname }}</h2>
 <ul class="grid">
-  {% for f in x.flights %}<li class="card"><a href="{% if f.rs %}/vuelos/{{ f.rs }}{% else %}/destino/{{ f.ds }}{% endif %}">
+  {% for f in x.flights %}<li class="card"><a href="{% if f.rs %}/vuelos/{{ f.rs }}{% elif f.ds %}/destino/{{ f.ds }}{% else %}/alertas?o={{ f.o|urlencode }}&d={{ f.d|urlencode }}&dn={{ f.n|urlencode }}{% endif %}">
     <div class="card-img tone-{{ loop.index0 % 6 }}">
       {% if f.img %}<img src="{{ f.img }}" alt="" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}
       <span class="card-city" aria-hidden="true">{{ f.n }}</span>
