@@ -52,6 +52,7 @@ jobs:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
           INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          META_SYSTEM_TOKEN: ${{ secrets.META_SYSTEM_TOKEN }}   # usuario del sistema: página de Facebook + Instagram
           BVB_VARS: ${{ toJSON(vars) }}   # canales por país: TELEGRAM_CHANNEL_<PAÍS>
         run: python -m bvb.main
 
