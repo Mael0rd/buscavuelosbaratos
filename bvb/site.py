@@ -145,7 +145,8 @@ def build(conn, cfg: dict, ref=None) -> int:
            "threads_url": (cfg.get("social", {}).get("threads") or {}).get("url", ""),
            "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
            "updated_iso": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-           "origins": origins, "og": "/og/inicio.jpg", "extras": extra}
+           "origins": origins, "og": "/og/inicio.jpg", "extras": extra,
+           "home_faq": countrypage.home_faq(countries, deals)}
     by_id = {c["id"]: c for c in countries}
 
     def write(path, template, **kw):

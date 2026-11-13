@@ -1,8 +1,16 @@
 {% extends "base.html" %}
+{% set active = countries|selectattr("deals")|list %}
+{% set all_deals = active|map(attribute="deals")|sum(start=[])|sort(attribute="price") %}
+{% block title %}Vuelos baratos desde Latinoamérica: ofertas verificadas cada hora | {{ site.title }}{% endblock %}
+{% block description %}{% if total %}{{ total }} ofertas de vuelos baratos verificadas ahora desde {{ active|length }} países de Latinoamérica: {% for d in all_deals[:3] %}{{ d.origin_name }}–{{ d.dest_name }} ${{ "%.0f"|format(d.price) }}{{ ", " if not loop.last }}{% endfor %}. {% endif %}Pasajes, tiquetes y boletos de avión muy por debajo de su precio normal, confirmados en Google Flights.{% endblock %}
+{% block head %}
+  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": home_faq | map("faq_ld") | list} | tojson }}</script>
+{% endblock %}
 {% block content %}
 <section class="hero">
   <h1>Vuelos baratos desde Latinoamérica</h1>
-  <p>Revisamos miles de rutas varias veces al día y publicamos solo las que están muy por debajo de su precio normal. Elige tu país de salida:</p>
+  <p>Revisamos cada hora miles de rutas internacionales desde {{ countries|length }} países y publicamos solo los pasajes, tiquetes y boletos de avión que están muy por debajo de su precio normal{% if total %}: hoy hay <b>{{ total }} ofertas verificadas</b>{% endif %}. Elige tu país de salida:</p>
 </section>
 
 {% if channels.get('main') %}<a class="tg-join" id="tg-join" href="{{ channels['main'] }}" target="_blank" rel="noopener">📲 Recibe las ofertas en Telegram</a>{% endif %}
@@ -62,8 +70,8 @@
 </script>
 
 <section class="cities">
-  <h2>Vuelos baratos desde tu ciudad</h2>
-  {% for c in countries %}<div class="city-row"><b><img class="flag" src="/static/flags/{{ c.cc|lower }}.png" alt="" width="20" height="15"> <a href="/pais/{{ c.id }}">{{ c.name }}</a></b>
+  <h2>Vuelos baratos desde tu país y tu ciudad</h2>
+  {% for c in countries %}<div class="city-row"><b><img class="flag" src="/static/flags/{{ c.cc|lower }}.png" alt="" width="20" height="15"> <a href="/pais/{{ c.id }}" title="Vuelos y {{ c.term }} baratos desde {{ c.name }}">{{ c.name }}</a></b>
     {% for o in c.cities %}<a href="/desde/{{ o.slug }}">{{ o.name }}</a>{% endfor %}</div>
   {% endfor %}
 </section>
@@ -71,4 +79,18 @@
 {% if not total %}
 <p class="empty">Ahora mismo no hay ofertas destacadas. Volvemos a revisar en unas horas.</p>
 {% endif %}
+
+<section class="panel how">
+  <h2>Cómo encontramos vuelos baratos</h2>
+  <ol>
+    <li><b>Revisamos precios cada hora</b> en miles de rutas internacionales que salen de Latinoamérica y guardamos el historial de cada una.</li>
+    <li><b>Detectamos lo que está barato de verdad:</b> comparamos cada precio con lo normal para esa ruta, no con un precio inflado.</li>
+    <li><b>Lo confirmamos en vivo</b> en Google Flights antes de publicarlo y mostramos el precio verificado. <a href="/como-verificamos">Así verificamos</a>.</li>
+  </ol>
+</section>
+
+<section class="panel faq">
+  <h2>Preguntas frecuentes</h2>
+  {% for q, a in home_faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
+</section>
 {% endblock %}

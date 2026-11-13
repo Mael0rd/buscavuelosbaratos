@@ -313,3 +313,7 @@ table.dests td:first-child a { color: var(--accent); font-weight: 600; }
 /* Página de país: tabla de destinos más baratos */
 .cheapest td:nth-child(2), .cheapest td:nth-child(3) { white-space: nowrap; }
 .cheapest td a { color: inherit; font-weight: 600; }
+
+/* Portada: cómo funciona */
+.how ol { margin: .5rem 0 0; padding-left: 1.2rem; }
+.how li { margin: .45rem 0; }

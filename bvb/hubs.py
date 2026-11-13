@@ -7,6 +7,7 @@ ofertas verificadas vigentes. Los precios de `routes` son de referencia (de
 caché de Aviasales, sin verificar) y la página lo dice así; solo las ofertas
 destacadas llevan precio verificado.
 """
+from collections import Counter
 from datetime import date, timedelta
 
 from .routes import SCHEMA, slugify
@@ -42,8 +43,15 @@ def build(conn, cfg: dict, deals: list[dict], route_pages: list[dict], dest_slug
         for r in mine:
             r["route_slug"] = page_of.get((code, r["destination"]))
             r["dest_slug"] = dest_slug(r["dest_name"], r["destination"])
+        months = Counter(r["cheapest_month"][0] for r in route_pages
+                         if r["origin"] == code and r.get("cheapest_month"))
+        best_month = None
+        if months:
+            label, n = months.most_common(1)[0]
+            best_month = {"label": label, "n": n, "total": sum(months.values())}
         o = {"code": code, "name": name, "slug": origin_slug(name, code),
              "country": cid, "country_name": c["name"], "cc": c["cc"],
+             "term": c.get("term") or "boletos de avión", "best_month": best_month,
              "deals": [d for d in deals if d["origin"] == code],
              "dests": mine[:MAX_DESTS], "n_dests": len(mine),
              "direct": [r["dest_name"] for r in mine if r["direct_seen"]][:12],
@@ -99,10 +107,15 @@ def origin_faq(o: dict) -> list[tuple[str, str]]:
         out.append((f"¿A cuántos destinos internacionales se puede volar desde {n}?",
                     f"Esta semana encontramos tarifas desde {n} a {o['n_dests']} destinos internacionales "
                     f"con vuelo directo o una escala."))
+    if o.get("best_month"):
+        m = o["best_month"]
+        out.append((f"¿Cuál es el mes más barato para volar desde {n}?",
+                    f"En nuestras búsquedas recientes, {m['label']} es el mes de salida más barato en {m['n']} de "
+                    f"las {m['total']} rutas internacionales que seguimos desde {n}."))
     if o["direct"]:
         out.append((f"¿A qué ciudades hay vuelos directos desde {n}?",
                     "Entre las tarifas baratas que vimos hay vuelos directos a: " + ", ".join(o["direct"]) + "."))
-    out.append((f"¿Cómo encuentro vuelos baratos desde {n}?",
+    out.append((f"¿Cómo encuentro {o.get('term', 'boletos de avión')} baratos desde {n}?",
                 f"Revisamos cada hora miles de tarifas desde {n} y comparamos cada precio con su historial. "
                 f"Cuando una ruta está muy por debajo de lo normal, la verificamos en Google Flights y la "
                 f"publicamos aquí y en Telegram. También puedes crear una alerta gratis para tu ruta."))

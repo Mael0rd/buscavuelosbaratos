@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Vuelos baratos desde {{ o.name }} ({{ o.code }}){% if o.cheapest %} desde ${{ "%.0f"|format(o.cheapest.last_price) }}{% endif %} | {{ site.title }}{% endblock %}
-{% block description %}Vuelos internacionales baratos de ida y vuelta saliendo desde {{ o.name }}, {{ o.country_name }}{% if o.n_dests %}: {{ o.n_dests }} destinos con precios de esta semana{% endif %}. Ofertas verificadas en Google Flights y alertas gratis.{% endblock %}
+{% block title %}Vuelos y {{ o.term }} baratos desde {{ o.name }} ({{ o.code }}){% if o.cheapest %} desde ${{ "%.0f"|format(o.cheapest.last_price) }}{% endif %} | {{ site.title }}{% endblock %}
+{% block description %}{% if o.deals %}{{ o.deals|length }} oferta{{ "s" if o.deals|length != 1 }} verificada{{ "s" if o.deals|length != 1 }} ahora desde {{ o.name }}: {% for d in o.deals[:3] %}{{ d.dest_name }} ${{ "%.0f"|format(d.price) }}{{ ", " if not loop.last }}{% endfor %}.{% elif o.dests %}{{ o.term|capitalize }} baratos desde {{ o.name }}, {{ o.country_name }}: {% for r in o.dests[:3] %}{{ r.dest_name }} desde ${{ "%.0f"|format(r.last_price) }}{{ ", " if not loop.last }}{% endfor %}.{% else %}Vuelos y {{ o.term }} baratos de ida y vuelta saliendo desde {{ o.name }}, {{ o.country_name }}.{% endif %} {% if o.n_dests %}{{ o.n_dests }} destinos con precios de esta semana, {% endif %}ofertas verificadas en Google Flights y alertas gratis.{% endblock %}
 {% block head %}
   <script type="application/ld+json">{{ {
     "@context": "https://schema.org",
@@ -17,7 +17,7 @@
 
 <section class="hero">
   <h1>Vuelos baratos desde {{ o.name }}</h1>
-  <p>Vuelos internacionales de ida y vuelta saliendo de {{ o.name }} ({{ o.code }}), {{ o.country_name }}, directos o con una escala.
+  <p>Vuelos internacionales y {{ o.term }} baratos de ida y vuelta saliendo de {{ o.name }} ({{ o.code }}), {{ o.country_name }}, directos o con una escala.
   {% if o.n_dests %}Esta semana encontramos tarifas a <b>{{ o.n_dests }} destinos</b>{% if o.cheapest %}; el más barato fue {{ o.cheapest.dest_name }} desde ${{ "%.0f"|format(o.cheapest.last_price) }}{% endif %}.{% endif %}</p>
 </section>
 
@@ -53,8 +53,15 @@
 {% set share_text = "✈️ Vuelos baratos desde " ~ o.name ~ ": ofertas verificadas de ida y vuelta" %}
 {% include "_share.html" %}
 
+{% if o.best_month %}
+<section class="panel">
+  <h2>¿Cuándo es más barato volar desde {{ o.name }}?</h2>
+  <p><b>{{ o.best_month.label|capitalize }}</b> es el mes de salida más barato en {{ o.best_month.n }} de las {{ o.best_month.total }} rutas internacionales que seguimos desde {{ o.name }}. Cada ruta tiene su historial de precios por mes.</p>
+</section>
+{% endif %}
+
 <section class="panel faq">
-  <h2>Preguntas frecuentes</h2>
+  <h2>Preguntas frecuentes sobre vuelos baratos desde {{ o.name }}</h2>
   {% for q, a in o.faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
 </section>
 

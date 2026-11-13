@@ -85,3 +85,27 @@ def summarize(c: dict) -> dict:
     c.update(term=term, top_dests=top, best_month=best_month, n_routes=len(routes),
              n_dests=len(best), faq=faq, seo_desc=desc[:300])
     return c
+
+
+def home_faq(countries: list[dict], deals: list[dict]) -> list[tuple[str, str]]:
+    """Preguntas frecuentes de la portada (generales + la oferta más barata del momento)."""
+    out = []
+    if deals:
+        d = min(deals, key=lambda x: x["price"])
+        out.append(("¿Cuál es el vuelo más barato que hay ahora?",
+                    f"En este momento, la oferta verificada más barata es {d['origin_name']} – {d['dest_name']} "
+                    f"por ${d['price']:.0f} USD ida y vuelta. Las ofertas cambian varias veces al día."))
+    out += [
+        ("¿Las ofertas son reales?",
+         "Sí. Cada oferta se confirma en vivo en Google Flights antes de publicarse, y mostramos el precio "
+         "verificado. Los precios de los vuelos cambian rápido, así que puede subir después de publicada."),
+        ("¿Ustedes venden los boletos?",
+         "No. Te llevamos a la agencia o aerolínea donde se compra el vuelo, al mismo precio. Si compras, "
+         "podemos recibir una pequeña comisión que no te cuesta nada extra."),
+        ("¿Desde qué países buscan vuelos baratos?",
+         "Buscamos vuelos internacionales que salen de " + _join([c["name"] for c in countries]) + "."),
+        ("¿Cómo recibo las ofertas desde mi ciudad?",
+         "Síguenos en Telegram o WhatsApp, o crea una alerta gratis para tu ruta y te avisamos cuando el "
+         "precio baje."),
+    ]
+    return out
