@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% set p = x.pp %}{% set v = x.visa %}
+{% block title %}¿Los {{ p.demonym }} necesitan visa para {{ x.dname }}? Requisitos y vuelos baratos | {{ site.title }}{% endblock %}
+{% block description %}{{ v.label }}: {{ v.text }} Requisitos para viajar a {{ x.dname }} con pasaporte {{ "de EE. UU." if p.us_passport else "de " ~ p.name }} y vuelos ida y vuelta desde ${{ x.flights[0].p }}.{% endblock %}
+{% block head %}
+  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": x.faq | map("faq_ld") | list} | tojson }}</script>
+{% endblock %}
+{% block content %}
+<nav class="crumbs"><a href="/visas">Visas</a> › <a href="/visas/{{ p.slug }}">Pasaporte {{ "de EE. UU." if p.us_passport else p.name }}</a> › {{ x.dname }}</nav>
+<section class="vi-answer vi-{{ v.key }}">
+  <p class="xp-kicker"><img class="flag" src="/static/flags/{{ p.cc|lower }}.png" alt="" width="20" height="15"> → <img class="flag" src="/static/flags/{{ x.dest|lower }}.png" alt="" width="20" height="15"> {{ p.name }} a {{ x.dname }}</p>
+  <h1>¿Los {{ p.demonym }} necesitan visa para {{ x.dname }}?</h1>
+  <div class="vi-verdict">
+    <span class="vi-ic">{{ {"free": "✅", "arrival": "🛬", "eta": "📱", "evisa": "💻", "visa": "🛂", "no": "⛔"}[v.key] }}</span>
+    <div><b>{{ v.label }}</b><p>{{ v.text }}</p></div>
+  </div>
+</section>
+
+{% if x.note %}<div class="fe-best"><span class="fe-best-ic">ℹ️</span><p>{{ x.note }}</p></div>{% endif %}
+
+<section class="panel">
+  <h2>Lo que casi siempre te van a pedir</h2>
+  <ul class="vi-check">
+    <li>🛂 <b>Pasaporte vigente</b>: muchos países piden que siga vigente al menos 6 meses después de la fecha de entrada.</li>
+    <li>🎫 <b>Boleto de regreso</b> o de salida del país.</li>
+    <li>🏨 <b>Dónde te vas a quedar</b> (reserva de hotel o carta de invitación).</li>
+    <li>💵 <b>Dinero suficiente</b> para tu estadía (tarjetas o estados de cuenta).</li>
+    {% if v.key in ("eta", "evisa") %}<li>📱 <b>El permiso electrónico aprobado</b> antes de abordar: la aerolínea lo revisa.</li>{% endif %}
+  </ul>
+  {% if x.official %}<p>Fuente oficial: <a class="small-link" href="{{ x.official[1] }}" target="_blank" rel="noopener">{{ x.official[0] }} ↗</a></p>{% endif %}
+  <p class="muted small">Datos de Passport Index al {{ vi_updated }}. Los requisitos cambian y pueden depender de tu caso: confírmalos con la embajada o consulado de {{ x.dname }} antes de comprar el viaje.</p>
+</section>
+
+<h2 class="sec-title">✈️ Vuelos baratos de {{ p.name }} a {{ x.dname }}</h2>
+<ul class="grid">
+  {% for f in x.flights %}<li class="card"><a href="{% if f.rs %}/vuelos/{{ f.rs }}{% else %}/destino/{{ f.ds }}{% endif %}">
+    <div class="card-img tone-{{ loop.index0 % 6 }}">
+      {% if f.img %}<img src="{{ f.img }}" alt="" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}
+      <span class="card-city" aria-hidden="true">{{ f.n }}</span>
+      <span class="card-pill">${{ f.p }}</span>
+    </div>
+    <div class="card-body">
+      <h3 class="route">{{ origin_names.get(f.o, f.o) }} <span>→</span> {{ f.n }}</h3>
+      <div class="price">${{ f.p }} <small>ida y vuelta</small></div>
+      <div class="xp-meta">{% if f.bm %}<span>📅 Mejor mes: <b>{{ f.bm|mes }}</b></span>{% endif %}{% if f.dir %}<span class="stops direct">hay directos</span>{% endif %}</div>
+      {% if f.deal %}<div class="badge">✅ Oferta verificada: ${{ f.deal.p }}</div>{% endif %}
+    </div>
+  </a></li>{% endfor %}
+</ul>
+<p class="muted small">Precio más bajo ida y vuelta que vimos recientemente; puede cambiar. <a class="small-link" href="/alertas">Crea una alerta</a> para saber cuándo baja.</p>
+
+{% set share_text = "🛂 ¿Los " ~ p.demonym ~ " necesitan visa para " ~ x.dname ~ "? " ~ v.label %}
+{% include "_share.html" %}
+
+<section class="panel faq">
+  <h2>Preguntas frecuentes</h2>
+  {% for q, a in x.faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
+</section>
+
+<section class="xp-cities">
+  <h2 class="sec-title">Otros destinos para {{ p.demonym }}</h2>
+  <div class="xp-city-links">{% for y in p.pairs if y.dest != x.dest %}<a href="{{ y.url }}"><img class="flag" src="/static/flags/{{ y.dest|lower }}.png" alt="" width="20" height="15" loading="lazy"> {{ y.dname }} <small>{{ {"free": "✅", "arrival": "🛬", "eta": "📱", "evisa": "💻", "visa": "🛂", "no": "⛔"}[y.visa.key] }}</small></a>{% endfor %}</div>
+</section>
+{% endblock %}

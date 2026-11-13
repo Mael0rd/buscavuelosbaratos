@@ -10,7 +10,7 @@ from datetime import date, datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
-from . import countrypage, explorer, extras, feriados, fx, geo, hubs, ogimage, routes, telegram, whatsapp
+from . import countrypage, explorer, extras, feriados, fx, geo, hubs, visas, ogimage, routes, telegram, whatsapp
 from .fetch import with_subid
 from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
@@ -78,6 +78,7 @@ def build(conn, cfg: dict, ref=None) -> int:
     env.filters["fecha"] = fmt_date
     env.filters["escalas"] = fmt_stops
     env.filters["hace"] = telegram.ago
+    env.filters["mes"] = lambda ym: explorer.month_short(ym) if ym else ""
     env.filters["subid"] = with_subid  # {{ link|subid("web_oferta") }}: SubID de Travelpayouts por fuente
     photos = cfg.get("dest_images") or {}
     env.globals["dest_banner"] = lambda code: (*banner_image(photos.get(code, "")),
@@ -256,6 +257,21 @@ def build(conn, cfg: dict, ref=None) -> int:
           og=og("feriados", ogimage.page_image, f"Feriados {fe_year} en Latinoamérica",
                 "Fines de semana largos, puentes y vuelos baratos por país", tone=0, kicker="Planifica tus viajes"))
 
+    # ¿Necesito visa? por pasaporte y por pasaporte + destino (solo destinos con vuelos)
+    vi_passports, vi_pairs, vi_date = visas.build(cfg, xp_rows, origins)
+    vi_ctx = {"vi_passports": vi_passports, "vi_updated": visas.fmt_date(vi_date)}
+    write("visas.html", "visas.html", **vi_ctx,
+          og=og("visas", ogimage.page_image, "¿Necesito visa?",
+                "A qué países puedes viajar sin visa con tu pasaporte", tone=3, kicker="Requisitos de viaje"))
+    for vp in vi_passports:
+        (SITE_DIR / "visas" / vp["slug"]).mkdir(parents=True, exist_ok=True)
+        vp["og"] = og(f"visas-{vp['slug']}", ogimage.page_image, f"¿A dónde pueden viajar los {vp['demonym']} sin visa?",
+                      f"{vp['easy']} países sin visa o con visa al llegar", cc=vp["cc"], tone=3,
+                      kicker="Requisitos de viaje")
+        write(f"visas/{vp['slug']}.html", "visas_pasaporte.html", p=vp, og=vp["og"], **vi_ctx)
+    for vx in vi_pairs:
+        write(f"visas/{vx['pp']['slug']}/{vx['dslug']}.html", "visas_destino.html", x=vx, og=vx["pp"]["og"], **vi_ctx)
+
     for page, title in INFO_PAGES.items():
         write(f"{page}.html", f"{page}.html", title=title)
     write("404.html", "404.html", page_path=None)
@@ -288,6 +304,8 @@ def build(conn, cfg: dict, ref=None) -> int:
             + [(f"{base}/destino/{s}", today) for s in destinations]
             + [(f"{base}/a-donde-volar", today)]
             + [(f"{base}/feriados", today)]
+            + [(f"{base}/visas", today)] + [(f"{base}/visas/{v['slug']}", today) for v in vi_passports]
+            + [(f"{base}{v['url']}", today) for v in vi_pairs]
             + [(f"{base}/feriados/{f['slug']}", today) for y in fe_years for f in fe_all[y]]
             + [(f"{base}/a-donde-volar/desde-{x['slug']}", today) for x in xp_pages if x["n"] and x["indexable"]]
             + [(f"{base}/vuelos/{r['slug']}", r["lastmod"]) for r in route_pages if r["indexable"]])

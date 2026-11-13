@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% set pname = "de EE. UU." if p.us_passport else "de " ~ p.name %}
+{% block title %}¿A qué países pueden viajar los {{ p.demonym }} sin visa? ({{ p.easy }} países) | {{ site.title }}{% endblock %}
+{% block description %}Con pasaporte {{ pname }} entras sin visa a {{ p.counts.free }} países y con visa al llegar a {{ p.counts.arrival }}. Lista completa con buscador y los destinos sin visa más baratos para volar.{% endblock %}
+{% block head %}
+  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": p.faq | map("faq_ld") | list} | tojson }}</script>
+{% endblock %}
+{% block content %}
+<a class="back" href="/visas">← Todos los pasaportes</a>
+<section class="vi-hero">
+  <p class="xp-kicker"><img class="flag" src="/static/flags/{{ p.cc|lower }}.png" alt="" width="20" height="15"> Pasaporte {{ pname }}</p>
+  <h1>¿A qué países pueden viajar los {{ p.demonym }} sin visa?</h1>
+  {% set c = p.counts %}{% set t = p.total %}
+  <div class="vi-summary">
+    <div class="vi-donut" style="--a:{{ (c.free / t * 100)|round(1) }}%;--b:{{ ((c.free + c.arrival) / t * 100)|round(1) }}%;--c:{{ ((c.free + c.arrival + c.eta + c.evisa) / t * 100)|round(1) }}%">
+      <span><b>{{ p.easy }}</b>países sin visa previa</span>
+    </div>
+    <ul class="vi-legend">
+      <li class="k-free"><b>{{ c.free }}</b> sin visa</li>
+      <li class="k-arrival"><b>{{ c.arrival }}</b> visa al llegar</li>
+      <li class="k-online"><b>{{ c.eta + c.evisa }}</b> permiso o visa en línea</li>
+      <li class="k-visa"><b>{{ c.visa + c.no }}</b> visa en la embajada</li>
+    </ul>
+  </div>
+</section>
+{% if p.us_passport %}<p class="notice">En Puerto Rico se viaja con pasaporte de Estados Unidos: estos son los requisitos para ciudadanos estadounidenses.</p>{% endif %}
+
+{% if p.cheap %}
+<h2 class="sec-title">✈️ Destinos sin visa más baratos desde {{ p.name }}</h2>
+<ul class="grid">
+  {% for x in p.cheap %}<li class="card"><a href="/visas/{{ p.slug }}/{{ x.slug }}">
+    <div class="card-img tone-{{ loop.index0 % 6 }}">
+      {% if x.img %}<img src="{{ x.img }}" alt="" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}
+      <span class="card-city" aria-hidden="true">{{ x.n }}</span>
+      <span class="card-ctry"><img class="flag" src="/static/flags/{{ x.cc }}.png" alt="" width="16" height="12"> {{ x.c }}</span>
+      <span class="card-pill">${{ x.p }}</span>
+    </div>
+    <div class="card-body">
+      <h3 class="route">{{ x.n }}<span class="ctry">, {{ x.c }}</span></h3>
+      <div class="price">${{ x.p }} <small>ida y vuelta</small></div>
+      <div class="badge">✅ {{ x.visa.label }}</div>
+    </div>
+  </a></li>{% endfor %}
+</ul>
+{% endif %}
+
+<section class="panel vi-all">
+  <h2>Todos los países para el pasaporte {{ pname }}</h2>
+  <div class="vi-tools">
+    <input type="search" id="vi-q" placeholder="Busca un país…" aria-label="Buscar país">
+    <div class="xp-chips vi-chips" role="group" aria-label="Filtrar">
+      <button type="button" class="on" data-k="">Todos</button>
+      {% for k, title, xs in p.groups %}{% if xs %}<button type="button" data-k="{{ k }}">{{ title }} ({{ xs|length }})</button>{% endif %}{% endfor %}
+    </div>
+  </div>
+  {% for k, title, xs in p.groups %}{% if xs %}
+  <div class="vi-group" data-k="{{ k }}">
+    <h3>{{ title }} <span class="muted">· {{ xs|length }}</span></h3>
+    <ul class="vi-list">
+      {% for x in xs %}<li data-n="{{ x.name|lower }}">
+        <img class="flag" src="/static/flags/{{ x.cc }}.png" alt="" width="20" height="15" loading="lazy" onerror="this.style.visibility='hidden'">
+        {% if x.has_page %}<a href="/visas/{{ p.slug }}/{{ x.slug }}">{{ x.name }}</a>{% else %}<span>{{ x.name }}</span>{% endif %}
+        {% if x.days %}<small>{{ x.days }} días</small>{% endif %}
+        {% if x["from"] %}<b class="vi-from">✈️ ${{ x["from"] }}</b>{% endif %}
+      </li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}{% endfor %}
+  <p class="muted small">Datos de <a class="small-link" href="https://github.com/imorte/passport-index-data" target="_blank" rel="noopener">Passport Index</a> al {{ vi_updated }}. Los requisitos cambian: confírmalos con la embajada o la autoridad migratoria del destino antes de comprar el viaje. ✈️ = precio ida y vuelta más bajo que vimos recientemente.</p>
+</section>
+
+{% set share_text = "🛂 ¿A qué países pueden viajar los " ~ p.demonym ~ " sin visa? Son " ~ p.easy %}
+{% include "_share.html" %}
+
+<section class="panel faq">
+  <h2>Preguntas frecuentes</h2>
+  {% for q, a in p.faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
+</section>
+
+<script>
+(function () {
+  var q = document.getElementById("vi-q"), k = "", chips = document.querySelectorAll(".vi-chips button");
+  function norm(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+  function apply() {
+    var t = norm(q.value.trim().toLowerCase()), groups = document.querySelectorAll(".vi-group");
+    for (var i = 0; i < groups.length; i++) {
+      var g = groups[i], vis = 0, lis = g.querySelectorAll("li");
+      for (var j = 0; j < lis.length; j++) {
+        var ok = !t || norm(lis[j].dataset.n).indexOf(t) !== -1;
+        lis[j].hidden = !ok; if (ok) vis++;
+      }
+      g.hidden = (k && g.dataset.k !== k) || !vis;
+    }
+  }
+  q.addEventListener("input", apply);
+  for (var i = 0; i < chips.length; i++) chips[i].addEventListener("click", function (e) {
+    k = e.currentTarget.dataset.k;
+    for (var j = 0; j < chips.length; j++) chips[j].classList.toggle("on", chips[j] === e.currentTarget);
+    apply();
+  });
+})();
+</script>
+{% endblock %}

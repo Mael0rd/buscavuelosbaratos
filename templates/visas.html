@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}¿Necesito visa? Requisitos de viaje para latinoamericanos por pasaporte | {{ site.title }}{% endblock %}
+{% block description %}Elige tu pasaporte y descubre a qué países puedes viajar sin visa, con visa al llegar o con permiso electrónico, y los destinos sin visa más baratos para volar.{% endblock %}
+{% block content %}
+<a class="back" href="/">← Inicio</a>
+<section class="vi-hero">
+  <p class="xp-kicker">Requisitos de viaje</p>
+  <h1>¿Necesito visa?</h1>
+  <p class="xp-lead">Elige tu pasaporte: te mostramos a qué países puedes ir sin visa y los destinos sin visa más baratos para volar desde tu país.</p>
+</section>
+<ul class="fe-countries">
+  {% for p in vi_passports %}<li><a href="/visas/{{ p.slug }}">
+    <img class="flag" src="/static/flags/{{ p.cc|lower }}.png" alt="" width="32" height="24" loading="lazy">
+    <span class="fe-c-name">Pasaporte {{ "de EE. UU. (Puerto Rico)" if p.us_passport else p.name }}</span>
+    <span class="fe-c-stats"><b>{{ p.easy }}</b> países sin visa o con visa al llegar</span>
+    {% if p.cheap %}<span class="fe-c-best">✈️ Sin visa desde ${{ p.cheap[0].p }}: {{ p.cheap[0].n }}</span>{% endif %}
+  </a></li>{% endfor %}
+</ul>
+<p class="muted small">Datos de <a class="small-link" href="https://github.com/imorte/passport-index-data" target="_blank" rel="noopener">Passport Index</a> actualizados al {{ vi_updated }}. Los requisitos cambian: confírmalos siempre con la embajada o la autoridad migratoria del destino antes de viajar.</p>
+{% endblock %}

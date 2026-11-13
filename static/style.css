@@ -524,3 +524,40 @@ table.dests td:first-child a { color: var(--accent); font-weight: 600; }
 .fe-c-stats b { color: var(--ink); }
 .fe-c-best { font-size: .85rem; color: var(--good); }
 @media (max-width: 560px) { .fe-card { grid-template-columns: 58px 1fr; gap: .7rem; padding: .8rem; } .fe-days { font-size: 1.6rem; } }
+
+/* ---- Visas ---- */
+.vi-hero { margin: 1rem 0 1.25rem; padding: 2rem 1.5rem 1.5rem; border-radius: 22px; color: #fff;
+  background: radial-gradient(130% 140% at 0% 100%, #10b981 0%, #0d9488 35%, #0e7490 70%, #164e63 100%); }
+.vi-hero h1 { font-size: clamp(1.6rem, 4.6vw, 2.5rem); line-height: 1.15; margin: .35rem 0 .8rem; letter-spacing: -.02em; }
+.vi-summary { display: flex; flex-wrap: wrap; gap: 1.2rem 2rem; align-items: center; }
+.vi-donut { width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center; flex: 0 0 auto;
+  background: conic-gradient(#4ade80 0 var(--a), #a3e635 var(--a) var(--b), #fbbf24 var(--b) var(--c), #f87171 var(--c) 100%); }
+.vi-donut span { width: 104px; height: 104px; border-radius: 50%; background: #0f3d47; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; font-size: .72rem; line-height: 1.15; padding: .4rem; }
+.vi-donut b { font-size: 2rem; line-height: 1; }
+.vi-legend { list-style: none; padding: 0; margin: 0; display: grid; gap: .35rem; }
+.vi-legend li::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: .5rem; vertical-align: -1px; }
+.vi-legend .k-free::before { background: #4ade80; } .vi-legend .k-arrival::before { background: #a3e635; }
+.vi-legend .k-online::before { background: #fbbf24; } .vi-legend .k-visa::before { background: #f87171; }
+.vi-tools { display: flex; flex-direction: column; gap: .7rem; margin-bottom: .5rem; }
+.vi-tools input { padding: .65rem .8rem; border: 1px solid var(--line); border-radius: 12px; font: inherit; background: var(--card); color: var(--ink); }
+.vi-chips { margin: 0; }
+.vi-chips button { border-color: var(--line); background: var(--card); color: var(--ink); }
+.vi-chips button.on { background: var(--accent-btn); color: #fff; border-color: var(--accent-btn); }
+.vi-group h3 { font-size: 1rem; margin: 1.1rem 0 .4rem; }
+.vi-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .1rem 1.2rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.vi-list li { display: flex; align-items: center; gap: .45rem; padding: .3rem 0; border-bottom: 1px solid var(--line-soft); font-size: .93rem; }
+.vi-list a { font-weight: 600; color: var(--accent); }
+.vi-list small { color: var(--muted); }
+.vi-from { margin-left: auto; font-size: .82rem; color: var(--good); }
+.vi-answer { margin: 1rem 0 1.25rem; padding: 2rem 1.5rem 1.5rem; border-radius: 22px; color: #fff;
+  background: linear-gradient(135deg, #0e7490, #164e63); }
+.vi-answer h1 { font-size: clamp(1.5rem, 4.4vw, 2.3rem); line-height: 1.15; margin: .35rem 0 1rem; }
+.vi-free, .vi-arrival { background: linear-gradient(135deg, #059669, #065f46); }
+.vi-eta, .vi-evisa { background: linear-gradient(135deg, #d97706, #92400e); }
+.vi-visa, .vi-no { background: linear-gradient(135deg, #dc2626, #7f1d1d); }
+.vi-verdict { display: flex; gap: 1rem; align-items: center; background: rgba(255,255,255,.14); border-radius: 16px; padding: 1rem 1.2rem; }
+.vi-verdict b { font-size: 1.35rem; }
+.vi-verdict p { margin: .2rem 0 0; opacity: .95; }
+.vi-ic { font-size: 2.6rem; line-height: 1; }
+.vi-check { list-style: none; padding: 0; margin: 0 0 .8rem; display: grid; gap: .5rem; }
