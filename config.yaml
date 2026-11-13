@@ -151,6 +151,9 @@ alerts:
 # en caché). La última es la portada de la marca y siempre se acepta.
 # Variables: {country} {city} (español), {country_slug} {city_slug} {city_en} (inglés), {iata} {cc}.
 # SubID de cada enlace: <página>_<marca>, p. ej. oferta_yesim, ruta_klook.
+# Tipo de cambio de respaldo (si la API del BCE no responde), para mostrar euros en dólares
+fx: { eur_usd: 1.15 }
+
 extras:
   enabled: true
   trs: 598846                  # ID del proyecto en Travelpayouts (el mismo del script Drive)
