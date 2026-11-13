@@ -10,7 +10,7 @@ from datetime import date, datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
-from . import countrypage, explorer, extras, fx, geo, hubs, ogimage, routes, telegram, whatsapp
+from . import countrypage, explorer, extras, feriados, fx, geo, hubs, ogimage, routes, telegram, whatsapp
 from .fetch import with_subid
 from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
@@ -238,6 +238,24 @@ def build(conn, cfg: dict, ref=None) -> int:
         write(f"a-donde-volar/desde-{xp['slug']}.html", "explorer.html", p=xp, noindex=not xp["indexable"],
               og=img, **xp_ctx)
 
+    # Feriados y puentes por país: el año en curso (y el siguiente desde octubre)
+    today_d = date.today()
+    fe_years = [today_d.year] + ([today_d.year + 1] if today_d.month >= 10 else [])
+    fe_year = fe_years[-1]
+    (SITE_DIR / "feriados").mkdir(exist_ok=True)
+    fe_all = {}
+    for y in fe_years:
+        fe_all[y] = feriados.build(cfg, xp_rows, origins, y, today_d)
+        for f in fe_all[y]:
+            img = og(f"feriados-{f['slug']}", ogimage.page_image, f"Feriados {y} en {f['name']}",
+                     f"{len(f['long_free'])} fines de semana largos y los mejores puentes del año",
+                     cc=f["cc"], tone=sum(map(ord, f["id"])) % 6, kicker="Feriados y puentes")
+            write(f"feriados/{f['slug']}.html", "feriados_pais.html", f=f, fe_pages=fe_all[y], og=img)
+    fe_pages = fe_all[fe_year]
+    write("feriados.html", "feriados.html", fe_pages=fe_pages, fe_year=fe_year,
+          og=og("feriados", ogimage.page_image, f"Feriados {fe_year} en Latinoamérica",
+                "Fines de semana largos, puentes y vuelos baratos por país", tone=0, kicker="Planifica tus viajes"))
+
     for page, title in INFO_PAGES.items():
         write(f"{page}.html", f"{page}.html", title=title)
     write("404.html", "404.html", page_path=None)
@@ -256,6 +274,8 @@ def build(conn, cfg: dict, ref=None) -> int:
         target = f"/vuelos/{rs}" if rs else f"/pais/{x['country']}"
         redirects.append(f"/oferta/{x['slug']} {target} 301")
         redirects.append(f"/oferta/{x['slug']}.html {target} 301")
+    for f in fe_all[fe_years[0]]:  # feriados del año anterior: a la página del año actual
+        redirects.insert(0, f"/feriados/{f['id']}-{fe_years[0] - 1} /feriados/{f['slug']} 301")
     (SITE_DIR / "_redirects").write_text("\n".join(redirects[:1900]) + ("\n" if redirects else ""))
 
     # Sitemap: solo páginas permanentes e indexables. Las /oferta/ duran horas o días
@@ -267,6 +287,8 @@ def build(conn, cfg: dict, ref=None) -> int:
             + [(f"{base}/desde/{o['slug']}", today) for o in origins]
             + [(f"{base}/destino/{s}", today) for s in destinations]
             + [(f"{base}/a-donde-volar", today)]
+            + [(f"{base}/feriados", today)]
+            + [(f"{base}/feriados/{f['slug']}", today) for y in fe_years for f in fe_all[y]]
             + [(f"{base}/a-donde-volar/desde-{x['slug']}", today) for x in xp_pages if x["n"] and x["indexable"]]
             + [(f"{base}/vuelos/{r['slug']}", r["lastmod"]) for r in route_pages if r["indexable"]])
     (SITE_DIR / "sitemap.xml").write_text(

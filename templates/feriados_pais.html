@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Feriados {{ f.year }} en {{ f.name }}: fines de semana largos y puentes | {{ site.title }}{% endblock %}
+{% block description %}Los {{ f.holidays|length }} feriados de {{ f.year }} en {{ f.name }}, los fines de semana largos y cuántos días de vacaciones pedir para descansar más, con ideas de vuelos baratos para cada puente.{% endblock %}
+{% block head %}
+  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": f.faq | map("faq_ld") | list} | tojson }}</script>
+{% endblock %}
+{% block content %}
+<a class="back" href="/feriados">← Feriados de todos los países</a>
+
+<section class="fe-hero">
+  <p class="xp-kicker"><img class="flag" src="/static/flags/{{ f.cc|lower }}.png" alt="" width="20" height="15"> {{ f.name }}</p>
+  <h1>Feriados {{ f.year }} en {{ f.name }}</h1>
+  <p class="xp-lead">Todos los feriados, los fines de semana largos y los mejores puentes del año, con ideas de vuelos baratos para aprovecharlos.</p>
+  <div class="fe-stats">
+    <div><b>{{ f.holidays|length }}</b><span>feriados</span></div>
+    <div><b>{{ f.long_free|length }}</b><span>fines de semana largos</span></div>
+    {% set n_tips = f.breaks|selectattr("tip")|list|length %}{% if n_tips %}<div><b>{{ n_tips }}</b><span>puentes que valen la pena</span></div>{% endif %}
+  </div>
+  {% if f.next %}<div class="fe-next" id="fe-next" data-next='{{ f.next|tojson }}'>
+    <span class="fe-next-n" id="fe-next-n">—</span>
+    <span>días para el próximo feriado: <b id="fe-next-name">{{ f.next[0].name }}</b></span>
+  </div>{% endif %}
+</section>
+
+{% if f.best %}{% set t = f.best.tip %}
+<div class="fe-best">
+  <span class="fe-best-ic">🏆</span>
+  <p><b>El mejor puente de {{ f.year }}:</b> pide {{ t.k }} día{{ "s" if t.k > 1 }} de vacaciones ({{ t.ask|join(", ") }}) y descansa <b>{{ t.n }} días seguidos</b>, {{ t.range }}.</p>
+</div>
+{% endif %}
+
+<h2 class="sec-title">🗓️ Fines de semana largos y puentes {{ f.year }}</h2>
+{% if f.origins|length > 1 %}
+<div class="fe-cities" role="group" aria-label="Ciudad de salida para las ideas de viaje">
+  <span class="muted small">Ideas de vuelo saliendo de:</span>
+  {% for o in f.origins %}<button type="button" data-city="{{ o.code }}"{% if loop.first %} class="on"{% endif %}>{{ o.name }}</button>{% endfor %}
+</div>
+{% endif %}
+
+<ol class="fe-list">
+  {% for b in f.breaks %}
+  <li class="fe-card{% if b.tip and not b.long %} fe-bridge{% endif %}">
+    <div class="fe-date">
+      <span class="fe-month">{{ b.month_name[:3] }}</span>
+      <span class="fe-days">{{ b.trip_n }}</span>
+      <span class="fe-unit">días</span>
+    </div>
+    <div class="fe-body">
+      <h3>{{ b.names|join(" · ") }}</h3>
+      {% if b.long %}<p class="fe-line">🏖️ <b>{{ b.n }} días libres</b> sin pedir vacaciones: {{ b.range }}</p>
+      {% else %}<p class="fe-line">📅 Feriado el {{ b.range }}</p>{% endif %}
+      {% if b.tip %}<p class="fe-tip">💡 Pide {{ b.tip.ask|join(" y ") }} y descansas <b>{{ b.tip.n }} días</b> ({{ b.tip.range }})</p>{% endif %}
+      {% for code, ideas in b.ideas.items() %}
+      <div class="fe-ideas" data-city="{{ code }}"{% if code != f.origins[0].code %} hidden{% endif %}>
+        <p class="fe-ideas-t">✈️ Ideas para esas fechas desde {{ origin_names.get(code, code) }}:</p>
+        <ul>
+          {% for x in ideas %}<li>
+            <a class="fe-idea" href="{{ x.url }}" target="_blank" rel="sponsored noopener">
+              <span class="fe-idea-img tone-{{ loop.index0 % 6 }}">{% if x.img %}<img src="{{ x.img }}" alt="" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}</span>
+              <span class="fe-idea-txt"><b>{% if x.cc %}<img class="flag" src="/static/flags/{{ x.cc }}.png" alt="" width="16" height="12"> {% endif %}{{ x.n }}</b>
+                <small>desde ${{ x.pm }} saliendo en {{ b.month_name }}</small>
+                <span class="fe-go">Ver vuelos para esas fechas →</span></span>
+            </a>
+          </li>{% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+  </li>
+  {% endfor %}
+</ol>
+<p class="muted small">Los precios son el mínimo que vimos recientemente para salir en ese mes; el enlace busca vuelos con las fechas exactas del descanso (de ida el primer día y de vuelta el último). <a class="small-link" href="/a-donde-volar">Explora más destinos por presupuesto</a> o <a class="small-link" href="/alertas">crea una alerta</a>.</p>
+
+<section class="panel">
+  <h2>Calendario {{ f.year }}</h2>
+  <div class="fe-legend"><span class="k-hol">Feriado</span><span class="k-long">Fin de semana largo</span><span class="k-bridge">Pedir de vacaciones</span><span class="k-we">Fin de semana</span></div>
+  <div class="fe-cal">
+    {% for m in f.calendar %}
+    <div class="fe-m">
+      <h3>{{ m.name }}{% if m.n_hol %} <small>{{ m.n_hol }}</small>{% endif %}</h3>
+      <div class="fe-grid">
+        {% for d in ["L","M","M","J","V","S","D"] %}<span class="fe-dh">{{ d }}</span>{% endfor %}
+        {% for c in m.cells %}{% if c %}<span class="k-{{ c.k or 'n' }}"{% if c.t %} title="{{ c.t }}"{% endif %}>{{ c.n }}</span>{% else %}<span></span>{% endif %}{% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Lista de feriados {{ f.year }} en {{ f.name }}</h2>
+  <table class="months fe-table">
+    <tbody>{% for h in f.holidays %}<tr{% if h.weekend %} class="muted"{% endif %}><td>{{ h.txt }}</td><td>{{ h.name }}</td></tr>{% endfor %}</tbody>
+  </table>
+  <p class="muted small">Feriados oficiales según la ley de {{ f.name }}{% if f.cc|upper == "CR" %}, incluidos los de pago no obligatorio{% endif %}{% if f.cc|upper == "UY" %}, más Carnaval y la Semana de Turismo{% endif %}. Algunos pueden trasladarse por decreto: confírmalo con tu empleador. Fuente: <a class="small-link" href="https://github.com/vacanza/holidays" target="_blank" rel="noopener">python-holidays</a>.</p>
+</section>
+
+{% set share_text = "🗓️ Feriados y puentes " ~ f.year ~ " en " ~ f.name %}
+{% include "_share.html" %}
+
+<section class="panel faq">
+  <h2>Preguntas frecuentes</h2>
+  {% for q, a in f.faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
+</section>
+
+<section class="xp-cities">
+  <h2 class="sec-title">Feriados {{ f.year }} en otros países</h2>
+  <div class="xp-city-links">{% for o in fe_pages %}<a href="/feriados/{{ o.slug }}"{% if o.id == f.id %} class="on"{% endif %}><img class="flag" src="/static/flags/{{ o.cc|lower }}.png" alt="" width="20" height="15" loading="lazy"> {{ o.name }}</a>{% endfor %}</div>
+</section>
+
+<script>
+(function () {
+  var box = document.getElementById("fe-next");
+  if (box) {
+    var list = JSON.parse(box.dataset.next), now = new Date(); now.setHours(0, 0, 0, 0);
+    for (var i = 0; i < list.length; i++) {
+      var p = list[i].iso.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]);
+      if (d >= now) {
+        var n = Math.round((d - now) / 86400000);
+        document.getElementById("fe-next-n").textContent = n === 0 ? "¡Hoy!" : n;
+        document.getElementById("fe-next-name").textContent = list[i].name;
+        break;
+      }
+    }
+  }
+  var btns = document.querySelectorAll(".fe-cities button");
+  for (var j = 0; j < btns.length; j++) btns[j].addEventListener("click", function (e) {
+    var code = e.currentTarget.dataset.city;
+    for (var k = 0; k < btns.length; k++) btns[k].classList.toggle("on", btns[k] === e.currentTarget);
+    var boxes = document.querySelectorAll(".fe-ideas");
+    for (var m = 0; m < boxes.length; m++) boxes[m].hidden = boxes[m].dataset.city !== code;
+  });
+})();
+</script>
+{% endblock %}

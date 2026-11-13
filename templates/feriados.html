@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Feriados {{ fe_year }} en Latinoamérica: fines de semana largos y puentes por país | {{ site.title }}{% endblock %}
+{% block description %}Calendario de feriados {{ fe_year }} de {{ fe_pages|length }} países de Latinoamérica: fines de semana largos, puentes y cuántos días de vacaciones pedir para descansar más, con ideas de vuelos baratos.{% endblock %}
+{% block content %}
+<a class="back" href="/">← Inicio</a>
+<section class="fe-hero">
+  <p class="xp-kicker">Planifica tus viajes</p>
+  <h1>Feriados {{ fe_year }} en Latinoamérica</h1>
+  <p class="xp-lead">Elige tu país: te mostramos los fines de semana largos, los mejores puentes y vuelos baratos para aprovecharlos.</p>
+</section>
+<ul class="fe-countries">
+  {% for f in fe_pages %}<li><a href="/feriados/{{ f.slug }}">
+    <img class="flag" src="/static/flags/{{ f.cc|lower }}.png" alt="" width="32" height="24" loading="lazy">
+    <span class="fe-c-name">{{ f.name }}</span>
+    <span class="fe-c-stats"><b>{{ f.holidays|length }}</b> feriados · <b>{{ f.long_free|length }}</b> findes largos</span>
+    {% if f.best %}<span class="fe-c-best">🏆 {{ f.best.tip.n }} días pidiendo {{ f.best.tip.k }}: {{ f.best.tip.range }}</span>{% endif %}
+  </a></li>{% endfor %}
+</ul>
+<p class="muted small">Feriados oficiales de cada país. Algunos pueden trasladarse por decreto; confírmalo con tu empleador.</p>
+{% endblock %}
