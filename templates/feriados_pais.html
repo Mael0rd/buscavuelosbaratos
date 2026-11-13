@@ -41,10 +41,10 @@
 <ol class="fe-list">
   {% for b in f.breaks %}
   <li class="fe-card{% if b.tip and not b.long %} fe-bridge{% endif %}">
-    <div class="fe-date">
-      <span class="fe-month">{{ b.month_name[:3] }}</span>
+    <div class="fe-date" aria-label="{{ b.trip_n }} días en {{ b.month_name|lower }}">
       <span class="fe-days">{{ b.trip_n }}</span>
       <span class="fe-unit">días</span>
+      <span class="fe-month">en {{ b.month_name|lower }}</span>
     </div>
     <div class="fe-body">
       <h3>{{ b.names|join(" · ") }}</h3>
