@@ -22,10 +22,13 @@
   <p>Revisamos cada hora miles de rutas internacionales desde {{ countries|length }} países y publicamos solo los pasajes, tiquetes y boletos de avión que están muy por debajo de su precio normal{% if total %}: hoy hay <b>{{ total }} ofertas verificadas</b>{% endif %}. Elige tu país de salida:</p>
 </section>
 
-<a class="xp-promo" href="/a-donde-volar">
-  <p><strong>🧭 ¿A dónde puedes volar con $300?</strong>Elige tu ciudad y tu presupuesto: te mostramos todos los destinos que caben, con el mes más barato.</p>
-  <span class="xp-promo-btn">Explorar destinos →</span>
-</a>
+<section class="tools" aria-label="Herramientas para tu viaje">
+  <a class="tool t-xp" href="/a-donde-volar"><span>🧭</span><b>¿A dónde puedo volar con $300?</b><small>Destinos según tu presupuesto</small></a>
+  <a class="tool t-fe" href="/feriados"><span>🗓️</span><b>Feriados y puentes</b><small>Fines de semana largos y vuelos para cada uno</small></a>
+  <a class="tool t-vi" href="/visas"><span>🛂</span><b>¿Necesito visa?</b><small>Países sin visa para tu pasaporte</small></a>
+  <a class="tool t-eq" href="/equipaje"><span>🧳</span><b>¿Cabe mi equipaje?</b><small>Medidas y tarifas por aerolínea</small></a>
+</section>
+
 
 {% if channels.get('main') %}<a class="tg-join" id="tg-join" href="{{ channels['main'] }}" target="_blank" rel="noopener">📲 Recibe las ofertas en Telegram</a>{% endif %}
 

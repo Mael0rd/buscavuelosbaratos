@@ -69,6 +69,10 @@
 {% set ex_code, ex_city, ex_place = r.destination, r.dest_name, "ruta" %}
 {% include "_extras.html" %}
 
+{% if visa %}<a class="vi-mini vi-{{ visa.visa.key }}" href="{{ visa.url }}">
+  <span>🛂</span><span><b>¿Los {{ visa.pp.demonym }} necesitan visa para {{ visa.dname }}?</b> {{ visa.visa.label }} · ver requisitos →</span>
+</a>{% endif %}
+
 {% set share_text = "✈️ Vuelos de " ~ r.origin_name ~ " a " ~ r.dest_name ~ ": precio típico $" ~ "%.0f"|format(r.typical) ~ ", historial y mes más barato" %}
 {% include "_share.html" %}
 

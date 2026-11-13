@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}¿Cabe mi maleta? Equipaje de mano y tarifas de {{ eq_airlines|length }} aerolíneas comparadas | {{ site.title }}{% endblock %}
+{% block description %}Pon las medidas de tu mochila o maleta y descubre en qué aerolíneas va gratis como artículo personal o como equipaje de mano. Compara qué incluye la tarifa más barata de Avianca, Copa, LATAM, Volaris, Viva, Arajet, JetSMART, Sky, Wingo y más.{% endblock %}
+{% block head %}
+  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+    {"@type": "Question", "name": "¿Qué aerolíneas incluyen equipaje de mano en la tarifa más barata?",
+     "acceptedAnswer": {"@type": "Answer", "text": "De las aerolíneas que comparamos, incluyen equipaje de mano en su tarifa más barata: " ~ eq_free|join(", ") ~ "."}},
+    {"@type": "Question", "name": "¿Qué medida debe tener el artículo personal?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Depende de la aerolínea: va desde 40 x 25 x 20 cm (Arajet) hasta 45 x 35 x 25 cm (Avianca, JetSMART, Sky). Debe caber debajo del asiento delantero."}}
+  ]} | tojson }}</script>
+{% endblock %}
+{% block content %}
+<a class="back" href="/">← Inicio</a>
+<section class="eq-hero">
+  <p class="xp-kicker">Equipaje y tarifas</p>
+  <h1>¿Cabe mi equipaje?</h1>
+  <p class="xp-lead">Mide tu mochila o maleta (con ruedas y asas) y te decimos en qué aerolíneas va gratis en la cabina.</p>
+  <form class="eq-form" onsubmit="return false">
+    <label>Largo <span><input type="number" id="eq-l" min="10" max="120" value="55" inputmode="numeric"> cm</span></label>
+    <label>Ancho <span><input type="number" id="eq-w" min="5" max="80" value="35" inputmode="numeric"> cm</span></label>
+    <label>Alto <span><input type="number" id="eq-h" min="5" max="60" value="25" inputmode="numeric"> cm</span></label>
+    <label>Peso <span><input type="number" id="eq-kg" min="1" max="40" value="8" inputmode="decimal"> kg</span></label>
+  </form>
+  <div class="eq-presets">
+    <span>Ejemplos:</span>
+    <button type="button" data-p="40,30,15,5">🎒 Mochila chica</button>
+    <button type="button" data-p="45,35,20,7">💼 Mochila de laptop</button>
+    <button type="button" data-p="55,40,23,9">🧳 Maleta de cabina</button>
+  </div>
+</section>
+
+<p class="eq-sum" id="eq-sum" aria-live="polite"></p>
+<ul class="eq-results" id="eq-results"></ul>
+
+<section class="panel">
+  <h2>Qué incluye la tarifa más barata</h2>
+  <div class="eq-table-wrap">
+  <table class="months eq-table">
+    <thead><tr><th>Aerolínea</th><th>Tarifa</th><th>🎒 Personal</th><th>🧳 De mano</th><th>🛄 Bodega</th></tr></thead>
+    <tbody>{% for a in eq_airlines %}{% set f = a.cheapest %}<tr>
+      <td><a href="/equipaje/{{ a.slug }}"><img class="flag" src="/static/flags/{{ a.cc }}.png" alt="" width="20" height="15"> {{ a.name }}</a></td>
+      <td>{{ f[0] }}</td>
+      <td class="eq-y">✓</td>
+      <td class="{{ 'eq-y' if f[2] else 'eq-n' }}">{{ "✓" if f[2] else "—" }}</td>
+      <td class="{{ 'eq-y' if f[3] else 'eq-n' }}">{{ "✓" if f[3] else "—" }}</td>
+    </tr>{% endfor %}</tbody>
+  </table>
+  </div>
+  <p class="muted small">Revisado el {{ eq_reviewed }} en las páginas oficiales de cada aerolínea. Las reglas cambian seguido y pueden variar por ruta: confírmalas al comprar. {% for n, why in eq_gone %}{{ n }} no aparece porque {{ why }}.{% endfor %}</p>
+</section>
+
+<h2 class="sec-title">Guía por aerolínea</h2>
+<ul class="fe-countries">
+  {% for a in eq_airlines %}<li><a href="/equipaje/{{ a.slug }}">
+    <img class="flag" src="/static/flags/{{ a.cc }}.png" alt="" width="32" height="24" loading="lazy">
+    <span class="fe-c-name">{{ a.name }}</span>
+    <span class="fe-c-stats">{{ a.kind|capitalize }} · {{ a.fares|length }} tarifas</span>
+    <span class="fe-c-best">{{ "🧳 Equipaje de mano incluido siempre" if a.cheapest[2] else "🎒 La más barata: solo artículo personal" }}</span>
+  </a></li>{% endfor %}
+</ul>
+
+<script>
+(function () {
+  var A = {{ eq_json|tojson }};
+  var $ = function (id) { return document.getElementById(id); };
+  var ids = ["eq-l", "eq-w", "eq-h", "eq-kg"];
+  function fit(bag, lim) {
+    if (!lim) return false;
+    var b = bag.slice().sort(function (x, y) { return y - x; }), l = lim.slice().sort(function (x, y) { return y - x; });
+    return b[0] <= l[0] && b[1] <= l[1] && b[2] <= l[2];
+  }
+  function render() {
+    var bag = [+$("eq-l").value, +$("eq-w").value, +$("eq-h").value], kg = +$("eq-kg").value;
+    var nP = 0, nC = 0, html = "";
+    A.forEach(function (a) {
+      var p = fit(bag, a.p) && (!a.pk || kg <= a.pk), c = fit(bag, a.c) && (!a.ck || kg <= a.ck), cls, txt;
+      if (p) { nP++; cls = "ok"; txt = "✅ Va <b>gratis</b> como artículo personal en todas sus tarifas"; }
+      else if (c) { nC++; cls = "mid"; txt = "🧳 Cabe como <b>equipaje de mano</b>: " + (a.cfree ? "incluido incluso en la tarifa más barata" : a.cfrom ? "incluido desde la tarifa " + a.cfrom : "se compra aparte o en un paquete"); }
+      else { cls = "no"; txt = "❌ No entra en la cabina" + (fit(bag, a.c) ? " por el peso" : "") + ": tendría que ir en bodega"; }
+      html += '<li class="eq-r eq-' + cls + '"><a href="/equipaje/' + a.s + '"><img class="flag" src="/static/flags/' + a.cc + '.png" alt="" width="20" height="15"> <b>' + a.n + "</b></a><span>" + txt + "</span></li>";
+    });
+    $("eq-results").innerHTML = html;
+    $("eq-sum").innerHTML = "Tu equipaje de <b>" + bag.join(" x ") + " cm</b> y <b>" + kg + " kg</b> va gratis como artículo personal en <b>" + nP + "</b> aerolínea" + (nP === 1 ? "" : "s") + " y cabe como equipaje de mano en <b>" + nC + "</b> más.";
+  }
+  ids.forEach(function (id) { $(id).addEventListener("input", render); });
+  var ps = document.querySelectorAll(".eq-presets button");
+  for (var i = 0; i < ps.length; i++) ps[i].addEventListener("click", function (e) {
+    var v = e.currentTarget.dataset.p.split(",");
+    ids.forEach(function (id, k) { $(id).value = v[k]; }); render();
+  });
+  render();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Equipaje {{ a.name }} {{ eq_year }}: medidas, peso y qué incluye cada tarifa | {{ site.title }}{% endblock %}
+{% block description %}Equipaje de mano de {{ a.name }}: {{ a.carry.dims|join(" x ") if a.carry.dims else "" }} cm{% if a.carry.kg %}, {{ a.carry.kg }} kg{% endif %}. Qué incluye la tarifa {{ a.cheapest[0] }} y las demás, medidas del artículo personal y de la maleta en bodega.{% endblock %}
+{% block head %}
+  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": a.faq | map("faq_ld") | list} | tojson }}</script>
+{% endblock %}
+{% block content %}
+<nav class="crumbs"><a href="/equipaje">Equipaje</a> › {{ a.name }}</nav>
+<section class="eq-hero">
+  <p class="xp-kicker"><img class="flag" src="/static/flags/{{ a.cc }}.png" alt="" width="20" height="15"> {{ a.country }} · {{ a.kind }}</p>
+  <h1>Equipaje en {{ a.name }}</h1>
+  <div class="eq-sizes">
+    <div><span class="eq-ic">🎒</span><b>Artículo personal</b><span>{{ a.personal.dims|join(" x ") ~ " cm" if a.personal.dims else "Debajo del asiento" }}{% if a.personal.kg %} · {{ a.personal.kg }} kg{% endif %}</span><small>Gratis en todas las tarifas</small></div>
+    <div><span class="eq-ic">🧳</span><b>Equipaje de mano</b><span>{{ a.carry.dims|join(" x ") }} cm{% if a.carry.kg %} · {{ a.carry.kg }} kg{% endif %}</span><small>{{ "Incluido en todas las tarifas" if a.cheapest[2] else "No incluido en la tarifa más barata" }}</small></div>
+    <div><span class="eq-ic">🛄</span><b>Maleta en bodega</b><span>{{ a.checked.kg }} kg · {{ a.checked.linear }} cm lineales</span><small>Sumando largo + ancho + alto</small></div>
+  </div>
+</section>
+
+<div class="fe-best"><span class="fe-best-ic">💡</span><p>{{ a.tip }}</p></div>
+
+<h2 class="sec-title">Qué incluye cada tarifa</h2>
+<ul class="eq-fares">
+  {% for name, p, c, b, note in a.fares %}<li>
+    <h3>{{ name }}</h3>
+    <ul class="eq-inc">
+      <li class="{{ 'y' if p else 'n' }}">🎒 Artículo personal</li>
+      <li class="{{ 'y' if c else ('q' if c is none else 'n') }}">🧳 Equipaje de mano{{ " (a elegir)" if c is none }}</li>
+      <li class="{{ 'y' if b else ('q' if b is none else 'n') }}">🛄 Maleta en bodega{{ " (a elegir)" if b is none }}</li>
+    </ul>
+    <p>{{ note }}</p>
+  </li>{% endfor %}
+</ul>
+<p class="muted small">Revisado el {{ eq_reviewed }}. Las reglas cambian y pueden variar según la ruta: confírmalas al comprar en el <a class="small-link" href="{{ a.official }}" target="_blank" rel="noopener">sitio oficial de {{ a.name }} ↗</a>. <a class="small-link" href="/equipaje">¿Cabe tu maleta? Pruébala aquí</a>.</p>
+
+{% if a.routes %}
+<section class="panel">
+  <h2>Rutas baratas donde vimos a {{ a.name }}</h2>
+  <ul class="xp-list">
+    {% for r in a.routes %}<li><a href="/vuelos/{{ r.slug }}">{{ r.origin_name }} → {{ r.dest_name }}</a><b>${{ "%.0f"|format(r.typical) }}</b></li>{% endfor %}
+  </ul>
+  <p class="muted small">Precio típico ida y vuelta de las últimas semanas, con cualquier aerolínea.</p>
+</section>
+{% endif %}
+
+<section class="panel faq">
+  <h2>Preguntas frecuentes</h2>
+  {% for q, ans in a.faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ ans }}</p></details>{% endfor %}
+</section>
+
+<section class="xp-cities">
+  <h2 class="sec-title">Otras aerolíneas</h2>
+  <div class="xp-city-links">{% for o in eq_airlines if o.slug != a.slug %}<a href="/equipaje/{{ o.slug }}"><img class="flag" src="/static/flags/{{ o.cc }}.png" alt="" width="20" height="15" loading="lazy"> {{ o.name }}</a>{% endfor %}</div>
+</section>
+{% endblock %}

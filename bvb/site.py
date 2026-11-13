@@ -10,7 +10,7 @@ from datetime import date, datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
-from . import countrypage, explorer, extras, feriados, fx, geo, hubs, visas, ogimage, routes, telegram, whatsapp
+from . import aerolineas, countrypage, explorer, extras, feriados, fx, geo, hubs, visas, ogimage, routes, telegram, whatsapp
 from .fetch import with_subid
 from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
@@ -115,6 +115,7 @@ def build(conn, cfg: dict, ref=None) -> int:
     # Páginas permanentes por ciudad de origen y por destino
     origins, dest_hubs = hubs.build(conn, cfg, deals, route_pages, dest_slug)
     origin_by_code = {o["code"]: o for o in origins}
+    origin_country = {o["code"]: o["country"] for o in origins}
     for c in countries:
         c["cities"] = [o for o in origins if o["country"] == c["id"]]
         countrypage.summarize(c)  # destinos más baratos, mes más barato, preguntas frecuentes
@@ -210,17 +211,23 @@ def build(conn, cfg: dict, ref=None) -> int:
             photo = ogimage.fetch_photo(ogimage.photo_url((cfg.get("dest_images") or {}).get(d["destination"], "")))
             og(f"social-{d['slug']}", ogimage.social_image, d, cc, photo=photo)
         write(f"oferta/{d['slug']}.html", "deal.html", d=d, c=by_id.get(d["country"]), dest_pages=destinations, og=img)
+    # Datos del explorador y de visas (las páginas de ruta enlazan a "¿Necesitas visa?")
+    xp_rows = explorer.items(conn, cfg, origins, route_pages, deals, dest_slug,
+                             lambda code: card_image(photos.get(code, ""))[0])
+    vi_passports, vi_pairs, vi_date = visas.build(cfg, xp_rows, origins)
+    visa_of = {(v["pp"]["id"], v["dest"]): v for v in vi_pairs}
+    visa_by_route = {(r["o"], r["d"]): visa_of.get((origin_country.get(r["o"]), r["cc"].upper()))
+                     for r in xp_rows if r["cc"]}
     for r in route_pages:
         o = origin_by_code.get(r["origin"])
         dh = destinations.get(dest_slug(r["dest_name"], r["destination"]))
         r["origin_slug"] = o["slug"] if o else None
         r["dest_slug"] = dh["dest_slug"] if dh else None
         write(f"vuelos/{r['slug']}.html", "route.html", r=r, c=by_id.get(r["country"]), faqs=routes.faq(r),
+              visa=visa_by_route.get((r["origin"], r["destination"])),
               noindex=not r["indexable"],
               og=(r["deal"] and f"/og/oferta-{r['deal']['slug']}.jpg") or (dh or {}).get("og") or (o or {}).get("og", ctx["og"]))
     # Explorador por presupuesto: herramienta general + una página por ciudad de salida
-    xp_rows = explorer.items(conn, cfg, origins, route_pages, deals, dest_slug,
-                             lambda code: card_image(photos.get(code, ""))[0])
     xp_pages = explorer.origin_pages(xp_rows, origins)
     explorer.write_json(xp_rows, SITE_DIR / "data" / "explorar.json")
     xp_ctx = {"regions": geo.REGIONS, "months": explorer.month_options(xp_rows), "xp_pages": xp_pages,
@@ -258,7 +265,6 @@ def build(conn, cfg: dict, ref=None) -> int:
                 "Fines de semana largos, puentes y vuelos baratos por país", tone=0, kicker="Planifica tus viajes"))
 
     # ¿Necesito visa? por pasaporte y por pasaporte + destino (solo destinos con vuelos)
-    vi_passports, vi_pairs, vi_date = visas.build(cfg, xp_rows, origins)
     vi_ctx = {"vi_passports": vi_passports, "vi_updated": visas.fmt_date(vi_date)}
     write("visas.html", "visas.html", **vi_ctx,
           og=og("visas", ogimage.page_image, "¿Necesito visa?",
@@ -271,6 +277,27 @@ def build(conn, cfg: dict, ref=None) -> int:
         write(f"visas/{vp['slug']}.html", "visas_pasaporte.html", p=vp, og=vp["og"], **vi_ctx)
     for vx in vi_pairs:
         write(f"visas/{vx['pp']['slug']}/{vx['dslug']}.html", "visas_destino.html", x=vx, og=vx["pp"]["og"], **vi_ctx)
+
+    # Equipaje y tarifas por aerolínea + verificador "¿Cabe mi equipaje?"
+    eq_airlines = aerolineas.build(route_pages)
+    eq_json = []
+    for a in eq_airlines:
+        free_from = next((f[0] for f in a["fares"] if f[2]), "")
+        eq_json.append({"s": a["slug"], "n": a["name"], "cc": a["cc"], "p": a["personal"]["dims"],
+                        "pk": a["personal"]["kg"], "c": a["carry"]["dims"], "ck": a["carry"]["kg"],
+                        "cfree": bool(a["cheapest"][2]), "cfrom": free_from})
+    eq_ctx = {"eq_airlines": eq_airlines, "eq_reviewed": visas.fmt_date(aerolineas.REVIEWED),
+              "eq_gone": aerolineas.GONE, "eq_year": aerolineas.REVIEWED[:4]}
+    write("equipaje.html", "equipaje.html", eq_json=eq_json, **eq_ctx,
+          eq_free=[a["name"] for a in eq_airlines if a["cheapest"][2]],
+          og=og("equipaje", ogimage.page_image, "¿Cabe mi equipaje?",
+                f"Medidas y tarifas de {len(eq_airlines)} aerolíneas comparadas", tone=4,
+                kicker="Equipaje y tarifas"))
+    (SITE_DIR / "equipaje").mkdir(exist_ok=True)
+    for a in eq_airlines:
+        img = og(f"equipaje-{a['slug']}", ogimage.page_image, f"Equipaje en {a['name']}",
+                 "Medidas, peso y qué incluye cada tarifa", tone=4, kicker="Equipaje y tarifas")
+        write(f"equipaje/{a['slug']}.html", "equipaje_aerolinea.html", a=a, og=img, **eq_ctx)
 
     for page, title in INFO_PAGES.items():
         write(f"{page}.html", f"{page}.html", title=title)
@@ -304,6 +331,7 @@ def build(conn, cfg: dict, ref=None) -> int:
             + [(f"{base}/destino/{s}", today) for s in destinations]
             + [(f"{base}/a-donde-volar", today)]
             + [(f"{base}/feriados", today)]
+            + [(f"{base}/equipaje", today)] + [(f"{base}/equipaje/{a['slug']}", today) for a in eq_airlines]
             + [(f"{base}/visas", today)] + [(f"{base}/visas/{v['slug']}", today) for v in vi_passports]
             + [(f"{base}{v['url']}", today) for v in vi_pairs]
             + [(f"{base}/feriados/{f['slug']}", today) for y in fe_years for f in fe_all[y]]
