@@ -132,8 +132,10 @@ verify:
   # Web: solo se muestran ofertas verificadas en vivo. Se re-verifican cada
   # web_reverify_hours (antes que las nuevas) y se ocultan si no se reconfirman
   # en web_max_age_hours.
-  web_reverify_hours: 12
-  web_max_age_hours: 24
+  # Con ~40-55 verificaciones al día, re-verificar cada 12 h se comía casi todo el cupo
+  # y no quedaba para ofertas nuevas: cada 22 h y se ocultan si no se reconfirman en 30 h.
+  web_reverify_hours: 22
+  web_max_age_hours: 30
 
 freshness:
   max_age_hours: 168     # candidatas con precio en caché de hasta 7 días (Google verifica en vivo antes de mostrar)

@@ -57,11 +57,11 @@ que confirma la mejor justo antes de publicarla en Telegram:
   general. Sirve durante 3 h (`verify.cache_hours`). Tener 2 o 19 canales no cambia el gasto.
 - Proveedores en cadena, cada uno con su cuenta gratuita: **SerpApi** (250/mes, `SERPAPI_KEY`) →
   **Apify** (~1.000/mes con $5 de crédito, `APIFY_TOKEN`).
-- **La web solo muestra ofertas verificadas en vivo.** Cada corrida re-verifica primero las que se
-  verificaron hace más de 12 h (`verify.web_reverify_hours`) y luego las candidatas nuevas; una
-  oferta que no se reconfirma en 24 h (`verify.web_max_age_hours`) deja de mostrarse, y si el precio
+- **La web solo muestra ofertas verificadas en vivo.** Cada corrida alterna candidatas nuevas y
+  re-verificaciones de las que se verificaron hace más de 22 h (`verify.web_reverify_hours`); una
+  oferta que no se reconfirma en 30 h (`verify.web_max_age_hours`) deja de mostrarse, y si el precio
   subió termina (y su post de Telegram se edita).
-- Presupuesto automático: (lo que queda del mes) ÷ (días que faltan), repartido en las 17 h en que
+- Presupuesto automático: (lo que quedaba del mes al empezar el día) ÷ (días que faltan), repartido en las 17 h en que
   se publica. **Sin presupuesto no se publica** en Telegram ni aparece en la web nada sin verificar.
   Las alertas no gastan verificaciones (muestran "Precio visto hace X").
 
