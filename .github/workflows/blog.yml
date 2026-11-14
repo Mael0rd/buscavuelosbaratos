@@ -20,7 +20,6 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      TRAVELPAYOUTS_TOKEN: ${{ secrets.TRAVELPAYOUTS_TOKEN }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -29,7 +28,7 @@ jobs:
       - name: Comprobar secrets
         run: |
           missing=0
-          for v in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID TRAVELPAYOUTS_TOKEN; do
+          for v in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
             if [ -z "${!v}" ]; then echo "::error::Falta el secret $v (Settings → Secrets and variables → Actions)"; missing=1; fi
           done
           exit $missing
@@ -39,35 +38,8 @@ jobs:
           node-version: "22"
       - run: npm ci --no-audit --no-fund
 
-      - name: Almacenamiento de las guías (KV)
-        run: |
-          find_id() {
-            npx wrangler kv namespace list | python3 -c "import sys,json; print(next((n['id'] for n in json.load(sys.stdin) if n['title']=='bvb-blog-posts'),''))"
-          }
-          ID=$(find_id)
-          if [ -z "$ID" ]; then
-            npx wrangler kv namespace create bvb-blog-posts
-            ID=$(find_id)
-          fi
-          echo "KV: $ID"
-          test -n "$ID"
-          sed -i "s/__KV_ID__/$ID/" wrangler.toml
-          echo "KV_ID=$ID" >> "$GITHUB_ENV"
-
-      - name: Primeras guías (solo si el blog está vacío)
-        run: |
-          npx wrangler kv key get posts --namespace-id "$KV_ID" --remote > actual.json 2>/dev/null || true
-          if node -e 'const p=JSON.parse(require("fs").readFileSync("actual.json","utf8")); process.exit(Array.isArray(p) && p.length ? 0 : 1)' 2>/dev/null; then
-            echo "El blog ya tiene guías: no se toca."
-          else
-            npx wrangler kv key put posts --path seed-posts.json --namespace-id "$KV_ID" --remote
-          fi
-
       - name: Publicar blog
         run: npx wrangler deploy
-
-      - name: Clave de Travelpayouts
-        run: printf '%s' "$TRAVELPAYOUTS_TOKEN" | npx wrangler secret put TRAVELPAYOUTS_TOKEN
 
       - name: Comprobar que responde
         run: curl -sS -f --retry 10 --retry-delay 15 --retry-all-errors -o /dev/null -w "%{http_code}\n" https://buscavuelosbaratos.com/blog
