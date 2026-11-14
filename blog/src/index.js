@@ -28,8 +28,9 @@ const html = (body, status = 200) => new Response(body, { status, headers: { "co
 // Diseño inspirado en blogs de viaje tipo revista: nota líder + lista, bloques por sección
 // con "Ver más", tarjetas con etiqueta, título, resumen y fecha, y "Cargar más" al final.
 const SITIO = "Buscavuelosbaratos";
-// Buscador de vuelos: el sitio principal (GitHub Pages). En local y en test "/" no lo tiene, por eso va completo.
-const BUSCADOR = "https://buscavuelosbaratos.com/";
+// Sitio principal (GitHub Pages): de ahí salen la cabecera, los estilos, los logos y el modo oscuro,
+// para que el blog se vea igual que el resto. Va completo porque en local "/" no es el sitio.
+const WEB = "https://buscavuelosbaratos.com";
 const POR_PAGINA = 12;
 const REGIONES = [...new Set(HISTORIAS.map((p) => p.region))];
 const fechaLarga = (f) => new Date(f).toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
@@ -37,26 +38,11 @@ const minutos = (p) => Math.max(1, Math.round(p.cuerpo.split(/\s+/).length / 200
 const enlaceRegion = (r) => `/blog?region=${slugify(r)}`;
 
 const ESTILOS = `
-:root{--fondo:#faf8f5;--superficie:#fff;--texto:#1d1d1f;--suave:#5f6368;--borde:#e6e2dc;--acento:#c93c10;--acento-txt:#fff;--oscuro:#14213d;--aviso:#fff1d6}
-@media (prefers-color-scheme:dark){:root{--fondo:#111418;--superficie:#1b1f24;--texto:#ececec;--suave:#a3a9b0;--borde:#2c3238;--acento:#ff7a50;--acento-txt:#1a0d06;--oscuro:#0b1220;--aviso:#3d3110}}
-*{box-sizing:border-box}
-body{margin:0;font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--fondo);color:var(--texto)}
-h1,h2,h3,.logo{font-family:Montserrat,system-ui,sans-serif;line-height:1.25}
-a{color:inherit}
-.envoltura{max-width:1160px;margin:0 auto;padding:0 16px}
-.franja{background:var(--oscuro);color:#fff;font-size:.85rem;text-align:center;padding:8px 16px}
-.franja a{color:#ffb199;font-weight:700}
-.cabecera{background:var(--superficie);border-bottom:1px solid var(--borde);position:sticky;top:0;z-index:5}
-.cab{display:flex;align-items:center;justify-content:space-between;gap:8px 16px;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
-.logo{text-decoration:none;font-weight:800;font-size:1.35rem;display:flex;flex-direction:column;line-height:1.1}
-.logo b{color:var(--acento)}
-.logo small{font-family:system-ui,sans-serif;font-weight:600;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--suave)}
-.cab nav{display:flex;gap:2px;align-items:center;overflow-x:auto;max-width:100%}
-.cab nav a{text-decoration:none;font-weight:600;font-size:.92rem;padding:8px 12px;border-radius:999px;white-space:nowrap}
-.cab nav a:hover{background:var(--fondo)}
-.boton{display:inline-block;background:var(--acento);color:var(--acento-txt)!important;text-decoration:none;font-weight:700;padding:10px 20px;border-radius:999px}
-.cab nav a.boton:hover{background:var(--acento);filter:brightness(1.1)}
-main.envoltura{padding-top:32px;padding-bottom:48px}
+/* Colores del sitio principal (style.css), con los nombres que usa el blog */
+:root{--fondo:var(--bg);--superficie:var(--card);--texto:var(--ink);--suave:var(--muted);--borde:var(--line);--acento:var(--accent);--aviso:var(--soft-bg)}
+.boton{display:inline-block;background:var(--accent-btn);color:#fff!important;font-weight:700;padding:.8rem 1.3rem;border-radius:10px}
+.boton:hover{filter:brightness(1.08)}
+.blog-nav{margin:0 0 1.5rem}
 .destacado{display:grid;grid-template-columns:1.45fr 1fr;gap:24px}
 .lista{display:flex;flex-direction:column;gap:16px}
 .tarjeta{background:var(--superficie);border-radius:14px;overflow:hidden;border:1px solid var(--borde);display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s}
@@ -65,7 +51,7 @@ main.envoltura{padding-top:32px;padding-bottom:48px}
 .portada{aspect-ratio:16/9;display:flex;align-items:flex-end;padding:16px;color:#fff;position:relative;overflow:hidden;
   background:linear-gradient(135deg,hsl(var(--t) 62% 50%),hsl(calc(var(--t) + 45) 70% 26%))}
 .portada::after{content:"✈";position:absolute;right:-.05em;top:-.3em;font-size:9rem;opacity:.16;transform:rotate(-18deg)}
-.portada span{font-family:Montserrat,system-ui,sans-serif;font-weight:800;font-size:1.5rem;text-shadow:0 2px 12px rgba(0,0,0,.3);position:relative;z-index:2}
+.portada span{font-weight:800;font-size:1.5rem;text-shadow:0 2px 12px rgba(0,0,0,.3);position:relative;z-index:2}
 .portada img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s}
 .con-foto::after{content:"";inset:0;opacity:1;transform:none;z-index:1;background:linear-gradient(to top,rgba(0,0,0,.6),rgba(0,0,0,0) 55%)}
 .tarjeta:hover .portada img{transform:scale(1.04)}
@@ -93,12 +79,13 @@ main.envoltura{padding-top:32px;padding-bottom:48px}
 .entradilla{font-size:1.15rem;color:var(--suave);margin:0 0 14px}
 .portada.ancha{aspect-ratio:21/8;border-radius:18px;padding:28px}.portada.ancha span{font-size:clamp(2rem,6vw,3.6rem)}.portada.ancha::after{font-size:16rem}
 .texto{max-width:720px;margin:36px auto 0;font-size:1.1rem;line-height:1.75}
+.texto h2,.art-cab h1,.bloque-cab h2,.titulo-seccion{letter-spacing:-.02em}
 .texto h2{font-size:1.4rem;margin:2em 0 .4em}
-.texto>p:first-child::first-letter{float:left;font-family:Montserrat,system-ui,sans-serif;font-weight:800;font-size:3.6em;line-height:.85;margin:.06em .1em 0 0;color:var(--acento)}
+.texto>p:first-child::first-letter{float:left;font-weight:800;font-size:3.6em;line-height:.85;margin:.06em .1em 0 0;color:var(--acento)}
 .texto figure{margin:2em 0}
 .texto figure img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:14px;background:var(--borde)}
 .texto figcaption{font-size:.85rem;color:var(--suave);margin-top:8px}
-.texto blockquote{margin:1.8em 0;padding:4px 0 4px 20px;border-left:4px solid var(--acento);font-family:Montserrat,system-ui,sans-serif;font-weight:700;font-size:1.3rem;line-height:1.45}
+.texto blockquote{margin:1.8em 0;padding:4px 0 4px 20px;border-left:4px solid var(--acento);font-weight:700;font-size:1.3rem;line-height:1.45}
 .consejos{max-width:720px;margin:48px auto 0;padding-top:28px;border-top:3px solid var(--texto)}
 .consejos h2{font-size:1.5rem;margin:0 0 6px}
 .aviso{font-size:.82rem;background:var(--aviso);padding:6px 12px;border-radius:8px;display:inline-block;margin:0 0 18px}
@@ -108,32 +95,54 @@ main.envoltura{padding-top:32px;padding-bottom:48px}
 .consejo h3{margin:0 0 4px;font-size:1.05rem}
 .consejo p{margin:0;color:var(--suave);font-size:.95rem}
 .consejo .boton{padding:9px 18px;font-size:.92rem;white-space:nowrap}
-.pie{background:var(--oscuro);color:#d7dbe2;padding:40px 0}
-.pie .logo{color:#fff}.pie .logo small{color:#9aa3b2}.pie .logo b{color:#ff8a63}
-.pie nav{display:flex;flex-wrap:wrap;gap:8px 20px;margin:18px 0}.pie nav a{text-decoration:none;color:#fff;font-weight:600}
-.legal{font-size:.82rem;color:#9aa3b2;margin:4px 0}
 .vacio{text-align:center;padding:80px 16px}
 a:focus-visible{outline:3px solid var(--acento);outline-offset:2px}
 @media (max-width:900px){.destacado{grid-template-columns:1fr}}
 @media (max-width:520px){.fila .tarjeta-img{flex-basis:34%}.grande .portada span{font-size:1.8rem}.grande h3{font-size:1.3rem}}
 @media (prefers-reduced-motion:reduce){.tarjeta,.portada img{transition:none}.tarjeta:hover,.tarjeta:hover .portada img{transform:none}}`;
 
-const LOGO = `<a class="logo" href="/blog"><span>Buscavuelos<b>baratos</b></span><small>Guías de viaje</small></a>`;
-const MENU = `<a href="/blog">Inicio</a><a href="/blog?region=todas">Todas las guías</a>${REGIONES.map((r) => `<a href="${enlaceRegion(r)}">${esc(r)}</a>`).join("")}`;
+// Secciones del blog, como las fichas de países del sitio. activa: la región abierta o "todas".
+const secciones = (activa) => `<nav class="chips blog-nav" aria-label="Secciones del blog">${[["todas", "Todas las guías"], ...REGIONES.map((r) => [slugify(r), r])]
+  .map(([k, t]) => `<a href="/blog?region=${k}"${k === activa ? ' class="on"' : ""}>${esc(t)}</a>`).join("")}</nav>`;
 
 function pagina(titulo, contenido, descripcion = "Guías de viaje para viajar gastando poco.") {
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8">
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(titulo)}</title>
 <meta name="description" content="${esc(descripcion)}">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem("tema");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="${WEB}/static/style.css">
+<link rel="icon" href="${WEB}/favicon.ico" sizes="48x48"><link rel="icon" href="${WEB}/static/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#14213d">
 <style>${ESTILOS}</style></head><body>
-<div class="franja">✈ Guías nuevas cada mes para viajar gastando poco · <a href="${BUSCADOR}">Buscar vuelos</a></div>
-<header class="cabecera"><div class="envoltura cab">${LOGO}<nav aria-label="Secciones">${MENU}<a class="boton" href="${BUSCADOR}">Buscar vuelos</a></nav></div></header>
-${contenido}
-<footer class="pie"><div class="envoltura">${LOGO}<nav aria-label="Pie">${MENU}</nav>
-<p class="legal">${AVISO_AFILIADOS}</p>
-<p class="legal">© ${new Date().getUTCFullYear()} buscavuelosbaratos.com</p></div></footer>
+<header class="top">
+<a class="brand" href="${WEB}/"><img class="logo-light" src="${WEB}/static/logo.svg" alt="Busca Vuelos Baratos" width="245" height="64"><img class="logo-dark" src="${WEB}/static/logo-dark.svg" alt="Busca Vuelos Baratos" width="245" height="64"></a>
+<span class="tag">Ofertas de vuelos desde Latinoamérica, detectadas automáticamente</span>
+<a class="nav-xp" href="${WEB}/a-donde-volar">🧭 ¿A dónde volar?</a>
+<a class="nav-blog" href="/blog">Blog</a>
+<a class="nav-alert" href="${WEB}/alertas"><span class="bell" aria-hidden="true">🔔</span> Alertas</a>
+<button class="theme-toggle" type="button" aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro"><span class="moon" aria-hidden="true">🌙</span><span class="sun" aria-hidden="true">☀️</span></button>
+</header>
+<main>${contenido}</main>
+<footer>
+<p>${AVISO_AFILIADOS} Si compras, recibimos una comisión sin costo extra para ti.</p>
+<nav class="foot-links"><a href="${WEB}/a-donde-volar">¿A dónde volar?</a> · <a href="${WEB}/feriados">Feriados y puentes</a> · <a href="${WEB}/visas">¿Necesito visa?</a> · <a href="${WEB}/equipaje">Equipaje por aerolínea</a></nav>
+<nav class="foot-links"><a href="${WEB}/como-verificamos">Cómo verificamos los precios</a> · <a href="${WEB}/reclamar-vuelo-retrasado">¿Vuelo retrasado? Reclama</a> · <a href="${WEB}/quienes-somos">Quiénes somos</a> · <a href="${WEB}/privacidad">Privacidad</a> · <a href="${WEB}/alertas">Alertas</a></nav>
+</footer>
+<script>
+(function () {
+  var btn = document.querySelector(".theme-toggle"), root = document.documentElement;
+  var dark = function () { return root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+  var label = function () { var l = dark() ? "Cambiar a modo claro" : "Cambiar a modo oscuro"; btn.setAttribute("aria-label", l); btn.title = l; };
+  label();
+  btn.addEventListener("click", function () {
+    var t = dark() ? "light" : "dark";
+    root.dataset.theme = t;
+    try { localStorage.setItem("tema", t); } catch (e) {}
+    label();
+  });
+})();
+</script>
 </body></html>`;
 }
 
@@ -190,18 +199,18 @@ function listado(posts, regionSlug, n) {
   const items = lista.slice((n - 1) * POR_PAGINA, n * POR_PAGINA);
   const mas = lista.length > n * POR_PAGINA
     ? `<p class="centro"><a class="boton" href="/blog?region=${r ? slugify(r) : "todas"}&pagina=${n + 1}">Cargar más</a></p>` : "";
-  return pagina(`${titulo} · ${SITIO}`, `<main class="envoltura"><h1 class="titulo-seccion">${esc(titulo)}</h1>
-<div class="rejilla">${items.map((p) => tarjeta(p)).join("") || "<p>Aún no hay guías aquí.</p>"}</div>${mas}</main>`);
+  return pagina(`${titulo} · ${SITIO}`, `<section class="hero"><h1>${esc(titulo)}</h1></section>${secciones(r ? slugify(r) : "todas")}
+<div class="rejilla">${items.map((p) => tarjeta(p)).join("") || "<p>Aún no hay guías aquí.</p>"}</div>${mas}`);
 }
 
 function portadaBlog(posts) {
-  if (!posts.length) return `<main class="envoltura vacio"><h1>Guías de viaje</h1><p>Pronto la primera guía.</p></main>`;
+  if (!posts.length) return `<section class="vacio"><h1>Guías de viaje</h1><p>Pronto la primera guía.</p></section>`;
   const [lider, ...resto] = posts;
-  return `<main class="envoltura">
+  return `<section class="hero"><h1>Guías de viaje</h1><p>Ideas, itinerarios y consejos para viajar por América gastando poco. Guías nuevas cada mes.</p></section>
+${secciones("")}
 <section class="destacado" aria-label="Lo más reciente">${tarjeta(lider, "grande")}<div class="lista">${resto.slice(0, 4).map((p) => tarjeta(p, "fila")).join("")}</div></section>
 ${REGIONES.map((r) => bloque(r, posts.filter((p) => p.region === r).slice(0, 3), enlaceRegion(r))).join("")}
-${posts.length > 5 ? `<p class="centro"><a class="boton" href="/blog?region=todas">Ver todas las guías</a></p>` : ""}
-</main>`;
+${posts.length > 5 ? `<p class="centro"><a class="boton" href="/blog?region=todas">Ver todas las guías</a></p>` : ""}`;
 }
 
 function articulo(p, posts) {
@@ -212,11 +221,11 @@ function articulo(p, posts) {
 <a class="boton" href="${esc(c.enlace)}" rel="sponsored nofollow" target="_blank">${c.marca ? `Ver en ${esc(c.marca)}` : "Ver"}</a></li>`).join("")}</ul></section>` : "";
   // Primero las de la misma región, luego las más nuevas.
   const relacionadas = posts.filter((x) => x.slug !== p.slug).sort((a, b) => (b.region === p.region) - (a.region === p.region)).slice(0, 3);
-  return pagina(`${p.titulo} · ${SITIO}`, `<main class="envoltura"><article>
+  return pagina(`${p.titulo} · ${SITIO}`, `<article>
 <header class="art-cab"><a class="etiqueta" href="${enlaceRegion(p.region)}">${esc(p.region)}</a><h1>${esc(p.titulo)}</h1>
 ${p.resumen ? `<p class="entradilla">${esc(p.resumen)}</p>` : ""}
 <p class="meta">${p.autor ? `Por <strong>${esc(p.autor)}</strong> · ` : ""}${fechaLarga(p.fecha)} · ${minutos(p)} min de lectura</p></header>
 ${portada(p, "ancha")}
 <div class="texto">${cuerpo}</div>${consejos}
-</article>${bloque("Sigue leyendo", relacionadas, "/blog")}</main>`, p.resumen || undefined);
+</article>${bloque("Sigue leyendo", relacionadas, "/blog")}`, p.resumen || undefined);
 }
