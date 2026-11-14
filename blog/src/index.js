@@ -11,15 +11,11 @@ export default {
       const n = Math.max(1, parseInt(searchParams.get("pagina"), 10) || 1);
       return html(listado(HISTORIAS, searchParams.get("region"), n));
     }
-    const m = pathname.match(/^\/blog\/([a-z0-9-]+)$/);
-    if (m) {
-      const post = HISTORIAS.find((p) => p.slug === m[1]);
-      return post
-        ? html(articulo(post, HISTORIAS))
-        : html(pagina("Guía no encontrada", `<main class="envoltura vacio"><h1>Esa guía no existe</h1><p><a class="boton" href="/blog">Ver todas las guías</a></p></main>`), 404);
-    }
-    // En producción solo llega /blog* (el resto del dominio es GitHub Pages); en local, "/" lleva al blog.
-    return Response.redirect(new URL("/blog", req.url), 302);
+    const post = HISTORIAS.find((p) => pathname === `/blog/${p.slug}`);
+    if (post) return html(articulo(post, HISTORIAS));
+    // Todo lo demás va a la portada del blog: las guías viejas que escribía la IA (ya no existen)
+    // y, en local, "/". 301 para que Google pase esas direcciones al blog. En producción solo llega /blog*.
+    return Response.redirect(new URL("/blog", req.url), 301);
   },
 };
 
