@@ -307,3 +307,20 @@ def test_lower_live_price_is_shown():
     d = save(c, price=500.0)
     verify.Verifier(c, CFG, NOW, providers=[Fake("serpapi", 250, {**ANS_OK, "price": 470.0})]).ensure(d)
     assert c.execute("SELECT price FROM deals").fetchone()[0] == 470.0
+
+
+def test_budget_uses_local_day_and_saves_it_for_the_day():
+    cfg = {**CFG, "social": {**CFG["social"], "timezone": "America/Costa_Rica", "quiet_hours": [23, 6]}}
+    provs = [Fake("apify", 1000)]
+    # 2 a. m. de Costa Rica (08:00 UTC): de noche no se gasta cupo
+    noche = datetime(2026, 11, 20, 8, 0, tzinfo=timezone.utc)
+    assert verify.Verifier(conn(), cfg, noche, providers=provs).budget()["allowed_now"] == 0
+    # Lo gastado a las 5 p. m. de CR del día anterior (23:00 UTC del 19) no cuenta para hoy,
+    # y lo de las 7 p. m. de CR (01:00 UTC del 21) sí, aunque en UTC sea otro día.
+    c = conn()
+    verify.Verifier(c, cfg, noche, providers=provs)  # crea la tabla
+    for ts in ("2026-11-19T23:00:00Z", "2026-11-20T07:00:00Z", "2026-11-21T01:00:00Z"):
+        c.execute("INSERT INTO verify_log VALUES (?,'apify',1,'ok',NULL,NULL)", (ts,))
+    tarde = datetime(2026, 11, 21, 1, 30, tzinfo=timezone.utc)  # 7:30 p. m. del 20 en CR
+    b = verify.Verifier(c, cfg, tarde, providers=provs).budget()
+    assert b["used_today"] == 2 and b["allowed_now"] >= 1

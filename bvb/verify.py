@@ -14,7 +14,8 @@ para todos los canales (se guarda en la oferta por `cache_hours`).
 """
 import math
 from calendar import monthrange
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -228,17 +229,32 @@ class Verifier:
         monthly = sum(p.monthly for p in self.providers)
         used = self.used_month()
         remaining = max(0, monthly - used)
-        days_left = monthrange(self.now.year, self.now.month)[1] - self.now.day + 1
-        used_today = self._count("substr(ts,1,10)=?", (self.now.strftime("%Y-%m-%d"),))
-        used_hour = self._count("substr(ts,1,13)=?", (self.now.strftime("%Y-%m-%dT%H"),))
+        # El día y la hora se cuentan en la hora local de las redes (Costa Rica), no en UTC:
+        # en UTC el día cambiaba a las 6 p. m. de CR y el cupo se gastaba en la madrugada.
+        q = self.cfg["social"]["quiet_hours"]
+        try:
+            tz = ZoneInfo(self.cfg["social"].get("timezone") or "UTC")
+        except Exception:
+            tz = timezone.utc
+        local = self.now.astimezone(tz)
+        day0 = local.replace(hour=0, minute=0, second=0, microsecond=0)
+        hour0 = local.replace(minute=0, second=0, microsecond=0)
+        days_left = monthrange(local.year, local.month)[1] - local.day + 1
+        used_today = self._count("ts >= ? AND ts < ?", (iso(day0), iso(day0 + timedelta(days=1))))
+        used_hour = self._count("ts >= ? AND ts < ?", (iso(hour0), iso(hour0 + timedelta(hours=1))))
         # Cupo de HOY = lo que quedaba al empezar el día ÷ días que faltan (incluido hoy).
         # (Antes se sumaba lo gastado hoy DESPUÉS de dividir, y el tope diario nunca se
         # alcanzaba: cada verificación bajaba el cupo solo 1/días_restantes. Así se
         # agotaron las 250 de SerpApi el 13 de noviembre.)
         daily = (remaining + used_today) / days_left if days_left else 0
-        q = self.cfg["social"]["quiet_hours"]
         active = 24 - ((q[1] - q[0]) % 24) if q[0] != q[1] else 24
-        hour_cap = max(1, math.ceil(daily / active))
+        # Se reparte SOLO en las horas en que se publica en redes: de noche casi no se
+        # verifica (night_per_hour, por defecto 0), porque una verificación dura 3 h y
+        # de noche no se puede publicar. Antes ~la mitad del cupo se iba de madrugada
+        # y de día no quedaba nada para las redes.
+        start, end = q
+        quiet = (local.hour >= start or local.hour < end) if start > end else (start <= local.hour < end)
+        hour_cap = int(self.vcfg.get("night_per_hour", 0)) if quiet else max(1, math.ceil(daily / active))
         allowed = max(0, min(hour_cap - used_hour, math.floor(daily) - used_today, remaining))
         return {"monthly": monthly, "used_month": used, "daily": round(daily, 1),
                 "used_today": used_today, "allowed_now": allowed}
