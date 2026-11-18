@@ -14,7 +14,7 @@
 <nav class="crumbs"><a href="/cuando-viajar">¿Cuándo viajar?</a> › {{ n }}</nav>
 
 <section class="cv-hero tone-{{ tone }}">
-  {% if img %}<img class="cv-hero-img" src="{{ img }}" {% if img2x %}srcset="{{ img }} 1x, {{ img2x }} 2x"{% endif %} alt="" width="720" height="180" fetchpriority="high" onerror="this.remove()">{% endif %}
+  {% if img %}<img class="cv-hero-img" src="{{ img }}" {% if img2x %}srcset="{{ img }} 1x, {{ img2x }} 2x"{% endif %} alt="{{ n }}{% if t.country %}, {{ t.country }}{% endif %}" width="720" height="180" fetchpriority="high" onerror="this.remove()">{% endif %}
   <div class="cv-hero-in">
     <p class="xp-kicker">{% if t.cc %}<img class="flag" src="/static/flags/{{ t.cc }}.png" alt="" width="20" height="15"> {% endif %}{{ n }}{% if t.country %}, {{ t.country }}{% endif %}</p>
     <h1>¿Cuándo es más barato viajar a {{ n }}?</h1>

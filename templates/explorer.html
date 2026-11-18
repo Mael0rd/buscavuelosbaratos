@@ -140,7 +140,7 @@
     var bm = !month.value && x.bm ? "<span>📅 Mejor mes: <b>" + mlabel(x.bm) + "</b></span>" : "";
     return '<li class="card xp-card" data-d="' + x.d + '"><a href="' + href + '">' +
       '<div class="card-img tone-' + (tone % 6) + '">' +
-        (x.img ? '<img src="' + x.img + '" alt="" loading="lazy" decoding="async" width="400" height="190" onerror="this.remove()">' : "") +
+        (x.img ? '<img src="' + x.img + '" alt="' + esc(x.n + (x.c ? ", " + x.c : "")) + '" loading="lazy" decoding="async" width="400" height="190" onerror="this.remove()">' : "") +
         '<span class="card-city" aria-hidden="true">' + esc(x.n) + '</span>' +
         (x.c ? '<span class="card-ctry">' + (x.cc ? '<img class="flag" src="/static/flags/' + x.cc + '.png" alt="" width="16" height="12"> ' : "") + esc(x.c) + '</span>' : "") +
         '<span class="card-pill">' + money(p) + '</span>' +

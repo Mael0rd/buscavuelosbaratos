@@ -4,7 +4,7 @@
 {% set img, img2x, tone = dest_banner(ex_code) %}
 <section class="panel extras" aria-labelledby="extras-{{ ex_code }}">
   <div class="extras-hero tone-{{ tone }}">
-    {% if img %}<img src="{{ img }}"{% if img2x %} srcset="{{ img }} 1x, {{ img2x }} 2x"{% endif %} alt="" loading="lazy" decoding="async" width="720" height="180" onerror="this.remove()">{% endif %}
+    {% if img %}<img src="{{ img }}"{% if img2x %} srcset="{{ img }} 1x, {{ img2x }} 2x"{% endif %} alt="{{ ex_city }}" loading="lazy" decoding="async" width="720" height="180" onerror="this.remove()">{% endif %}
     <h2 id="extras-{{ ex_code }}"><small>Todo listo para</small>{{ ex_city }}</h2>
   </div>
   <div class="extras-grid">

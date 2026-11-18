@@ -31,7 +31,7 @@
 <ul class="grid">
   {% for x in p.cheap %}<li class="card"><a href="/visas/{{ p.slug }}/{{ x.slug }}">
     <div class="card-img tone-{{ loop.index0 % 6 }}">
-      {% if x.img %}<img src="{{ x.img }}" alt="" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}
+      {% if x.img %}<img src="{{ x.img }}" alt="{{ x.n }}, {{ x.c }}" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}
       <span class="card-city" aria-hidden="true">{{ x.n }}</span>
       <span class="card-ctry"><img class="flag" src="/static/flags/{{ x.cc }}.png" alt="" width="16" height="12"> {{ x.c }}</span>
       <span class="card-pill">${{ x.p }}</span>

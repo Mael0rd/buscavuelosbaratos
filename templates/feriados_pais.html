@@ -57,7 +57,7 @@
         <ul>
           {% for x in ideas %}<li>
             <a class="fe-idea" href="{{ x.url }}" target="_blank" rel="sponsored noopener">
-              <span class="fe-idea-img tone-{{ loop.index0 % 6 }}">{% if x.img %}<img src="{{ x.img }}" alt="" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}</span>
+              <span class="fe-idea-img tone-{{ loop.index0 % 6 }}">{% if x.img %}<img src="{{ x.img }}" alt="{{ x.n }}" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}</span>
               <span class="fe-idea-txt"><b>{% if x.cc %}<img class="flag" src="/static/flags/{{ x.cc }}.png" alt="" width="16" height="12"> {% endif %}{{ x.n }}</b>
                 <small>desde ${{ x.pm }} saliendo en {{ b.month_name }}</small>
                 <span class="fe-go">Ver vuelos para esas fechas →</span></span>

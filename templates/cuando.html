@@ -21,7 +21,7 @@
 <h2 class="sec-title">🔥 Los más buscados</h2>
 <ul class="grid">{% for p in cv_top %}<li class="card"><a href="{{ p.url }}">
   <div class="card-img tone-{{ loop.index0 % 6 }}">
-    {% if p.img %}<img src="{{ p.img }}" alt="" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}
+    {% if p.img %}<img src="{{ p.img }}" alt="{{ p.name }}{% if p.country %}, {{ p.country }}{% endif %}" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}
     <span class="card-city" aria-hidden="true">{{ p.name }}</span>
     {% if p.cc %}<span class="card-ctry"><img class="flag" src="/static/flags/{{ p.cc }}.png" alt="" width="16" height="12"> {{ p.country }}</span>{% endif %}
   </div>
