@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% set n = q.name %}
+{% block title %}Requisitos para viajar a {{ n }} en {{ rq_year }}: visa, documentos y formularios | {{ site.title }}{% endblock %}
+{% block description %}Qué necesitas para viajar a {{ n }} desde Latinoamérica: visa según tu pasaporte ({{ q.n_free }} de {{ q.n_pp }} entran sin visa){% if q.forms %}, {{ q.forms | map(attribute=0) | join(", ") }}{% endif %}, seguro, vacunas y aduana. Revisado el {{ rq_reviewed }}.{% endblock %}
+{% block head %}
+  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": q.faq | map("faq_ld") | list} | tojson }}</script>
+  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Requisitos de viaje", "item": "https://" ~ site.domain ~ "/requisitos"},
+    {"@type": "ListItem", "position": 2, "name": n, "item": "https://" ~ site.domain ~ q.url}]} | tojson }}</script>
+{% endblock %}
+{% block content %}
+{% set ic = {"free": "✅", "arrival": "🛬", "eta": "📱", "evisa": "💻", "visa": "🛂", "no": "⛔", "own": "🏠"} %}
+<nav class="crumbs"><a href="/requisitos">Requisitos de viaje</a> › {{ n }}</nav>
+
+<section class="rq-hero">
+  <img class="rq-flag" src="/static/flags/{{ q.cc|lower }}.png" alt="" width="48" height="36">
+  <p class="xp-kicker">🛂 Requisitos de entrada · revisado el {{ rq_reviewed }}</p>
+  <h1>Requisitos para viajar a {{ n }} en {{ rq_year }}</h1>
+  <p class="xp-lead">Visa según tu pasaporte, formularios obligatorios, seguro, vacunas y lo que te pueden pedir en migración.</p>
+  <div class="fe-stats">
+    {% if q.n_pp %}<div><b>{{ q.n_free }}/{{ q.n_pp }}</b><span>pasaportes latinos entran sin visa</span></div>{% endif %}
+    {% set must = q.forms | selectattr(3) | list %}<div><b>{{ must|length }}</b><span>formulario{{ "s" if must|length != 1 }} obligatorio{{ "s" if must|length != 1 }}</span></div>
+    {% if q.flights %}<div><b>${{ q.flights[0].p }}</b><span>vuelos desde (ida y vuelta)</span></div>{% endif %}
+  </div>
+</section>
+
+<section class="panel rq-mine" id="rq-mine" hidden>
+  <h2>Con tu pasaporte</h2>
+  <div class="vi-verdict"><span class="vi-ic" id="rq-mine-ic"></span><div><b id="rq-mine-label"></b><p id="rq-mine-text"></p></div></div>
+  <a class="small-link" id="rq-mine-link" hidden>Ver detalle y vuelos →</a>
+  <label class="cv-pick">Otro pasaporte: <select id="rq-pp">{% for x in q.passports %}<option value="{{ x.id }}">{{ x.name }}</option>{% endfor %}</select></label>
+</section>
+
+<section class="panel">
+  <h2>✅ Lista para antes de viajar</h2>
+  <p class="muted small">Márcala a medida que lo tengas listo.</p>
+  <div class="rq-progress" aria-hidden="true"><span id="rq-bar"></span></div>
+  <ul class="rq-check" id="rq-check">
+    <li><label><input type="checkbox"> <span><b>Pasaporte vigente</b>, idealmente con 6 meses de vigencia o más desde la fecha de entrada.</span></label></li>
+    <li><label><input type="checkbox"> <span><b>Visa o permiso</b> si tu pasaporte lo necesita (mira la tabla de abajo).</span></label></li>
+    {% for f in q.forms if f[3] %}<li><label><input type="checkbox"> <span><b>{{ f[0] }}</b>{% if f[2] %} · <a class="small-link" href="{{ f[2] }}" target="_blank" rel="noopener nofollow">sitio oficial ↗</a>{% endif %}</span></label></li>{% endfor %}
+    <li><label><input type="checkbox"> <span><b>Boleto de regreso</b> o de salida del país.</span></label></li>
+    <li><label><input type="checkbox"> <span><b>Reserva de hospedaje</b> o carta de invitación con la dirección.</span></label></li>
+    <li><label><input type="checkbox"> <span><b>Dinero suficiente</b> para tu estadía (tarjetas o estado de cuenta).</span></label></li>
+    {% if q.insurance %}<li><label><input type="checkbox"> <span><b>Seguro de viaje</b> con cobertura médica{% if q.rules_cc in ("CU", "AR") %} (obligatorio){% endif %}.</span></label></li>{% endif %}
+    {% if q.cr_exit_yf %}<li><label><input type="checkbox"> <span><b>Vacuna de la fiebre amarilla</b>, al menos 10 días antes (obligatoria si sales de Costa Rica).</span></label></li>{% endif %}
+  </ul>
+  <p class="rq-done" id="rq-done" hidden>🎉 ¡Todo listo para {{ n }}! Ahora solo falta el vuelo.</p>
+</section>
+
+{% if q.passports %}<section class="panel">
+  <h2>🛂 ¿Necesitas visa para {{ n }}? Según tu pasaporte</h2>
+  <table class="cv-table rq-table">
+    <thead><tr><th>Pasaporte</th><th>Requisito</th><th></th></tr></thead>
+    <tbody>{% for x in q.passports %}<tr id="pp-{{ x.id }}" class="rq-{{ x.key }}">
+      <td><img class="flag" src="/static/flags/{{ x.cc|lower }}.png" alt="" width="20" height="15" loading="lazy"> {{ x.name }}</td>
+      <td>{{ ic[x.key] }} {{ x.label }}</td>
+      <td>{% if x.url %}<a class="small-link" href="{{ x.url }}">Detalle →</a>{% endif %}</td>
+    </tr>{% endfor %}</tbody>
+  </table>
+  {% if q.mercosur %}<p class="muted small">🪪 Si eres de un país del Mercosur o asociado (Argentina, Brasil, Uruguay, Paraguay, Chile, Bolivia, Perú, Colombia o Ecuador), en muchos casos puedes viajar con tu documento de identidad vigente: confírmalo con la aerolínea.</p>{% endif %}
+  {% if q.ca4 %}<p class="muted small">🪪 Entre Guatemala, El Salvador, Honduras y Nicaragua (CA-4) se puede viajar con el documento de identidad: confírmalo con la aerolínea.</p>{% endif %}
+  <p class="muted small">Visas: datos de Passport Index{% if rq_vi_updated %} al {{ rq_vi_updated }}{% endif %}, con los cambios oficiales posteriores que conocemos.{% if q.official %} Fuente oficial: <a class="small-link" href="{{ q.official[1] }}" target="_blank" rel="noopener nofollow">{{ q.official[0] }} ↗</a>{% endif %}</p>
+</section>{% endif %}
+
+{% if q.forms %}
+<h2 class="sec-title">📝 Formularios y permisos</h2>
+<div class="rq-forms">{% for f in q.forms %}
+  <div class="rq-form{% if f[3] %} must{% endif %}">
+    <span class="rq-badge">{{ "Obligatorio" if f[3] else "Opcional" }}</span>
+    <h3>{{ f[0] }}</h3>
+    <p>{{ f[1] }}</p>
+    {% if f[2] %}<a class="small-link" href="{{ f[2] }}" target="_blank" rel="noopener nofollow">Sitio oficial ↗</a>{% endif %}
+  </div>{% endfor %}
+</div>
+<p class="muted small">⚠️ Estos trámites son gratuitos o se pagan solo en el sitio oficial. Hay páginas que imitan a los gobiernos y cobran de más: revisa siempre la dirección.</p>
+{% endif %}
+
+<section class="panel">
+  <h2>🩺 Salud y seguro</h2>
+  <ul class="vi-check">
+    {% if q.insurance %}<li>🛡️ <b>Seguro de viaje:</b> {{ q.insurance }}</li>
+    {% else %}<li>🛡️ <b>Seguro de viaje:</b> no se exige para entrar, pero la atención médica para turistas suele pagarse completa: es muy recomendable.</li>{% endif %}
+    {% if q.yf_risk %}<li>💉 <b>Fiebre amarilla:</b> {{ n }} tiene zonas de riesgo; la vacuna se recomienda y protege de por vida. Aplícatela al menos 10 días antes.{% if q.cr_exit_yf %} <b>Si sales de Costa Rica es obligatoria</b> (Ministerio de Salud): sin el certificado no puedes abordar.{% endif %}</li>
+    {% else %}<li>💉 <b>Fiebre amarilla:</b> si vienes de un país con riesgo (Brasil, Colombia, Perú, Ecuador, Bolivia, Venezuela, Paraguay, entre otros) o hiciste escala larga en uno, te pueden pedir el certificado internacional de vacunación.</li>{% endif %}
+    <li>💊 <b>Medicamentos:</b> llévalos en su empaque original y, si son controlados, con la receta médica.</li>
+  </ul>
+</section>
+
+<section class="panel">
+  <h2>💵 Dinero, aduana y menores</h2>
+  <ul class="vi-check">
+    <li>💵 <b>Efectivo:</b> en la mayoría de países hay que declarar al entrar si llevas más de US$10.000 (o su equivalente) en efectivo.</li>
+    <li>🧀 <b>Comida y plantas:</b> frutas, carnes, quesos y semillas suelen estar restringidos; decláralos o no los lleves.</li>
+    <li>👧 <b>Menores de edad:</b> si viajan con un solo padre o sin ellos, lleva el permiso de salida notariado (o el que pida tu país) y la partida de nacimiento.</li>
+  </ul>
+</section>
+
+{% if q.flights %}
+<h2 class="sec-title">✈️ Vuelos baratos a {{ n }}</h2>
+<ul class="grid">{% for f in q.flights %}<li class="card"><a href="{% if f.rs %}/vuelos/{{ f.rs }}{% elif f.ds %}/destino/{{ f.ds }}{% else %}/alertas?o={{ f.o|urlencode }}&d={{ f.d|urlencode }}&dn={{ f.n|urlencode }}{% endif %}">
+  <div class="card-img tone-{{ loop.index0 % 6 }}">
+    {% if f.img %}<img src="{{ f.img }}" alt="" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}
+    <span class="card-city" aria-hidden="true">{{ f.n }}</span><span class="card-pill">${{ f.p }}</span>
+  </div>
+  <div class="card-body">
+    <h3 class="route">{{ origin_names.get(f.o, f.o) }} <span>→</span> {{ f.n }}</h3>
+    <div class="price">${{ f.p }} <small>ida y vuelta</small></div>
+    <div class="xp-meta">{% if f.bm %}<span>📅 Mejor mes: <b>{{ f.bm|mes }}</b></span>{% endif %}{% if f.dir %}<span class="stops direct">hay directos</span>{% endif %}</div>
+  </div>
+</a></li>{% endfor %}</ul>
+<p class="muted small">Precio más bajo que vimos recientemente; puede cambiar.</p>
+{% endif %}
+
+{% if q.cities %}
+<section class="xp-cities">
+  <h2 class="sec-title">📅 ¿Cuándo es más barato viajar?</h2>
+  <div class="xp-city-links">{% for c in q.cities %}{% if c.ds in cv_slugs %}<a href="/cuando-viajar/{{ c.ds }}">{{ c.n }}</a>{% endif %}{% endfor %}<a href="/cuando-viajar">Todos los destinos</a></div>
+</section>
+{% endif %}
+
+<div class="cv-links">
+  <a class="cv-link t-eq" href="/equipaje"><span>🧳</span><b>¿Cabe mi equipaje?</b><small>Medidas por aerolínea</small></a>
+  <a class="cv-link t-fe" href="/feriados"><span>🗓️</span><b>Feriados y puentes</b><small>Viaja sin gastar vacaciones</small></a>
+  <a class="cv-link t-xp" href="/alertas"><span>🔔</span><b>Alerta de precio</b><small>Te avisamos cuando baje</small></a>
+</div>
+
+{% set share_text = "🛂 Requisitos para viajar a " ~ n ~ ": visa, formularios y seguro" %}
+{% include "_share.html" %}
+
+<section class="panel faq">
+  <h2>Preguntas frecuentes</h2>
+  {% for a, b in q.faq %}<details{% if loop.first %} open{% endif %}><summary>{{ a }}</summary><p>{{ b }}</p></details>{% endfor %}
+</section>
+<p class="muted small">Revisado a mano el {{ rq_reviewed }}. Los requisitos cambian y pueden depender de tu caso: confírmalos con la embajada o el consulado y con tu aerolínea antes de viajar.</p>
+
+<section class="xp-cities">
+  <h2 class="sec-title">Requisitos para otros países</h2>
+  <div class="xp-city-links">{% for o in rq_pages if o.cc != q.cc %}<a href="{{ o.url }}"><img class="flag" src="/static/flags/{{ o.cc|lower }}.png" alt="" width="20" height="15" loading="lazy"> {{ o.name }}</a>{% endfor %}</div>
+</section>
+
+<script type="application/json" id="rq-data">{{ q.passports | map(attribute="id") | list | tojson }}</script>
+<script>
+(function () {
+  // Lista para marcar
+  var box = document.getElementById("rq-check"), bar = document.getElementById("rq-bar"), done = document.getElementById("rq-done");
+  function upd() {
+    var all = box.querySelectorAll("input"), n = 0;
+    all.forEach(function (i) { if (i.checked) n++; i.closest("li").classList.toggle("ok", i.checked); });
+    bar.style.width = (100 * n / all.length) + "%"; done.hidden = n !== all.length;
+  }
+  box.addEventListener("change", upd);
+  // Tu pasaporte (país del visitante)
+  var ids = JSON.parse(document.getElementById("rq-data").textContent), sel = document.getElementById("rq-pp"),
+      mine = document.getElementById("rq-mine");
+  function show(id) {
+    var row = document.getElementById("pp-" + id);
+    if (!row) return;
+    document.querySelectorAll(".rq-table tr.me").forEach(function (r) { r.classList.remove("me"); });
+    row.classList.add("me");
+    var cells = row.querySelectorAll("td"), t = cells[1].textContent.trim(), a = cells[2].querySelector("a"),
+        link = document.getElementById("rq-mine-link");
+    document.getElementById("rq-mine-ic").textContent = t.split(" ")[0];
+    document.getElementById("rq-mine-label").textContent = t.slice(t.indexOf(" ") + 1);
+    document.getElementById("rq-mine-text").textContent = "Pasaporte de " + cells[0].textContent.trim() + ".";
+    link.hidden = !a; if (a) link.href = a.href;
+    sel.value = id; mine.hidden = false;
+  }
+  sel.addEventListener("change", function () { show(sel.value); });
+  var pais = window.bvbDetectarPais && window.bvbDetectarPais();
+  if (pais && ids.indexOf(pais) >= 0) show(pais);
+})();
+</script>
+{% endblock %}

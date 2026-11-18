@@ -17,6 +17,7 @@
   </div>
 </section>
 
+{% if rq_by_cc and rq_by_cc.get(x.dest) %}<a class="vi-req" href="{{ rq_by_cc[x.dest].url }}"><span>📋</span><span><b>Otros requisitos para {{ x.dname }}</b><br><small>{% set m = rq_by_cc[x.dest].forms | selectattr(3) | list %}{% if m %}{{ m | map(attribute=0) | join(", ") }}, {% endif %}seguro, vacunas y aduana →</small></span></a>{% endif %}
 {% if x.note %}<div class="fe-best"><span class="fe-best-ic">ℹ️</span><p>{{ x.note }}</p></div>{% endif %}
 
 <section class="panel">

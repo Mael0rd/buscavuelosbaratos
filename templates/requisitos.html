@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Requisitos para viajar en {{ rq_year }}: visa, formularios y seguro por país | {{ site.title }}{% endblock %}
+{% block description %}Qué piden {{ rq_pages|length }} países para entrar: visa según tu pasaporte latinoamericano, formularios obligatorios (e-Ticket, ED Card, ETA, eTA…), seguro, vacunas y aduana. Revisado el {{ rq_reviewed }}.{% endblock %}
+{% block content %}
+<section class="rq-hero">
+  <p class="xp-kicker">🛂 Requisitos de viaje · revisado el {{ rq_reviewed }}</p>
+  <h1>Requisitos para viajar en {{ rq_year }}</h1>
+  <p class="xp-lead">Elige a dónde vas y mira qué necesitas con tu pasaporte: visa, formularios en línea, seguro, vacunas y aduana.</p>
+  <div class="fe-stats"><div><b>{{ rq_pages|length }}</b><span>países de destino</span></div><div><b>19</b><span>pasaportes latinoamericanos</span></div></div>
+</section>
+<input type="search" id="rq-q" class="cv-q" placeholder="Busca un país…" aria-label="Buscar país">
+<div class="rq-grid" id="rq-grid">{% for p in rq_pages %}
+  <a class="rq-card" href="{{ p.url }}" data-n="{{ p.name|lower }}">
+    <img class="flag" src="/static/flags/{{ p.cc|lower }}.png" alt="" width="32" height="24" loading="lazy">
+    <b>{{ p.name }}</b>
+    <small>✅ {{ p.n_free }}/{{ p.n_pp }} sin visa{% set m = p.forms | selectattr(3) | list %}{% if m %} · 📝 {{ m|length }} formulario{{ "s" if m|length > 1 }}{% endif %}{% if p.insurance and p.rules_cc in ("CU", "AR") %} · 🛡️ seguro{% endif %}</small>
+  </a>{% endfor %}
+</div>
+<p class="muted small">¿Buscas solo la visa? <a class="small-link" href="/visas">Mira a dónde puedes viajar sin visa con tu pasaporte →</a></p>
+<script>
+(function () {
+  var q = document.getElementById("rq-q");
+  function norm(s) { return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+  q.addEventListener("input", function () {
+    var v = norm(q.value.trim());
+    document.querySelectorAll(".rq-card").forEach(function (a) { a.hidden = v && norm(a.dataset.n).indexOf(v) < 0; });
+  });
+})();
+</script>
+{% endblock %}

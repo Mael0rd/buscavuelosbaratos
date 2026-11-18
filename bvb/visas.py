@@ -64,6 +64,23 @@ OFFICIAL = {
 SCHENGEN_OFFICIAL = ("Comisión Europea (visados Schengen)", "https://home-affairs.ec.europa.eu/policies/schengen/visa-policy_en")
 
 
+# Cambios oficiales posteriores a los datos de Passport Index (se aplican siempre encima).
+# Nicaragua, Disposición 002-2026 (vigente desde el 16-feb-2026): elimina la visa al llegar y
+# pide "visa consultada" (autorización previa, sin costo) a 128 nacionalidades.
+NI_CONSULTADA = ("MX", "CU", "CO", "VE", "PE")
+NI_LIBRE = ("GT", "SV", "HN", "CR", "PA", "DO", "EC", "BO", "CL", "AR", "UY", "PY", "US")
+OVERRIDES = {**{(pp, "NI"): {"status": "visa required"} for pp in NI_CONSULTADA},
+             **{(pp, "NI"): {"status": "visa free"} for pp in NI_LIBRE}}
+
+
+def _apply_overrides(data: dict) -> dict:
+    for (pp, dest), rec in OVERRIDES.items():
+        if pp in data:
+            old = data[pp].get(dest) or {}
+            data[pp][dest] = {**rec, **({"days": old["days"]} if rec["status"] == "visa free" and old.get("days") else {})}
+    return data
+
+
 def _note(passport: str, dest: str, key: str) -> str:
     """Contexto extra para los destinos más buscados."""
     if dest in SCHENGEN or dest == "CY":
@@ -88,6 +105,16 @@ def _note(passport: str, dest: str, key: str) -> str:
     if dest == "CU":
         return ("Cuba pide a la mayoría de turistas una tarjeta del turista (visa de turismo), que suelen vender las "
                 "aerolíneas o agencias, además del formulario electrónico de entrada D'Viajeros.")
+    if dest == "MX" and key == "visa":
+        return ("Si tienes visa vigente de Estados Unidos, Canadá, Japón, el Reino Unido o del espacio Schengen (o "
+                "residencia permanente en uno de ellos), puedes entrar a México como turista sin visa mexicana.")
+    if dest == "NI" and passport in NI_CONSULTADA:
+        return ("Desde el 16 de febrero de 2026 Nicaragua pide «visa consultada» a este pasaporte: una autorización "
+                "previa, sin costo, que se solicita en línea al Ministerio del Interior o en un consulado de Nicaragua "
+                "antes de viajar (Disposición 002-2026).")
+    if dest == "NI":
+        return ("Nicaragua eliminó la visa al llegar el 16 de febrero de 2026 (Disposición 002-2026); este pasaporte "
+                "quedó en la lista de libre visado.")
     if dest == "DO" and key == "free":
         return "Para entrar y salir de República Dominicana hay que llenar el formulario electrónico gratuito (e-Ticket)."
     return ""
@@ -126,7 +153,7 @@ def load() -> tuple[dict, str]:
                     updated = d
         except ValueError:
             pass
-    return data, updated
+    return _apply_overrides(data), updated
 
 
 def names() -> dict:
