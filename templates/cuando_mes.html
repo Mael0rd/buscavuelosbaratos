@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% set mn = mp.name %}
+{% block title %}¿A dónde viajar en {{ mn }}? Destinos baratos y con buen clima | {{ site.title }}{% endblock %}
+{% block description %}Los mejores destinos para viajar en {{ mn }} desde Latinoamérica: {% if mp.cheap %}{{ mp.cheap[:3] | map(attribute="p.name") | join(", ") }} están más baratos que de costumbre, {% endif %}con el clima de cada lugar y vuelos ida y vuelta.{% endblock %}
+{% block head %}
+  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": mp.faq | map("faq_ld") | list} | tojson }}</script>
+{% endblock %}
+{% block content %}
+<nav class="crumbs"><a href="/cuando-viajar">¿Cuándo viajar?</a> › {{ mn|capitalize }}</nav>
+
+<section class="cv-hero cv-season s{{ mp.mi }}">
+  <div class="cv-hero-in">
+    <p class="xp-kicker">📅 Planifica tu viaje de {{ mn }}</p>
+    <h1>¿A dónde viajar en {{ mn }}?</h1>
+    <p class="xp-lead">Destinos con buen clima en {{ mn }}{% if mp.has_prices %} y los que están más baratos que de costumbre{% endif %}, con vuelos ida y vuelta desde Latinoamérica.</p>
+    <div class="fe-stats">
+      <div><b>{{ mp.n }}</b><span>destinos analizados</span></div>
+      {% for k, title, xs in mp.groups if k == "beach" %}<div><b>{{ xs|length }}</b><span>con sol y calor</span></div>{% endfor %}
+      {% if mp.cheap %}<div><b>{{ mp.cheap|length }}</b><span>más baratos de lo normal</span></div>{% endif %}
+    </div>
+  </div>
+</section>
+
+<div class="xp-city-links cv-monthnav">{% for m in cv_months %}<a href="/cuando-viajar/{{ m.slug }}"{% if m.mi == mp.mi %} class="on" aria-current="page"{% endif %}>{{ m.name[:3]|capitalize }}</a>{% endfor %}</div>
+
+{% macro card(x, i) %}{% set p, m = x.p, x.m %}
+<li class="card"><a href="{{ p.url }}">
+  <div class="card-img tone-{{ i % 6 }}">
+    {% if p.img %}<img src="{{ p.img }}" alt="" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}
+    <span class="card-city" aria-hidden="true">{{ p.name }}</span>
+    {% if p.cc %}<span class="card-ctry"><img class="flag" src="/static/flags/{{ p.cc }}.png" alt="" width="16" height="12"> {{ p.country }}</span>{% endif %}
+    <span class="card-pill">${{ x.price }}</span>
+  </div>
+  <div class="card-body">
+    <h3 class="route">{{ p.name }}{% if p.country %}<span class="ctry">, {{ p.country }}</span>{% endif %}</h3>
+    <div class="price">${{ x.price }} <small>ida y vuelta</small></div>
+    <div class="xp-meta">
+      {% if m.tmax is not none %}<span>{{ {"dry": "☀️", "some": "⛅", "wet": "🌧️"}[m.rk] }} {{ m.tmax }}° / {{ m.tmin }}°</span>{% endif %}
+      {% if m.pct is not none and m.pct <= -5 %}<span class="stops direct">{{ m.pct }}% vs. lo normal</span>{% elif m.pct is not none and m.pct >= 8 %}<span class="stops">temporada alta</span>{% endif %}
+    </div>
+  </div>
+</a></li>{% endmacro %}
+
+{% if mp.cheap %}
+<h2 class="sec-title">💰 Más baratos que de costumbre en {{ mn }}</h2>
+<ul class="grid">{% for x in mp.cheap %}{{ card(x, loop.index0) }}{% endfor %}</ul>
+{% endif %}
+
+{% for k, title, xs in mp.groups %}
+<h2 class="sec-title">{{ title }} en {{ mn }}</h2>
+<ul class="grid">{% for x in xs[:9] %}{{ card(x, loop.index0 + 2) }}{% endfor %}</ul>
+{% if xs|length > 9 %}<details class="cv-more"><summary>Ver {{ xs|length - 9 }} destinos más</summary>
+  <div class="xp-city-links">{% for x in xs[9:] %}<a href="{{ x.p.url }}">{% if x.p.cc %}<img class="flag" src="/static/flags/{{ x.p.cc }}.png" alt="" width="20" height="15" loading="lazy"> {% endif %}{{ x.p.name }} <small>${{ x.price }}</small></a>{% endfor %}</div>
+</details>{% endif %}
+{% endfor %}
+<p class="muted small">Precio: el más bajo ida y vuelta que vimos para {{ mn }} (o, si aún no hay, el más bajo de los próximos meses), desde cualquier ciudad de Latinoamérica. Clima: promedios de 2016 a 2025 (NASA POWER).</p>
+
+<div class="cv-links">
+  <a class="cv-link t-xp" href="/a-donde-volar"><span>🧭</span><b>¿A dónde puedo volar con $300?</b><small>Destinos desde tu ciudad</small></a>
+  <a class="cv-link t-fe" href="/feriados"><span>🗓️</span><b>Feriados de {{ mn }}</b><small>Fines de semana largos por país</small></a>
+  <a class="cv-link t-vi" href="/visas"><span>🛂</span><b>¿Necesito visa?</b><small>Según tu pasaporte</small></a>
+</div>
+
+{% set share_text = "📅 ¿A dónde viajar en " ~ mn ~ "? Destinos baratos y con buen clima" %}
+{% include "_share.html" %}
+
+<section class="panel faq">
+  <h2>Preguntas frecuentes</h2>
+  {% for q, a in mp.faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
+</section>
+{% endblock %}

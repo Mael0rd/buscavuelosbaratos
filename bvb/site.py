@@ -10,7 +10,7 @@ from datetime import date, datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .config import SITE_DIR, STATIC_DIR, TEMPLATES_DIR
-from . import aerolineas, countrypage, explorer, extras, feriados, fx, geo, hubs, visas, ogimage, routes, telegram, whatsapp
+from . import aerolineas, clima, countrypage, explorer, extras, feriados, fx, geo, hubs, visas, ogimage, routes, telegram, temporada, whatsapp
 from .fetch import with_subid
 from .verify import web_visible
 from .copywriter import fmt_date, fmt_stops, savings_pct
@@ -278,6 +278,31 @@ def build(conn, cfg: dict, ref=None) -> int:
     for vx in vi_pairs:
         write(f"visas/{vx['pp']['slug']}/{vx['dslug']}.html", "visas_destino.html", x=vx, og=vx["pp"]["og"], **vi_ctx)
 
+    # ¿Cuándo viajar? Mejor época por precio y clima (por destino y por mes)
+    clima.ensure(conn, ref, [x["d"] for x in sorted(xp_rows, key=lambda x: x["p"]) if x["ds"]])
+    cv_pages = temporada.build(xp_rows, clima.load(conn), cfg.get("origin_names", {}), today_d)
+    cv_months = temporada.month_pages(cv_pages, today_d)
+    cv_ctx = {"cv_months": cv_months}
+    (SITE_DIR / "cuando-viajar").mkdir(exist_ok=True)
+    visas_by_dest = {}
+    for v in vi_pairs:
+        visas_by_dest.setdefault(v["dest"], []).append(
+            {"url": v["url"], "cc": v["pp"]["cc"], "name": v["pp"]["name"], "key": v["visa"]["key"]})
+    for t in cv_pages:
+        dh = destinations.get(t["slug"]) or {}
+        related = [x for x in cv_pages if x["region"] == t["region"] and x is not t and x["indexable"]][:14]
+        write(f"cuando-viajar/{t['slug']}.html", "cuando_destino.html", t=t, ch=temporada.chart(t),
+              visas=visas_by_dest.get((t["cc"] or "").upper(), []), related=related,
+              noindex=not t["indexable"], og=dh.get("og") or ctx["og"], **cv_ctx)
+    for mp in cv_months:
+        img = og(f"cuando-{mp['slug']}", ogimage.page_image, f"¿A dónde viajar en {mp['name']}?",
+                 "Destinos baratos y con buen clima ese mes", tone=mp["mi"] % 6, kicker="Mejor época para viajar")
+        write(f"cuando-viajar/{mp['slug']}.html", "cuando_mes.html", mp=mp, og=img, **cv_ctx)
+    write("cuando-viajar.html", "cuando.html", cv_pages=cv_pages, cv_regions=temporada.regions(cv_pages),
+          cv_top=[t for t in cv_pages if t["indexable"]][:9], cv_now=today_d.month - 1,
+          og=og("cuando-viajar", ogimage.page_image, "¿Cuándo es más barato viajar?",
+                "El mes más barato y el clima de cada destino", tone=5, kicker="Mejor época para viajar"), **cv_ctx)
+
     # Equipaje y tarifas por aerolínea + verificador "¿Cabe mi equipaje?"
     eq_airlines = aerolineas.build(route_pages)
     eq_json = []
@@ -331,6 +356,8 @@ def build(conn, cfg: dict, ref=None) -> int:
             + [(f"{base}/destino/{s}", today) for s in destinations]
             + [(f"{base}/a-donde-volar", today)]
             + [(f"{base}/feriados", today)]
+            + [(f"{base}/cuando-viajar", today)] + [(f"{base}/cuando-viajar/{m['slug']}", today) for m in cv_months]
+            + [(f"{base}{t['url']}", today) for t in cv_pages if t["indexable"]]
             + [(f"{base}/equipaje", today)] + [(f"{base}/equipaje/{a['slug']}", today) for a in eq_airlines]
             + [(f"{base}/visas", today)] + [(f"{base}/visas/{v['slug']}", today) for v in vi_passports]
             + [(f"{base}{v['url']}", today) for v in vi_pairs]

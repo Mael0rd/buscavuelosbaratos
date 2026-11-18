@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% set n = t.name %}
+{% block title %}¿Cuándo es más barato viajar a {{ n }}? Mejor época, clima y precios por mes | {{ site.title }}{% endblock %}
+{% block description %}{{ t.summary }} Precio de los vuelos y clima de cada mes en {{ n }}{% if t.country %}, {{ t.country }}{% endif %}, desde {{ t.n_origins }} ciudad{{ "es" if t.n_origins > 1 }} de Latinoamérica.{% endblock %}
+{% block head %}
+  {% if t.faq %}<script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": t.faq | map("faq_ld") | list} | tojson }}</script>{% endif %}
+  <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "¿Cuándo viajar?", "item": "https://" ~ site.domain ~ "/cuando-viajar"},
+    {"@type": "ListItem", "position": 2, "name": n, "item": "https://" ~ site.domain ~ t.url}]} | tojson }}</script>
+{% endblock %}
+{% block content %}
+{% set img, img2x, tone = dest_banner(t.code) %}
+<nav class="crumbs"><a href="/cuando-viajar">¿Cuándo viajar?</a> › {{ n }}</nav>
+
+<section class="cv-hero tone-{{ tone }}">
+  {% if img %}<img class="cv-hero-img" src="{{ img }}" {% if img2x %}srcset="{{ img }} 1x, {{ img2x }} 2x"{% endif %} alt="" width="720" height="180" fetchpriority="high" onerror="this.remove()">{% endif %}
+  <div class="cv-hero-in">
+    <p class="xp-kicker">{% if t.cc %}<img class="flag" src="/static/flags/{{ t.cc }}.png" alt="" width="20" height="15"> {% endif %}{{ n }}{% if t.country %}, {{ t.country }}{% endif %}</p>
+    <h1>¿Cuándo es más barato viajar a {{ n }}?</h1>
+    <p class="xp-lead">{{ t.summary }}</p>
+    <div class="fe-stats">
+      {% if t.cheap %}<div><b>{{ t.cheap.name|capitalize }}</b><span>mes más barato{% if t.cheap.low %} · desde ${{ t.cheap.low }}{% endif %}</span></div>{% endif %}
+      {% if t.save >= 5 %}<div><b>{{ t.save }}%</b><span>de ahorro frente a {{ t.dear.name }}</span></div>{% endif %}
+      {% if t.best and t.climate %}<div><b>{{ t.best.name|capitalize }}</b><span>mejor precio + clima</span></div>{% endif %}
+    </div>
+  </div>
+</section>
+
+<h2 class="sec-title">📅 Mes a mes: precio y clima</h2>
+<p class="muted small cv-legend"><span class="cv-dot barato"></span> más barato de lo normal <span class="cv-dot normal"></span> normal <span class="cv-dot caro"></span> más caro · ☀️ seco ⛅ algunas lluvias 🌧️ lluvioso</p>
+<ol class="cv-months">
+  {% for m in t.months %}<li class="cv-m{% if m.level %} {{ m.level }}{% endif %}{% if m.is_cheap %} is-cheap{% endif %}{% if m.is_best %} is-best{% endif %}">
+    <div class="cv-mh"><b>{{ m.short }}</b><small>{{ m.year[2:] }}</small>{% if m.is_cheap %}<span class="cv-tag">💰</span>{% elif m.is_best %}<span class="cv-tag">⭐</span>{% endif %}</div>
+    {% if m.pct is not none %}<div class="cv-pct">{{ "+" if m.pct > 0 }}{{ m.pct }}%</div>
+    {% if m.low %}<div class="cv-low">desde ${{ m.low }}</div>{% endif %}
+    {% else %}<div class="cv-pct none">—</div><div class="cv-low">sin precios aún</div>{% endif %}
+    {% if t.climate %}<div class="cv-clim"><span>{{ {"dry": "☀️", "some": "⛅", "wet": "🌧️"}[m.rk] }}</span> {{ m.tmax }}° <small>/ {{ m.tmin }}°</small></div>{% endif %}
+  </li>{% endfor %}
+</ol>
+<p class="muted small">El porcentaje compara el precio de cada mes con el normal de cada ruta, con los precios más bajos que vimos en las búsquedas de los últimos días. 💰 mes más barato · ⭐ mejor combinación de precio y clima.</p>
+
+{% if t.deal %}<a class="cv-deal" href="/oferta/{{ t.deal.s }}">✅ Hay una oferta verificada a {{ n }} por <b>${{ t.deal.p }}</b> ida y vuelta → Ver oferta</a>{% endif %}
+
+{% if ch %}
+<section class="panel cv-chart">
+  <h2>🌦️ Clima en {{ n }} durante el año</h2>
+  <svg viewBox="0 0 {{ ch.w }} {{ ch.h }}" role="img" aria-label="Temperatura máxima, mínima y lluvia por mes en {{ n }}">
+    {% for b in ch.bars %}<rect class="cv-bar {{ b.rk }}" x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="{{ b.h }}" rx="3"><title>{{ b.name|capitalize }}: {{ b.mm }} mm de lluvia</title></rect>{% endfor %}
+    <polyline class="cv-hi" points="{{ ch.hi }}"/><polyline class="cv-lo" points="{{ ch.lo }}"/>
+    {% for l in ch.labels %}<text class="cv-t hi" x="{{ l.x }}" y="{{ l.yh - 7 }}">{{ l.tmax }}°</text><text class="cv-t lo" x="{{ l.x }}" y="{{ l.yl + 15 }}">{{ l.tmin }}°</text>
+    <text class="cv-ax" x="{{ l.x }}" y="{{ ch.h - 6 }}">{{ l.t }}</text>{% endfor %}
+  </svg>
+  <p class="cv-key"><span class="k-hi"></span> máxima <span class="k-lo"></span> mínima <span class="k-rain"></span> lluvia (mm al mes)</p>
+  <p class="muted small">Promedios de 2016 a 2025 de NASA POWER{% if t.elev %}, ajustados a la altura de la ciudad ({{ "{:,}".format(t.elev).replace(",", ".") }} m){% endif %}. Son valores aproximados: el clima de cada día puede variar.</p>
+</section>
+{% endif %}
+
+<section class="panel">
+  <h2>✈️ Precio a {{ n }} desde tu ciudad</h2>
+  <label class="cv-pick">Sales de
+    <select id="cv-o" aria-label="Ciudad de salida">{% for o in t.origins %}<option value="{{ o.o }}">{{ o.name }}</option>{% endfor %}</select>
+  </label>
+  <div id="cv-omonths" class="cv-omonths" aria-live="polite"></div>
+  <table class="cv-table">
+    <thead><tr><th>Desde</th><th>Precio más bajo</th><th>Mes más barato</th><th></th></tr></thead>
+    <tbody>{% for o in t.origins %}<tr>
+      <td>{{ o.name }}{% if o.dir %} <span class="stops direct">directo</span>{% endif %}</td>
+      <td><b>${{ o.p }}</b></td>
+      <td>{{ o.bm|mes if o.bm else "—" }}</td>
+      <td>{% if o.rs %}<a class="small-link" href="/vuelos/{{ o.rs }}">Ver ruta →</a>{% endif %}</td>
+    </tr>{% endfor %}</tbody>
+  </table>
+  <p class="muted small">Ida y vuelta, precio más bajo visto recientemente (puede cambiar). <a class="small-link" href="/alertas">Crea una alerta</a> y te avisamos cuando baje.</p>
+  <script type="application/json" id="cv-data">{{ {"o": t.origins | map(attribute="m") | list, "c": t.origins | map(attribute="o") | list} | tojson }}</script>
+</section>
+
+<div class="cv-links">
+  <a class="cv-link t-xp" href="/destino/{{ t.slug }}"><span>🔥</span><b>Ofertas a {{ n }}</b><small>Vuelos verificados ahora</small></a>
+  <a class="cv-link t-fe" href="/feriados"><span>🗓️</span><b>Feriados y puentes</b><small>Viaja sin gastar vacaciones</small></a>
+  <a class="cv-link t-eq" href="/equipaje"><span>🧳</span><b>¿Cabe mi equipaje?</b><small>Medidas por aerolínea</small></a>
+</div>
+
+{% if visas %}
+<section class="xp-cities">
+  <h2 class="sec-title">🛂 ¿Necesitas visa para {{ t.country or n }}?</h2>
+  <div class="xp-city-links">{% for v in visas %}<a href="{{ v.url }}"><img class="flag" src="/static/flags/{{ v.cc|lower }}.png" alt="" width="20" height="15" loading="lazy"> {{ v.name }} <small>{{ {"free": "✅", "arrival": "🛬", "eta": "📱", "evisa": "💻", "visa": "🛂", "no": "⛔"}[v.key] }}</small></a>{% endfor %}</div>
+</section>
+{% endif %}
+
+{% set share_text = "📅 ¿Cuándo es más barato viajar a " ~ n ~ "?" %}
+{% include "_share.html" %}
+
+{% if t.faq %}
+<section class="panel faq">
+  <h2>Preguntas frecuentes</h2>
+  {% for q, a in t.faq %}<details{% if loop.first %} open{% endif %}><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
+</section>
+{% endif %}
+
+<section class="xp-cities">
+  <h2 class="sec-title">¿A dónde viajar cada mes?</h2>
+  <div class="xp-city-links">{% for mp in cv_months %}<a href="/cuando-viajar/{{ mp.slug }}">{{ mp.name|capitalize }}</a>{% endfor %}</div>
+</section>
+{% if related %}
+<section class="xp-cities">
+  <h2 class="sec-title">Mejor época para otros destinos</h2>
+  <div class="xp-city-links">{% for r in related %}<a href="{{ r.url }}">{% if r.cc %}<img class="flag" src="/static/flags/{{ r.cc }}.png" alt="" width="20" height="15" loading="lazy"> {% endif %}{{ r.name }}</a>{% endfor %}</div>
+</section>
+{% endif %}
+
+<script>
+(function () {
+  var d = JSON.parse(document.getElementById("cv-data").textContent), sel = document.getElementById("cv-o"),
+      box = document.getElementById("cv-omonths"),
+      M = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  function show() {
+    var m = d.o[d.c.indexOf(sel.value)] || {}, ks = Object.keys(m).sort(), lo = Math.min.apply(null, ks.map(function (k) { return m[k]; }));
+    box.innerHTML = ks.length ? ks.map(function (k) {
+      return '<span class="' + (m[k] === lo ? "lo" : "") + '"><small>' + M[+k.slice(5) - 1] + " " + k.slice(2, 4) + "</small><b>$" + m[k] + "</b></span>";
+    }).join("") : '<em class="muted">Sin precios por mes para esta ciudad todavía.</em>';
+  }
+  var pais = window.bvbDetectarPais && window.bvbDetectarPais(), P = window.BVB_PAISES || {};
+  if (pais && P[pais]) {  // primera ciudad del país del visitante que vuela a este destino
+    var os = P[pais].origins || [];
+    for (var i = 0; i < os.length; i++) if (d.c.indexOf(os[i]) >= 0) { sel.value = os[i]; break; }
+  }
+  sel.addEventListener("change", show); show();
+})();
+</script>
+{% endblock %}

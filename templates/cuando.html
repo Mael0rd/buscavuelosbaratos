@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}¿Cuándo es más barato viajar? Mejor época para {{ cv_pages|length }} destinos | {{ site.title }}{% endblock %}
+{% block description %}El mes más barato para volar y el clima de cada mes en {{ cv_pages|length }} destinos, con precios reales desde Latinoamérica. Y a dónde viajar cada mes del año.{% endblock %}
+{% block content %}
+<section class="cv-hero cv-season s{{ cv_now }}">
+  <div class="cv-hero-in">
+    <p class="xp-kicker">📅 Mejor época para viajar</p>
+    <h1>¿Cuándo es más barato viajar?</h1>
+    <p class="xp-lead">Elige tu destino y mira en qué mes salen más baratos los vuelos y qué clima vas a encontrar. O elige un mes y te decimos a dónde ir.</p>
+    <div class="fe-stats">
+      <div><b>{{ cv_pages|length }}</b><span>destinos</span></div>
+      <div><b>12</b><span>meses con clima</span></div>
+    </div>
+  </div>
+</section>
+
+<h2 class="sec-title">🗓️ ¿A dónde viajar en…?</h2>
+<div class="cv-monthgrid">{% for m in cv_months %}<a class="cv-season s{{ m.mi }}" href="/cuando-viajar/{{ m.slug }}"><b>{{ m.name|capitalize }}</b><small>{{ m.n }} destinos{% if m.cheap %} · {{ m.cheap|length }} más baratos{% endif %}</small></a>{% endfor %}</div>
+
+{% if cv_top %}
+<h2 class="sec-title">🔥 Los más buscados</h2>
+<ul class="grid">{% for p in cv_top %}<li class="card"><a href="{{ p.url }}">
+  <div class="card-img tone-{{ loop.index0 % 6 }}">
+    {% if p.img %}<img src="{{ p.img }}" alt="" loading="lazy" width="400" height="190" onerror="this.remove()">{% endif %}
+    <span class="card-city" aria-hidden="true">{{ p.name }}</span>
+    {% if p.cc %}<span class="card-ctry"><img class="flag" src="/static/flags/{{ p.cc }}.png" alt="" width="16" height="12"> {{ p.country }}</span>{% endif %}
+  </div>
+  <div class="card-body">
+    <h3 class="route">{{ p.name }}{% if p.country %}<span class="ctry">, {{ p.country }}</span>{% endif %}</h3>
+    {% if p.cheap %}<div class="xp-meta"><span>💰 Más barato: <b>{{ p.cheap.name }}</b>{% if p.cheap.low %} · desde ${{ p.cheap.low }}{% endif %}</span></div>{% endif %}
+    {% if p.best and p.climate %}<div class="xp-meta"><span>⭐ Mejor época: <b>{{ p.best.name }}</b> {{ {"dry": "☀️", "some": "⛅", "wet": "🌧️"}[p.best.rk] }} {{ p.best.tmax }}°</span></div>{% endif %}
+  </div>
+</a></li>{% endfor %}</ul>
+{% endif %}
+
+<section class="panel">
+  <h2>Todos los destinos</h2>
+  <input type="search" id="cv-q" class="cv-q" placeholder="Busca un destino…" aria-label="Buscar destino">
+  {% for region, ps in cv_regions %}<div class="cv-reg">
+    <h3>{{ region }}</h3>
+    <div class="xp-city-links">{% for p in ps %}<a href="{{ p.url }}" data-n="{{ (p.name ~ ' ' ~ p.country)|lower }}">{% if p.cc %}<img class="flag" src="/static/flags/{{ p.cc }}.png" alt="" width="20" height="15" loading="lazy"> {% endif %}{{ p.name }}</a>{% endfor %}</div>
+  </div>{% endfor %}
+</section>
+<p class="muted small">Precios: los más bajos ida y vuelta que vimos en las búsquedas recientes, comparados mes a mes. Clima: promedios de 2016 a 2025 de NASA POWER.</p>
+<script>
+(function () {
+  var q = document.getElementById("cv-q");
+  function norm(s) { return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+  q.addEventListener("input", function () {
+    var v = norm(q.value.trim());
+    document.querySelectorAll(".cv-reg").forEach(function (g) {
+      var any = false;
+      g.querySelectorAll("a").forEach(function (a) { var ok = !v || norm(a.dataset.n).indexOf(v) >= 0; a.hidden = !ok; any = any || ok; });
+      g.hidden = !any;
+    });
+  });
+})();
+</script>
+{% endblock %}
