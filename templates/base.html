@@ -7,8 +7,14 @@
   <meta name="description" content="{% block description %}{{ site.tagline }}{% endblock %}">
   <meta name='impact-site-verification' value='d48ec037-62f1-495d-9dd1-62d4f3121f0f'>
   <script>
-    /* Modo elegido antes (claro/oscuro) antes de pintar, para que no parpadee. Sin elección: el del sistema. */
-    try { var t = localStorage.getItem("tema"); if (t === "dark" || t === "light") document.documentElement.dataset.theme = t; } catch (e) {}
+    /* Modo claro de 6:00 a 18:00 (hora del visitante) y oscuro de noche, antes de pintar para que no parpadee.
+       Si el visitante lo cambia con el botón, se respeta hasta el próximo cambio de 6:00 o 18:00. */
+    window.bvbTema = function () {
+      var t = null, h = new Date().getHours();
+      try { var s = JSON.parse(localStorage.getItem("tema_manual") || "null"); if (s && s.hasta > Date.now()) t = s.t; } catch (e) {}
+      document.documentElement.dataset.theme = t || (h >= 6 && h < 18 ? "light" : "dark");
+    };
+    window.bvbTema();
   </script>
   <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" href="/static/style.css?v={{ asset_v }}">
@@ -120,15 +126,23 @@
   })();
   (function () {
     var btn = document.querySelector(".theme-toggle"), root = document.documentElement;
-    var dark = function () { return root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+    var dark = function () { return root.dataset.theme === "dark"; };
     var label = function () { var l = dark() ? "Cambiar a modo claro" : "Cambiar a modo oscuro"; btn.setAttribute("aria-label", l); btn.title = l; };
+    var nextSwitch = function () {  // próximo cambio automático: 6:00 o 18:00
+      var d = new Date(), h = d.getHours();
+      d.setMinutes(0, 0, 0);
+      if (h < 6) d.setHours(6); else if (h < 18) d.setHours(18); else { d.setDate(d.getDate() + 1); d.setHours(6); }
+      return d.getTime();
+    };
+    try { localStorage.removeItem("tema"); } catch (e) {}  // elección permanente anterior
     label();
     btn.addEventListener("click", function () {
       var t = dark() ? "light" : "dark";
       root.dataset.theme = t;
-      try { localStorage.setItem("tema", t); } catch (e) {}
+      try { localStorage.setItem("tema_manual", JSON.stringify({ t: t, hasta: nextSwitch() })); } catch (e) {}
       label();
     });
+    setInterval(function () { window.bvbTema(); label(); }, 60000);  // si la página queda abierta al anochecer
   })();
   (function () {
     var els = document.querySelectorAll("[data-ts]");
