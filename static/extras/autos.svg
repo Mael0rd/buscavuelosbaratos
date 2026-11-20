@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" role="img" aria-label="Auto de alquiler en carretera">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#e0f2fe"/></linearGradient>
+    <linearGradient id="car" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22c55e"/><stop offset="1" stop-color="#15803d"/></linearGradient>
+  </defs>
+  <rect width="400" height="200" fill="url(#sky)"/>
+  <circle cx="330" cy="46" r="22" fill="#fde047"/>
+  <g fill="#fff" opacity=".9"><ellipse cx="90" cy="40" rx="30" ry="10"/><ellipse cx="112" cy="34" rx="20" ry="10"/><ellipse cx="250" cy="58" rx="24" ry="8"/></g>
+  <path d="M0 130 L70 70 L130 120 L200 60 L290 128 L340 90 L400 125 V200 H0z" fill="#16a34a" opacity=".35"/>
+  <path d="M0 150 Q100 120 200 140 T400 132 V200 H0z" fill="#4ade80"/>
+  <path d="M120 200 Q170 160 250 150 T400 142 V158 Q300 160 260 172 T190 200z" fill="#334155"/>
+  <path d="M175 196 Q215 168 262 162 T380 150" fill="none" stroke="#fde68a" stroke-width="3" stroke-dasharray="14 12"/>
+  <g transform="translate(30 92)">
+    <rect x="16" y="20" width="6" height="56" rx="3" fill="#92400e"/>
+    <g fill="#15803d"><path d="M19 22 Q-4 14 -10 30 Q6 20 19 26z"/><path d="M19 22 Q40 8 52 24 Q34 18 19 26z"/><path d="M19 22 Q12 0 30 -4 Q22 10 19 26z"/><path d="M19 22 Q30 2 44 6 Q28 12 19 26z"/></g>
+  </g>
+  <g transform="translate(206 108)">
+    <path d="M6 42 L14 22 Q18 14 30 12 L52 4 Q60 2 74 2 H96 Q108 2 116 12 L124 22 Q140 24 144 34 V44 H6z" fill="url(#car)"/>
+    <path d="M56 10 Q62 7 74 7 H88 V22 H44z M94 7 H100 Q108 8 112 14 L118 22 H94z" fill="#e0f2fe"/>
+    <circle cx="34" cy="46" r="12" fill="#0f172a"/><circle cx="34" cy="46" r="5" fill="#cbd5e1"/>
+    <circle cx="116" cy="46" r="12" fill="#0f172a"/><circle cx="116" cy="46" r="5" fill="#cbd5e1"/>
+    <rect x="134" y="28" width="10" height="5" rx="2" fill="#fef08a"/>
+    <rect x="48" y="-8" width="56" height="10" rx="3" fill="#78350f"/><rect x="60" y="-14" width="30" height="8" rx="2" fill="#f97316"/>
+  </g>
+  <g transform="translate(338 92)"><rect x="0" y="0" width="44" height="28" rx="6" fill="#fff"/><text x="22" y="19" font-family="system-ui,Segoe UI,Arial" font-size="12" font-weight="900" fill="#15803d" text-anchor="middle">RENT</text><rect x="20" y="28" width="4" height="22" fill="#64748b"/></g>
+</svg>

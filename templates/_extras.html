@@ -10,17 +10,8 @@
   <div class="extras-grid">
     {% for b in ex %}
     <div class="extra">
-      <span class="extra-ic ic-{{ b.service }}" aria-hidden="true">
-        {%- if b.service == "esim" -%}
-        <svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 17v-2M12 17v-4M15 17v-6"/></svg>
-        {%- elif b.service == "tours" -%}
-        <svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 0 0 4v4h16v-4a2 2 0 0 1 0-4V4H4z" transform="translate(0 2)"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg>
-        {%- elif b.service == "traslado" -%}
-        <svg viewBox="0 0 24 24"><path d="M5 16V11l2-5h10l2 5v5"/><path d="M3 16h18v3H3z"/><circle cx="7.5" cy="13.5" r=".8"/><circle cx="16.5" cy="13.5" r=".8"/><path d="M10 6V4h4v2"/></svg>
-        {%- elif b.service == "autos" -%}
-        <svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M17 12v3M20 12v2"/></svg>
-        {%- else -%}{{ b.icon }}{%- endif -%}
-      </span>
+      {% if b.service in ("esim", "tours", "traslado", "autos") %}<img class="extra-img" src="/static/extras/{{ b.service }}.svg?v={{ asset_v }}" alt="{{ b.title }}" width="400" height="200" loading="lazy" decoding="async">
+      {%- else %}<span class="extra-ic" aria-hidden="true">{{ b.icon }}</span>{% endif %}
       <p class="extra-t">{{ b.title }}</p>
       <p class="extra-d">{{ b.text }}</p>
       <a class="extra-b" href="{{ b.links[ex_place] }}" rel="sponsored nofollow noopener" target="_blank"
