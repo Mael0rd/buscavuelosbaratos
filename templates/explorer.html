@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {# p = página de una ciudad (opcional). Sin p: la herramienta general. #}
-{% block title %}{% if p %}¿A dónde viajar desde {{ p.name }} con poco dinero? {{ p.n }} destinos desde ${{ p.cheapest.p if p.cheapest else "" }} | {{ site.title }}{% else %}¿A dónde puedo volar con mi presupuesto? Explorador de vuelos baratos | {{ site.title }}{% endif %}{% endblock %}
+{% block title %}{% if p %}¿A dónde viajar desde {{ p.name }} con poco dinero? | {{ site.title }}{% else %}¿A dónde puedo volar con mi presupuesto? Explorador de vuelos baratos | {{ site.title }}{% endif %}{% endblock %}
 {% block description %}{% if p %}Descubre a dónde volar desde {{ p.name }} según tu presupuesto: {{ p.under300 }} destinos internacionales por menos de $300 y {{ p.under500 }} por menos de $500 ida y vuelta, con el mes más barato de cada uno.{% else %}Elige tu ciudad y cuánto quieres gastar: te mostramos todos los destinos internacionales que caben en tu presupuesto, con el mes más barato y fotos. Gratis, desde 33 ciudades de Latinoamérica.{% endif %}{% endblock %}
 {% block head %}
   {% if p and p.faq %}<script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",

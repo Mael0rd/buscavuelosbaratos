@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% set n = q.name %}
-{% block title %}Requisitos para viajar a {{ n }} en {{ rq_year }}: visa, documentos y formularios | {{ site.title }}{% endblock %}
+{% block title %}Requisitos para viajar a {{ n }} {{ rq_year }}: visa{% if n|length < 22 %} y documentos{% endif %} | {{ site.title }}{% endblock %}
 {% block description %}Qué necesitas para viajar a {{ n }} desde Latinoamérica: visa según tu pasaporte ({{ q.n_free }} de {{ q.n_pp }} entran sin visa){% if q.forms %}, {{ q.forms | map(attribute=0) | join(", ") }}{% endif %}, seguro, vacunas y aduana. Revisado el {{ rq_reviewed }}.{% endblock %}
 {% block head %}
   <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": q.faq | map("faq_ld") | list} | tojson }}</script>

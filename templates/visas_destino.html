@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% set p = x.pp %}{% set v = x.visa %}
-{% block title %}¿Los {{ p.demonym }} necesitan visa para {{ x.dname }}? Requisitos y vuelos baratos | {{ site.title }}{% endblock %}
+{% block title %}¿Los {{ p.demonym }} necesitan visa para {{ x.dname }}? | {{ site.title }}{% endblock %}
 {% block description %}{{ v.label }}: {{ v.text }} Requisitos para viajar a {{ x.dname }} con pasaporte {{ "de EE. UU." if p.us_passport else "de " ~ p.name }} y vuelos ida y vuelta desde ${{ x.flights[0].p }}.{% endblock %}
 {% block head %}
   <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",

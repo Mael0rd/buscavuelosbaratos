@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Equipaje {{ a.name }} {{ eq_year }}: medidas, peso y qué incluye cada tarifa | {{ site.title }}{% endblock %}
+{% block title %}Equipaje {{ a.name }} {{ eq_year }}: medidas, peso y tarifas | {{ site.title }}{% endblock %}
 {% block description %}Equipaje de mano de {{ a.name }}: {{ a.carry.dims|join(" x ") if a.carry.dims else "" }} cm{% if a.carry.kg %}, {{ a.carry.kg }} kg{% endif %}. Qué incluye la tarifa {{ a.cheapest[0] }} y las demás, medidas del artículo personal y de la maleta en bodega.{% endblock %}
 {% block head %}
   <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",

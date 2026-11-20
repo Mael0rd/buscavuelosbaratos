@@ -79,6 +79,15 @@ def build(conn, cfg: dict, ref=None) -> int:
     env.filters["escalas"] = fmt_stops
     env.filters["hace"] = telegram.ago
     env.filters["mes"] = lambda ym: explorer.month_short(ym) if ym else ""
+
+    def fit_title(t: str) -> str:
+        """Título de ≤70 caracteres (Bing marca error si es más largo): quita la marca si no cabe."""
+        t = " ".join(t.split())
+        brand = f" | {cfg['site']['title']}"
+        if len(t) > 70 and t.endswith(brand):
+            t = t[: -len(brand)]
+        return t
+    env.filters["fit_title"] = fit_title
     env.filters["subid"] = with_subid  # {{ link|subid("web_oferta") }}: SubID de Travelpayouts por fuente
     photos = cfg.get("dest_images") or {}
     env.globals["dest_banner"] = lambda code: (*banner_image(photos.get(code, "")),

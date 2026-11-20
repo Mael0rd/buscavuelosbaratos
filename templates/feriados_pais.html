@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Feriados {{ f.year }} en {{ f.name }}: fines de semana largos y puentes | {{ site.title }}{% endblock %}
+{% block title %}Feriados {{ f.year }} {{ f.name }}: fines de semana largos y puentes | {{ site.title }}{% endblock %}
 {% block description %}Los {{ f.holidays|length }} feriados de {{ f.year }} en {{ f.name }}, los fines de semana largos y cuántos días de vacaciones pedir para descansar más, con ideas de vuelos baratos para cada puente.{% endblock %}
 {% block head %}
   <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",

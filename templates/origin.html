@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Vuelos y {{ o.term }} baratos desde {{ o.name }} ({{ o.code }}){% if o.cheapest %} desde ${{ "%.0f"|format(o.cheapest.last_price) }}{% endif %} | {{ site.title }}{% endblock %}
+{% block title %}Vuelos y {{ o.term }} baratos desde {{ o.name }}{% if o.cheapest and o.name|length < 20 %} desde ${{ "%.0f"|format(o.cheapest.last_price) }}{% endif %} | {{ site.title }}{% endblock %}
 {% block description %}{% if o.deals %}{{ o.deals|length }} oferta{{ "s" if o.deals|length != 1 }} verificada{{ "s" if o.deals|length != 1 }} ahora desde {{ o.name }}: {% for d in o.deals[:3] %}{{ d.dest_name }} ${{ "%.0f"|format(d.price) }}{{ ", " if not loop.last }}{% endfor %}.{% elif o.dests %}{{ o.term|capitalize }} baratos desde {{ o.name }}, {{ o.country_name }}: {% for r in o.dests[:3] %}{{ r.dest_name }} desde ${{ "%.0f"|format(r.last_price) }}{{ ", " if not loop.last }}{% endfor %}.{% else %}Vuelos y {{ o.term }} baratos de ida y vuelta saliendo desde {{ o.name }}, {{ o.country_name }}.{% endif %} {% if o.n_dests %}{{ o.n_dests }} destinos con precios de esta semana, {% endif %}ofertas verificadas en Google Flights y alertas gratis.{% endblock %}
 {% block head %}
   <script type="application/ld+json">{{ {

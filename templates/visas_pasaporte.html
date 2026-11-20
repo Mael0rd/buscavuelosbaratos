@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% set pname = "de EE. UU." if p.us_passport else "de " ~ p.name %}
-{% block title %}¿A qué países pueden viajar los {{ p.demonym }} sin visa? ({{ p.easy }} países) | {{ site.title }}{% endblock %}
+{% block title %}¿A qué países pueden viajar los {{ p.demonym }} sin visa? | {{ site.title }}{% endblock %}
 {% block description %}Con pasaporte {{ pname }} entras sin visa a {{ p.counts.free }} países y con visa al llegar a {{ p.counts.arrival }}. Lista completa con buscador y los destinos sin visa más baratos para volar.{% endblock %}
 {% block head %}
   <script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",

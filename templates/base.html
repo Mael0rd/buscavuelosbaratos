@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}{{ site.title }} — {{ site.tagline }}{% endblock %}</title>
+  <title>{% filter fit_title %}{% block title %}{{ site.title }} — {{ site.tagline }}{% endblock %}{% endfilter %}</title>
   <meta name="description" content="{% block description %}{{ site.tagline }}{% endblock %}">
   <meta name='impact-site-verification' value='d48ec037-62f1-495d-9dd1-62d4f3121f0f'>
   <script>
@@ -31,12 +31,15 @@
   <meta property="og:site_name" content="{{ site.title }}">
   <meta property="og:locale" content="es_419">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="{{ self.title()|striptags|trim }}">
+  <meta property="og:title" content="{{ self.title()|striptags|fit_title }}">
   <meta property="og:description" content="{{ self.description()|striptags|trim }}">
   <meta property="og:image" content="https://{{ site.domain }}{{ og }}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
+  {% if canonical is defined and canonical %}<script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "WebPage",
+    "name": self.title()|striptags|fit_title, "description": self.description()|striptags|trim, "url": canonical, "inLanguage": "es",
+    "isPartOf": {"@type": "WebSite", "name": site.title, "url": "https://" ~ site.domain ~ "/"}} | tojson }}</script>{% endif %}
   {% block head %}{% endblock %}
   {% include "_geo.html" %}
   <!-- Travelpayouts Drive: se carga cuando la página ya terminó de pintarse (no frena la carga ni los Core Web Vitals) -->

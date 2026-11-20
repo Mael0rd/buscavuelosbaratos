@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% set n = t.name %}
-{% block title %}¿Cuándo es más barato viajar a {{ n }}? Mejor época, clima y precios por mes | {{ site.title }}{% endblock %}
+{% block title %}¿Cuándo es más barato viajar a {{ n }}? Precio y clima por mes | {{ site.title }}{% endblock %}
 {% block description %}{{ t.summary }} Precio de los vuelos y clima de cada mes en {{ n }}{% if t.country %}, {{ t.country }}{% endif %}, desde {{ t.n_origins }} ciudad{{ "es" if t.n_origins > 1 }} de Latinoamérica.{% endblock %}
 {% block head %}
   {% if t.faq %}<script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage",
