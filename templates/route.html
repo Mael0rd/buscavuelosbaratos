@@ -86,13 +86,13 @@
 {% if r.related_origin %}
 <section class="related">
   <h2>Otros destinos desde {{ r.origin_name }}</h2>
-  <ul>{% for x in r.related_origin %}<li><a href="/vuelos/{{ x.slug }}">{{ x.dest_name }} <span>desde ${{ "%.0f"|format(x.low) }}</span></a></li>{% endfor %}</ul>
+  <ul>{% for x in r.related_origin %}<li><a href="/vuelos/{{ x.slug }}"><b>{% if flag_of.get(x.destination) %}<img class="flag" src="/static/flags/{{ flag_of[x.destination] }}.png" alt="" width="20" height="15" loading="lazy"> {% endif %}{{ x.dest_name }}</b> <span>desde ${{ "%.0f"|format(x.low) }}</span></a></li>{% endfor %}</ul>
 </section>
 {% endif %}
 {% if r.related_dest %}
 <section class="related">
   <h2>Vuelos a {{ r.dest_name }} desde otras ciudades</h2>
-  <ul>{% for x in r.related_dest %}<li><a href="/vuelos/{{ x.slug }}">{{ x.origin_name }} <span>desde ${{ "%.0f"|format(x.low) }}</span></a></li>{% endfor %}</ul>
+  <ul>{% for x in r.related_dest %}<li><a href="/vuelos/{{ x.slug }}"><b>{% if flag_of.get(x.origin) %}<img class="flag" src="/static/flags/{{ flag_of[x.origin] }}.png" alt="" width="20" height="15" loading="lazy"> {% endif %}{{ x.origin_name }}</b> <span>desde ${{ "%.0f"|format(x.low) }}</span></a></li>{% endfor %}</ul>
 </section>
 {% endif %}
 {% endblock %}

@@ -218,12 +218,16 @@ def build(conn, cfg: dict, ref=None) -> int:
     visa_of = {(v["pp"]["id"], v["dest"]): v for v in vi_pairs}
     visa_by_route = {(r["o"], r["d"]): visa_of.get((origin_country.get(r["o"]), r["cc"].upper()))
                      for r in xp_rows if r["cc"]}
+    # Bandera (ISO en minúsculas) de cada aeropuerto: destinos por el explorador, orígenes por su país
+    flag_of = {x["d"]: x["cc"] for x in xp_rows if x["cc"]}
+    flag_of.update({code: (cfg["countries"].get(cid) or {}).get("cc", "").lower()
+                    for code, cid in origin_country.items()})
     for r in route_pages:
         o = origin_by_code.get(r["origin"])
         dh = destinations.get(dest_slug(r["dest_name"], r["destination"]))
         r["origin_slug"] = o["slug"] if o else None
         r["dest_slug"] = dh["dest_slug"] if dh else None
-        write(f"vuelos/{r['slug']}.html", "route.html", r=r, c=by_id.get(r["country"]), faqs=routes.faq(r),
+        write(f"vuelos/{r['slug']}.html", "route.html", r=r, c=by_id.get(r["country"]), faqs=routes.faq(r), flag_of=flag_of,
               visa=visa_by_route.get((r["origin"], r["destination"])),
               noindex=not r["indexable"],
               og=(r["deal"] and f"/og/oferta-{r['deal']['slug']}.jpg") or (dh or {}).get("og") or (o or {}).get("og", ctx["og"]))

@@ -242,11 +242,13 @@ table.months tr.best td { color: var(--good); font-weight: 700; }
 .faq p { margin: .5rem 0 0; color: var(--muted); }
 .related { margin-top: 1.5rem; }
 .related h2 { font-size: 1.15rem; }
-.related ul { list-style: none; padding: 0; display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.related ul { list-style: none; padding: 0; display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 .related a { display: flex; justify-content: space-between; gap: .5rem; background: var(--card); border: 1px solid var(--line);
              border-radius: 10px; padding: .55rem .8rem; }
 .related a:hover { border-color: var(--accent); }
 .related a span { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+.related a b { font-weight: 500; display: inline-flex; align-items: center; gap: .45rem; }
+.related .flag { border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.08); flex: 0 0 auto; }
 
 /* ---- Compartir ---- */
 .share { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 1.25rem 0; }
